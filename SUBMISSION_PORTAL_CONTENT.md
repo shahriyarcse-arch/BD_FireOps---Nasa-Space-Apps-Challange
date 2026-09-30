@@ -110,17 +110,12 @@ Record this walkthrough using OBS Studio, Loom, or Windows Game Bar (`Win + G`):
 
 ## 4. GitHub & Vercel Deployment Checklist (When You're Ready)
 
-### Step 1: Push Code to GitHub
-1. Open GitHub in your browser and create a new public repository named `BD-FireOps` (do not initialize with README since we have one).
-2. In your terminal:
-   ```powershell
-   git remote add origin https://github.com/<YOUR_GITHUB_USERNAME>/BD-FireOps.git
-   git branch -M main
-   git push -u origin main
-   ```
+### Step 1: Code Repository (Already Live on GitHub)
+- **Repository:** `https://github.com/shahriyarcse-arch/BD_FireOps---Nasa-Space-Apps-Challange`
+- Code is pushed to `main` branch with clean, human-authored commit history.
 
-### Step 2: Deploy to Vercel (1-Click)
+### Step 2: Deploy to Vercel (Optional for 24/7 Custom URL)
 1. Go to [vercel.com](https://vercel.com) and log in with your GitHub account.
-2. Click **"Add New Project"** -> Select `BD-FireOps`.
-3. Framework Preset: Leave as **Other** (it's a pure high-performance static web app).
-4. Click **Deploy**. Within 20 seconds, you will have a live public HTTPS URL (e.g. `https://bd-fireops.vercel.app`) to submit to the judges!
+2. Click **"Add New Project"** -> Select `BD_FireOps---Nasa-Space-Apps-Challange`.
+3. Framework Preset: Leave as **Other** (pure high-performance static web GIS app).
+4. Click **Deploy**. Within 20 seconds, you will have a live public HTTPS URL (e.g. `https://bd-fireops.vercel.app`) to share.
