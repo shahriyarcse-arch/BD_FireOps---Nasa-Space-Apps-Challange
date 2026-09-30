@@ -1,0 +1,33 @@
+# Environment variables
+.env
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# FIRMS raw data: re-downloadable with a MAP_KEY (large, and covered by FIRMS terms)
+data/raw/
+data/raw/*.tar.gz
+data/raw/*.zip
+
+# Sensitivity temporary files & logs
+data/processed/*_lowconf.csv
+*.log
+
+
+
+# Editor / deploy tooling
+.vercel/
+.streamlit/
+.idea/
+.vscode/

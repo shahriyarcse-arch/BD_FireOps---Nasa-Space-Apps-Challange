@@ -1,0 +1,11 @@
+# Normalize line endings: LF in the repo, whatever the working OS needs locally
+* text=auto eol=lf
+
+# Binary assets must never be newline-converted
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
