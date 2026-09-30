@@ -1,0 +1,27 @@
+{
+  "question": "does keeping low-confidence detections change the fitted relationship?",
+  "baseline": {
+    "modis_rows": 42716,
+    "viirs_rows": 70858,
+    "slope": 0.2694,
+    "intercept": -1.18,
+    "test_months": 36,
+    "test_rmse": 55.67,
+    "test_bias": -4.09,
+    "test_r2": 0.9811
+  },
+  "low_confidence_kept": {
+    "modis_rows": 43792,
+    "viirs_rows": 77873,
+    "slope": 0.2464,
+    "intercept": 2.31,
+    "test_months": 36,
+    "test_rmse": 58.43,
+    "test_bias": -2.88,
+    "test_r2": 0.9802
+  },
+  "delta": {
+    "slope_percent": -8.54,
+    "test_rmse_percent": 4.96
+  }
+}

@@ -1,0 +1,114 @@
+{
+  "data_source": {
+    "kind": "nasa_firms_api",
+    "is_nasa_firms": true,
+    "note": ""
+  },
+  "study_area": "Bangladesh Chittagong Hill Tracts (CHT), district polygons",
+  "bounding_box": [
+    91.9,
+    21.4,
+    92.9,
+    23.8
+  ],
+  "region_filter": {
+    "name": "CHT districts (Bandarban, Khagrachhari, Rangamati)",
+    "source": "geoBoundaries BGD-ADM2 (BBS / OCHA ROAP), CC BY 3.0, data/reference/geoBoundaries-BGD-ADM2_simplified.geojson",
+    "dropped_outside_region": {
+      "modis": 54300,
+      "viirs": 85857
+    }
+  },
+  "training_period": "2012-01 to 2018-12 (84 months)",
+  "held_out_test_period": "2019-01 to 2021-12 (36 months)",
+  "observed_sensor_shift_ratio": 2.85,
+  "observed_sensor_shift_ratio_definition": "mean raw VIIRS (2012+) / mean MODIS (2002-2011), zero months counted on both sides \u2014 the discontinuity drawn in Chart A",
+  "overlap_viirs_to_modis_ratio": 3.71,
+  "overlap_viirs_to_modis_ratio_definition": "mean raw VIIRS / mean MODIS over the same 2012-2021 months (the sensor sensitivity difference)",
+  "zero_month_handling": {
+    "overlap_months": 120,
+    "zero_modis_months": 57,
+    "zero_viirs_months": 31,
+    "months_with_any_zero": 57,
+    "handling": "zero months retained; log1p variant used as the zero-robust check",
+    "modis_describe": {
+      "count": 120.0,
+      "mean": 159.208,
+      "std": 386.221,
+      "min": 0.0,
+      "25%": 0.0,
+      "50%": 1.0,
+      "75%": 7.25,
+      "max": 2018.0
+    },
+    "viirs_describe": {
+      "count": 120.0,
+      "mean": 590.475,
+      "std": 1386.508,
+      "min": 0.0,
+      "25%": 0.0,
+      "50%": 10.5,
+      "75%": 55.0,
+      "max": 6117.0
+    },
+    "nan_counts": {
+      "modis": 0,
+      "viirs": 0
+    },
+    "dropped_nan_months": []
+  },
+  "confidence_threshold_sensitivity_run": true,
+  "fitted_linear_model": {
+    "equation": "MODIS_eq = 0.2694 * VIIRS + (-1.18)",
+    "slope": 0.2694,
+    "intercept": -1.18,
+    "bootstrap_slope_95_ci": [
+      0.2296,
+      0.3202
+    ],
+    "bootstrap_intercept_95_ci": [
+      -10.9,
+      7.87
+    ],
+    "interpretation": "fitted regional empirical relationship (monthly counts), not a universal MODIS-VIIRS conversion"
+  },
+  "fitted_log1p_model": {
+    "equation": "ln(MODIS_eq + 1) = 0.8328 * ln(VIIRS + 1) + (-0.67)",
+    "slope": 0.8328,
+    "intercept": -0.67
+  },
+  "held_out_test_comparison": {
+    "naive_raw_viirs_vs_modis": {
+      "bias": 468.92,
+      "mae": 468.92,
+      "rmse": 1130.64,
+      "r2": -6.8012,
+      "spearman_corr": 0.928
+    },
+    "harmonized_linear_vs_modis": {
+      "bias": -4.09,
+      "mae": 21.56,
+      "rmse": 55.67,
+      "r2": 0.9811,
+      "spearman_corr": 0.9488
+    },
+    "harmonized_log1p_vs_modis": {
+      "bias": -92.18,
+      "mae": 95.56,
+      "rmse": 243.95,
+      "r2": 0.6368,
+      "spearman_corr": 0.934
+    }
+  },
+  "performance_improvement": {
+    "rmse_reduction_percent": 95.1,
+    "bias_reduction_percent": 99.1
+  },
+  "limitations": [
+    "Region-specific held-out-tested prototype: not a universal MODIS-VIIRS conversion, not a fire-cause classifier, not proof of fire absence.",
+    "Regional monthly counts, not paired fire-level detections.",
+    "No overpass-time, scan-angle, exact administrative boundary, land-cover or FRP modeling.",
+    "FIRMS reports positive detections; non-detection does not prove absence of fire (cloud cover, orbital gaps).",
+    "Suomi-NPP VIIRS delivery permanently ceases November 1, 2026; future operations require NOAA-20/21 refitting."
+  ]
+}

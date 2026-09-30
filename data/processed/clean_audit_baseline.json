@@ -1,0 +1,42 @@
+{
+  "modis": {
+    "sensor": "modis",
+    "raw_rows": 112681,
+    "dropped_low_confidence": 3171,
+    "aqua_rows": 97016,
+    "terra_rows": 12494,
+    "reference_sensor": "Aqua MODIS",
+    "aqua_filter_applied": true,
+    "dropped_bad_coords": 0,
+    "region_filter": {
+      "name": "CHT districts (Bandarban, Khagrachhari, Rangamati)",
+      "source": "geoBoundaries BGD-ADM2 (BBS / OCHA ROAP), CC BY 3.0, data/reference/geoBoundaries-BGD-ADM2_simplified.geojson"
+    },
+    "dropped_outside_region": 54300,
+    "dropped_duplicates": 0,
+    "dropped_bad_dates": 0,
+    "clean_rows": 42716,
+    "first_date": "2002-12-15",
+    "last_date": "2021-12-30"
+  },
+  "viirs": {
+    "sensor": "viirs",
+    "raw_rows": 172197,
+    "aqua_filter_applied": false,
+    "satellites": {
+      "N": 172197
+    },
+    "dropped_low_confidence": 15480,
+    "dropped_bad_coords": 2,
+    "region_filter": {
+      "name": "CHT districts (Bandarban, Khagrachhari, Rangamati)",
+      "source": "geoBoundaries BGD-ADM2 (BBS / OCHA ROAP), CC BY 3.0, data/reference/geoBoundaries-BGD-ADM2_simplified.geojson"
+    },
+    "dropped_outside_region": 85857,
+    "dropped_duplicates": 0,
+    "dropped_bad_dates": 0,
+    "clean_rows": 70858,
+    "first_date": "2012-01-20",
+    "last_date": "2022-01-01"
+  }
+}
