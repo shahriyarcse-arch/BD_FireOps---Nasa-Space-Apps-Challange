@@ -264,100 +264,48 @@ def build_validation(m: dict) -> str:
 
 
 
-    return f"""      <div class="section-header">
-        <div>
-          <span class="section-kicker">SECTION 02 · QUANTITATIVE RIGOR</span>
-          <h2 class="section-title">Independent Held-Out Test Evaluation (2019–2021)</h2>
-          <p class="section-desc">
-            Trained on <strong>{m.get('training_period', '2012-01 to 2018-12')}</strong> and tested on an
-            independent <strong>{m.get('held_out_test_period', '2019-01 to 2021-12')}</strong> dataset to
-            strictly prevent data leakage.<br>{prov}
-            <br>Sensor ratios measured on this record: Chart-A step <strong>{step_s}</strong>
-            (VIIRS 2012–2021 ÷ MODIS 2002–2011); same-month overlap <strong>{ovl_s}</strong>.{sens_line}
-
-          </p>
+    return f"""      <div id="proof-cards" class="proof-grid" aria-live="polite">
+        <div class="proof-card">
+          <p class="proof-num">{lin.get("rmse", "n/a")}</p>
+          <p class="proof-label">Wrong guesses per month (lower is better)</p>
+          <p class="proof-hint">Wrong join was {naive.get("rmse", "n/a")} → we cut it by {imp.get("rmse_reduction_percent", "n/a")}%.</p>
         </div>
-        <div class="equation-pill">
-          <span class="eq-label">FITTED MODEL:</span>
-          <code class="eq-code font-mono">MODIS_eq = {flm['slope']} × VIIRS {flm['intercept']:+}</code>
+        <div class="proof-card">
+          <p class="proof-num">{signed(lin.get("bias"))}</p>
+          <p class="proof-label">Always-too-high problem (0 is fair)</p>
+          <p class="proof-hint">Wrong join was {signed(naive.get("bias"))} → cut by {imp.get("bias_reduction_percent", "n/a")}%.</p>
+        </div>
+        <div class="proof-card">
+          <p class="proof-num">{r2 if r2 is not None else "n/a"}</p>
+          <p class="proof-label">How well it follows real ups and downs (1.0 = perfect)</p>
+          <p class="proof-hint">{("Right " + str(r2_pct) + "% of the time." if r2_pct is not None else "")} Wrong join: {naive_r2}.</p>
         </div>
       </div>
-
-      <div class="metrics-large-grid">
-        <div class="metric-giant-card">
-          <div class="metric-top">
-            <span class="metric-title">RMSE ERROR REDUCTION</span>
-            <span class="metric-chip chip-green">{chip(rmse_imp)}</span>
-          </div>
-          <div class="metric-giant-num font-mono text-green">{lin.get('rmse', 'n/a')}</div>
-          <div class="metric-subtext">
-            Dropped from <strong>{naive.get('rmse', 'n/a')}</strong> (Raw VIIRS) to
-            <strong>{lin.get('rmse', 'n/a')}</strong> hotspots/month.
-          </div>
-        </div>
-
-        <div class="metric-giant-card">
-          <div class="metric-top">
-            <span class="metric-title">PREDICTION BIAS MITIGATION</span>
-            <span class="metric-chip chip-green">{chip(bias_imp)}</span>
-          </div>
-          <div class="metric-giant-num font-mono text-green">{signed(lin.get('bias'))}</div>
-          <div class="metric-subtext">
-            Mean prediction error reduced from <strong>{signed(naive.get('bias'))}</strong> to
-            <strong>{signed(lin.get('bias'))}</strong>.
-          </div>
-        </div>
-
-        <div class="metric-giant-card">
-          <div class="metric-top">
-            <span class="metric-title">TEST SET R² SCORE</span>
-            <span class="metric-chip chip-blue">{r2_chip}</span>
-          </div>
-          <div class="metric-giant-num font-mono text-blue">{r2 if r2 is not None else 'n/a'}</div>
-          <div class="metric-subtext">
-            {('Explains <strong>' + str(r2_pct) + '%</strong> of variance' if r2_pct is not None else 'R² unavailable')}
-            (raw unadjusted splice R²: <strong>{naive_r2}</strong>).
-          </div>
-        </div>
-
-        <div class="metric-giant-card">
-          <div class="metric-top">
-            <span class="metric-title">SPEARMAN RANK CORRELATION</span>
-            <span class="metric-chip chip-purple">MONOTONIC</span>
-          </div>
-          <div class="metric-giant-num font-mono text-purple">{rho if rho is not None else 'n/a'}</div>
-          <div class="metric-subtext">
-            {('Seasonal Jhum burning rhythm preserved at <strong>' + str(rho_pct) + '%</strong> rank fidelity.'
-              if rho_pct is not None else 'Rank correlation unavailable for this run.')}
-          </div>
-        </div>
-      </div>"""
+      <p class="proof-note">Data: NASA FIRMS API (MODIS + VIIRS S-NPP), hill-district polygons only.
+      Learned on 2012–2018, tested on 2019–2021. Formula:
+      <span class="font-mono">MODIS-like = {flm["slope"]} × VIIRS {flm["intercept"]:+}</span>.</p>"""
 
 
 def build_naive_callout(m: dict) -> str:
     shift = m.get("observed_sensor_shift_ratio")
     if shift is None or shift != shift:
-        return '<span class="card-stat-callout callout-red">Sensor Shift Jump</span>'
-    pct = round((float(shift) - 1.0) * 100)
-    return f'<span class="card-stat-callout callout-red">+{pct}% Artificial Spike</span>'
+        return '<strong>Wrong join: much too high after 2012.</strong>'
+    return f'<strong>Wrong join: almost {shift}× too high after 2012.</strong>'
 
 
 def build_naive_copy(m: dict) -> str:
     shift = m.get("observed_sensor_shift_ratio")
     if shift is None or shift != shift:
-        claim = "an abrupt sensor artefact"
+        claim = "much higher"
     else:
-        claim = f"a <strong>false ~{shift}× step in detected fire counts at the 2012 transition</strong>"
-
+        claim = f"almost {shift}\u00d7 higher"
     return (
-        f"Directly concatenating raw satellite records creates {claim} due to sensor pixel "
-        "resolution. BD-FireOps removes this sensor jump to restore a continuous "
-        "MODIS-equivalent baseline."
+        f"If we join the two cameras directly, fires look {claim} after 2012 — "
+        "but only the camera changed, not the forest."
     )
 
 
-
-SIM_BASELINE = 940   # default slider position in index.html
+SIM_BASELINE = 300   # default slider position in index.html
 
 
 def build_sim_defaults(m: dict) -> dict[str, str]:

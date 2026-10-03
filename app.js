@@ -1305,23 +1305,25 @@ function setPressed(active, inactive) {
   inactive.setAttribute('aria-pressed', 'false');
 }
 
-// Map Toggles
+// Map Toggles (only if the buttons exist — the light page keeps one basemap)
 const mapBtnSat = document.getElementById('map-btn-satellite');
 const mapBtnDark = document.getElementById('map-btn-dark');
-mapBtnSat.addEventListener('click', function () {
-  setPressed(mapBtnSat, mapBtnDark);
-  map.removeLayer(tileDark);
-  map.addLayer(tileSat);
-});
+if (mapBtnSat && mapBtnDark) {
+  mapBtnSat.addEventListener('click', function () {
+    setPressed(mapBtnSat, mapBtnDark);
+    map.removeLayer(tileDark);
+    map.addLayer(tileSat);
+  });
 
-mapBtnDark.addEventListener('click', function () {
-  setPressed(mapBtnDark, mapBtnSat);
-  map.removeLayer(tileSat);
-  map.addLayer(tileDark);
-});
+  mapBtnDark.addEventListener('click', function () {
+    setPressed(mapBtnDark, mapBtnSat);
+    map.removeLayer(tileSat);
+    map.addLayer(tileDark);
+  });
+}
 
 // =============================================================================
-// 3. SECTION 1: CHART A & CHART B SPLIT + OVERLAY
+// 3. CHART A (wrong join) & CHART B (our fix)
 // =============================================================================
 let chartNaiveInstance = null;
 let chartHarmInstance = null;
@@ -1332,73 +1334,76 @@ const modisSeries = CHT_SERIES.map(d => d.modis);
 const naiveSeries = CHT_SERIES.map(d => d.y < 2012 ? d.modis : d.viirs);
 const harmSeries = CHT_SERIES.map(d => d.harm);
 
-// One shared style block for all three charts — identical axes, grid and
-// typography, changed in exactly one place.
-const CHART_OPTS = (yTitle, legendColor) => ({
+// One shared style block for both charts — light page, dark text.
+const CHART_OPTS = (yTitle) => ({
   responsive: true,
   maintainAspectRatio: false,
   plugins: {
     legend: {
       labels: {
-        color: legendColor,
-        font: { family: "'Plus Jakarta Sans', sans-serif", size: 13, weight: 600 }
+        color: '#334155',
+        font: { size: 13, weight: 600 }
       }
     }
   },
   scales: {
     x: {
-      ticks: { color: '#94a3b8', font: { family: "'JetBrains Mono'" , size: 12 }, maxTicksLimit: 12 },
-      grid: { color: 'rgba(255,255,255,0.06)' }
+      ticks: { color: '#64748b', size: 12, maxTicksLimit: 12 },
+      grid: { color: 'rgba(15, 23, 42, 0.08)' }
     },
     y: {
-      ticks: { color: '#94a3b8', font: { family: "'JetBrains Mono'", size: 13 } },
-      grid: { color: 'rgba(255,255,255,0.06)' },
-      title: { display: true, text: yTitle, color: '#94a3b8', font: { size: 14 } }
+      ticks: { color: '#64748b', size: 13 },
+      grid: { color: 'rgba(15, 23, 42, 0.08)' },
+      title: { display: true, text: yTitle, color: '#64748b', font: { size: 14 } }
     }
   }
 });
 
 function initCharts() {
-  // Chart A: Naive
-  const ctxA = document.getElementById('chartNaive').getContext('2d');
+  // Chart A: wrong join (MODIS then raw VIIRS — the fake jump)
+  const elA = document.getElementById('chartNaive');
+  if (!elA) return;
+  const ctxA = elA.getContext('2d');
   chartNaiveInstance = new Chart(ctxA, {
     type: 'line',
     data: {
       labels,
       datasets: [{
-        label: 'Naive Sensor Splice (Unadjusted VIIRS 375m Inflation)',
+        label: 'Fires per month (wrong join)',
         data: naiveSeries,
-        borderColor: '#ef4444',
-        backgroundColor: 'rgba(239, 68, 68, 0.15)',
+        borderColor: '#dc2626',
+        backgroundColor: 'rgba(220, 38, 38, 0.12)',
         borderWidth: 2.5,
         pointRadius: 2,
         fill: true,
         tension: 0.25
       }]
     },
-    options: CHART_OPTS('Monthly Active Fire Count', '#f8fafc')
+    options: CHART_OPTS('Fires per month')
   });
 
-  // Chart B: Harmonized
-  const ctxB = document.getElementById('chartHarm').getContext('2d');
+  // Chart B: our fix (VIIRS turned into MODIS-like counts)
+  const elB = document.getElementById('chartHarm');
+  if (!elB) return;
+  const ctxB = elB.getContext('2d');
   chartHarmInstance = new Chart(ctxB, {
     type: 'line',
     data: {
       labels,
       datasets: [
         {
-          label: 'Observed Aqua MODIS Baseline (2002–2021)',
+          label: 'Seen by old camera (MODIS)',
           data: modisSeries,
-          borderColor: '#38bdf8',
+          borderColor: '#2563eb',
           borderWidth: 2,
           pointRadius: 2,
           tension: 0.25
         },
         {
-          label: 'BD-FireOps Harmonized Record (Calibrated MODIS-Equiv)',
+          label: 'Our fixed line (MODIS-like)',
           data: harmSeries,
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.15)',
+          borderColor: '#1a7f4b',
+          backgroundColor: 'rgba(26, 127, 75, 0.12)',
           borderWidth: 2.5,
           pointRadius: 2,
           fill: true,
@@ -1406,62 +1411,36 @@ function initCharts() {
         }
       ]
     },
-    options: CHART_OPTS('MODIS-Equiv Monthly Count', '#f8fafc')
+    options: CHART_OPTS('Fires per month')
   });
 
-  // Chart Overlay
-  const ctxO = document.getElementById('chartOverlay').getContext('2d');
-  chartOverlayInstance = new Chart(ctxO, {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [
-        {
-          label: `Naive Raw Splicing (${SENSOR_SHIFT_LABEL})`,
-          data: naiveSeries,
-          borderColor: '#ef4444',
-          borderWidth: 2,
-          borderDash: [5, 5],
-          pointRadius: 1,
-          tension: 0.25
-        },
-        {
-          label: 'BD-FireOps Calibrated Continuity (MODIS-equivalent Baseline)',
-          data: harmSeries,
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.15)',
-          borderWidth: 3,
-          pointRadius: 2,
-          fill: true,
-          tension: 0.25
-        }
-      ]
-    },
-    options: CHART_OPTS('Monthly Active Fire Count', '#ffffff')
-  });
+  // Overlay chart only exists on the old full page — skip on the light page.
+  return;
+  // (old overlay code below kept for reference, never runs on light page)
 }
 
-// Toggle Split vs Overlay (class-based: no inline style writes)
+// Split/overlay toggle only exists on the old full page.
 const btnSplit = document.getElementById('view-btn-split');
 const btnOverlay = document.getElementById('view-btn-overlay');
 const containerSplit = document.getElementById('split-charts-container');
 const containerOverlay = document.getElementById('overlay-chart-container');
+if (btnSplit && btnOverlay && containerSplit && containerOverlay) {
+  btnSplit.addEventListener('click', () => {
+    setPressed(btnSplit, btnOverlay);
+    containerSplit.classList.remove('is-hidden');
+    containerOverlay.classList.remove('is-visible');
+  });
 
-btnSplit.addEventListener('click', () => {
-  setPressed(btnSplit, btnOverlay);
-  containerSplit.classList.remove('is-hidden');
-  containerOverlay.classList.remove('is-visible');
-});
-
-btnOverlay.addEventListener('click', () => {
-  setPressed(btnOverlay, btnSplit);
-  containerSplit.classList.add('is-hidden');
-  containerOverlay.classList.add('is-visible');
-  if (chartOverlayInstance) chartOverlayInstance.resize();
-});
+  btnOverlay.addEventListener('click', () => {
+    setPressed(btnOverlay, btnSplit);
+    containerSplit.classList.add('is-hidden');
+    containerOverlay.classList.add('is-visible');
+    if (chartOverlayInstance) chartOverlayInstance.resize();
+  });
+}
 
 // =============================================================================
-// 4. TIMELINE SLIDER & REGIME INSPECTOR
+// 4. YEAR SLIDER (map filter) + TRY-IT BOX
 // =============================================================================
 const slider = document.getElementById('main-slider');
 const yearBadge = document.getElementById('slider-year-badge');
@@ -1471,21 +1450,19 @@ const peakTableBody = document.getElementById('peak-month-table');
 
 function updateTimeline(year) {
   const yr = parseInt(year);
-  yearBadge.innerText = yr;
+  if (yearBadge) yearBadge.innerText = yr;
   updateMapHotspots(yr);
 
-  // Update regime card
-  eraCard.className = 'regime-status-card';
-  if (yr < 2012) {
-    eraCard.classList.add('regime-pre');
-    eraText.innerText = "Single-Sensor Horizon (Aqua MODIS Only)";
-  } else if (yr <= 2018) {
-    eraCard.classList.add('regime-overlap');
-    eraText.innerText = "Training Overlap Period (2012–2018 Model Fit)";
-  } else {
-    eraCard.classList.add('regime-test');
-    eraText.innerText = "Independent Held-Out Test Evaluation (2019–2021)";
+  // One plain sentence under the slider (no jargon).
+  if (eraText) {
+    if (yr < 2012) eraText.innerText = "— old camera years (MODIS only)";
+    else if (yr <= 2018) eraText.innerText = "— years we learned from";
+    else eraText.innerText = "— test years (hidden while learning)";
   }
+  if (eraCard) eraCard.hidden = true;
+
+  // Peak-month table only exists on the old full page.
+  if (!peakTableBody) return;
 
   // Populate March Peak Month Table (classes, no inline styles)
   const march = CHT_SERIES.find(d => d.y === yr && d.mn === 3);
@@ -1547,44 +1524,48 @@ slider.addEventListener('input', (e) => {
 });
 
 // =============================================================================
-// 5. LIVE CALIBRATION SIMULATOR
+// 5. TRY-IT BOX ("if VIIRS sees X, what would MODIS have seen?")
 // =============================================================================
 const simSlider = document.getElementById('sim-input-slider');
 const simVal = document.getElementById('sim-input-val');
 const simOutModis = document.getElementById('sim-out-modis');
 const simOutCI = document.getElementById('sim-out-ci');
 const simOutMitigation = document.getElementById('sim-out-mitigation');
+const simOutRaw = document.getElementById('sim-out-raw');
 
 function updateSimulator(count) {
-  simVal.innerText = count;
+  if (simVal) simVal.innerText = count;
+  if (simOutRaw) simOutRaw.innerText = count;
 
   const P = MODEL_PARAMS;
   const modisEq = Math.max(0, P.slope * count + P.intercept);
-  simOutModis.innerText = modisEq.toFixed(1);
+  if (simOutModis) simOutModis.innerText = modisEq.toFixed(1);
 
-  // Bootstrap 95% COEFFICIENT band (envelope of slope + intercept CIs),
-  // NOT a prediction interval — matches the dashboard caption.
+  // Safety range from 500 re-checks (how unsure the line itself is).
   const lo = Math.max(0, P.slopeCI[0] * count + Math.min(P.interceptCI[0], P.interceptCI[1]));
   const hi = P.slopeCI[1] * count + Math.max(P.interceptCI[0], P.interceptCI[1]);
-  simOutCI.innerText = `[${lo.toFixed(1)}, ${hi.toFixed(1)}]`;
+  if (simOutCI) simOutCI.innerText = `[${lo.toFixed(1)}, ${hi.toFixed(1)}]`;
 
   if (count > 0) {
     const mit = ((1 - modisEq / count) * 100).toFixed(1);
-    simOutMitigation.innerText = `-${mit}%`;
-  } else {
+    if (simOutMitigation) simOutMitigation.innerText = `-${mit}%`;
+  } else if (simOutMitigation) {
     simOutMitigation.innerText = "0.0%";
   }
 }
 
-simSlider.addEventListener('input', (e) => {
-  updateSimulator(parseInt(e.target.value));
-});
+if (simSlider) {
+  simSlider.addEventListener('input', (e) => {
+    updateSimulator(parseInt(e.target.value));
+  });
+}
 
 // =============================================================================
-// 6. 20-YEAR BURNING CALENDAR MATRIX (LARGE & CLEAR)
+// 6. YEAR CALENDAR (only on the old full page — skip if missing)
 // =============================================================================
 function buildCalendarGrid() {
   const grid = document.getElementById('calendar-heatmap-grid');
+  if (!grid) return;
   grid.innerHTML = '';
 
   const months = ["Year", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -1660,8 +1641,8 @@ function buildCalendarGrid() {
   try {
     initCharts();
     buildCalendarGrid();
-    updateTimeline(2015);
-    updateSimulator(parseInt(simSlider.value, 10) || 940);
+    if (slider) updateTimeline(slider.value || 2015);
+    if (simSlider) updateSimulator(parseInt(simSlider.value, 10) || 300);
   } catch (err) {
     console.error('[BD-FireOps] init failed:', err);
     const banner = document.getElementById('app-error-banner');
