@@ -1389,9 +1389,7 @@ function initCharts() {
 // =============================================================================
 const slider = document.getElementById('main-slider');
 const yearBadge = document.getElementById('slider-year-badge');
-const eraCard = document.getElementById('era-regime-card');
 const eraText = document.getElementById('era-regime-text');
-const peakTableBody = document.getElementById('peak-month-table');
 
 function updateTimeline(year) {
   const yr = parseInt(year);
@@ -1403,64 +1401,6 @@ function updateTimeline(year) {
     if (yr < 2012) eraText.innerText = "— old camera years (MODIS only)";
     else if (yr <= 2018) eraText.innerText = "— years we learned from";
     else eraText.innerText = "— test years (hidden while learning)";
-  }
-  if (eraCard) eraCard.hidden = true;
-
-  // Peak-month table only exists on the old full page.
-  if (!peakTableBody) return;
-
-  // Populate March Peak Month Table (classes, no inline styles)
-  const march = CHT_SERIES.find(d => d.y === yr && d.mn === 3);
-  if (march) {
-    const hasRaw = typeof march.viirs === 'number';
-    const rawV = hasRaw ? march.viirs : "N/A (Pre-Launch)";
-    const mitigation = (hasRaw && march.viirs > 0)
-      ? `-${((1 - march.harm / march.viirs) * 100).toFixed(1)}%`
-      : (hasRaw ? "n/a (raw = 0)" : "—");
-
-    // Honest third-column label: residual vs the observed MODIS count
-    let calLabel, calClass;
-    if (!hasRaw) {
-      calLabel = "Observed Baseline";
-      calClass = "tp-cyan";
-    } else if (march.modis > 0) {
-      const err = ((march.harm - march.modis) / march.modis) * 100;
-      calLabel = `${err >= 0 ? "+" : ""}${err.toFixed(1)}% vs Observed`;
-      calClass = Math.abs(err) <= 10 ? "tp-good" : "tp-warn";
-    } else {
-      calLabel = "n/a (zero observed)";
-      calClass = "tp-muted";
-    }
-
-    peakTableBody.innerHTML = `
-      <tr>
-        <td class="tp-c tp-cyan">Observed MODIS (1km)</td>
-        <td class="tp-v tp-white">${march.modis}</td>
-        <td class="tp-s tp-muted">Ground Reference</td>
-      </tr>
-      <tr>
-        <td class="tp-c tp-red">Raw VIIRS (375m)</td>
-        <td class="tp-v tp-red">${rawV}</td>
-        <td class="tp-s tp-red">${hasRaw ? 'Unadjusted Inflation' : 'Pre-Launch'}</td>
-      </tr>
-      <tr>
-        <td class="tp-c tp-green">BD-FireOps Calibrated</td>
-        <td class="tp-v tp-green tp-big">${march.harm.toFixed(1)}</td>
-        <td class="tp-s ${calClass}">${calLabel}</td>
-      </tr>
-      <tr>
-        <td class="tp-c tp-amber">Inflation Corrected</td>
-        <td class="tp-v tp-amber">${mitigation}</td>
-        <td class="tp-s tp-amber">${hasRaw && march.viirs > 0 ? "Neutralized" : (hasRaw ? "No raw count" : "No VIIRS Yet")}</td>
-      </tr>
-    `;
-  } else {
-    // Record starts 2002-07: never show a previous year's numbers under a new badge.
-    peakTableBody.innerHTML = `
-      <tr>
-        <td colspan="3" class="tp-s tp-muted">No record for March ${yr} (series starts 2002-07)</td>
-      </tr>
-    `;
   }
 }
 
