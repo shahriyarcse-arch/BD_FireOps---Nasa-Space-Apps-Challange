@@ -327,17 +327,11 @@ const map = L.map('map', {
 
 L.control.zoom({ position: 'topright' }).addTo(map);
 
-// Esri True Color High-Res Satellite
+// Esri True Color High-Res Satellite (single basemap on the light page)
 const tileSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
   attribution: 'Tiles &copy; Esri &middot; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community',
   maxZoom: 18
 }).addTo(map);
-
-// Esri Dark Tactical Canvas
-const tileDark = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-  attribution: 'Tiles &copy; Esri Dark Canvas &middot; Source: Esri',
-  maxZoom: 16
-});
 
 // FIRMS API search window [91.9-92.9E, 21.4-23.8N] - where rows were requested.
 L.rectangle([[21.4, 91.9], [23.8, 92.9]], {
@@ -1296,30 +1290,6 @@ function updateMapHotspots(year) {
       year
     );
   }
-}
-
-function setPressed(active, inactive) {
-  active.classList.add('active');
-  active.setAttribute('aria-pressed', 'true');
-  inactive.classList.remove('active');
-  inactive.setAttribute('aria-pressed', 'false');
-}
-
-// Map Toggles (only if the buttons exist — the light page keeps one basemap)
-const mapBtnSat = document.getElementById('map-btn-satellite');
-const mapBtnDark = document.getElementById('map-btn-dark');
-if (mapBtnSat && mapBtnDark) {
-  mapBtnSat.addEventListener('click', function () {
-    setPressed(mapBtnSat, mapBtnDark);
-    map.removeLayer(tileDark);
-    map.addLayer(tileSat);
-  });
-
-  mapBtnDark.addEventListener('click', function () {
-    setPressed(mapBtnDark, mapBtnSat);
-    map.removeLayer(tileSat);
-    map.addLayer(tileDark);
-  });
 }
 
 // =============================================================================

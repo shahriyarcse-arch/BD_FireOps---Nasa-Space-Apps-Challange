@@ -34,6 +34,13 @@
           <p class="brand-sub">NASA Space Apps 2026 · Dhaka</p>
         </div>
       </div>
+      <nav class="topnav" aria-label="Jump to section">
+        <a href="#problem">Problem</a>
+        <a href="#proof">Proof</a>
+        <a href="#try">Try it</a>
+        <a href="#map-section">Map</a>
+        <a href="#limits">Limits</a>
+      </nav>
       <p class="topbar-note">Old records (2002–2021) · Not a live fire alert</p>
     </div>
   </header>
@@ -50,15 +57,15 @@
         If we join them directly, fires look like they <strong>almost tripled overnight</strong> — but only the camera changed.
         BD-FireOps fixes that jump, so 20 years can be compared fairly.
       </p>
-      <ul class="plain-list">
-        <li><strong>Where:</strong> Chittagong Hill Tracts — Bandarban, Rangamati, Khagrachhari.</li>
-        <li><strong>What:</strong> Monthly fire counts, 2002–2021.</li>
-        <li><strong>How sure:</strong> Tested on 3 years of new data the model never saw.</li>
+      <ul class="chips">
+        <li class="chip"><span aria-hidden="true">📍</span><strong>Where</strong> Bandarban · Rangamati · Khagrachhari</li>
+        <li class="chip"><span aria-hidden="true">🗓️</span><strong>What</strong> Monthly fire counts, 2002–2021</li>
+        <li class="chip"><span aria-hidden="true">✅</span><strong>How sure</strong> Tested on 3 unseen years</li>
       </ul>
     </section>
 
     <!-- 2. WRONG JOIN vs FIX -->
-    <section class="card">
+    <section class="card" id="problem">
       <p class="kicker">Step 1 · See the problem, then the fix</p>
       <h2>Wrong join vs fixed join</h2>
       <p class="muted">
@@ -104,7 +111,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- 3. PROOF -->
-    <section class="card">
+    <section class="card" id="proof">
       <p class="kicker">Step 2 · Proof it works</p>
       <h2>Tested on 3 years of new data</h2>
       <p class="muted">We hid 2019–2021, then asked the model to guess. It was very close.</p>
@@ -134,12 +141,13 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- 4. TRY IT -->
-    <section class="card">
+    <section class="card" id="try">
       <p class="kicker">Step 3 · Try it yourself</p>
       <h2>If VIIRS sees this many fires, what would MODIS have seen?</h2>
       <label class="try-row" for="sim-input-slider">
         <span>VIIRS count in a month: <strong id="sim-input-val">300</strong></span>
         <input type="range" id="sim-input-slider" min="0" max="2000" value="300" step="10">
+        <span class="slider-scale" aria-hidden="true"><span>0</span><span>2,000</span></span>
       </label>
       <div class="try-out">
         <div class="try-box">
@@ -164,12 +172,18 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       </div>
     </section>
 
-    <!-- 5. MAP (trimmed start, keep tail IDs) -->
-    <section class="card">
+    <!-- 5. MAP -->
+    <section class="card" id="map-section">
       <p class="kicker">Step 4 · Where did fires happen?</p>
       <h2>Hill Tracts fire map <span class="pill">Old records, not live</span></h2>
       <p class="muted">Dots = real NASA fire cells. Outline = hill district borders.</p>
       <div id="map" class="map"></div>
+      <p class="map-legend">
+        <span><i class="dot dot-modis" aria-hidden="true"></i> MODIS years</span>
+        <span><i class="dot dot-viirs" aria-hidden="true"></i> VIIRS years</span>
+        <span><i class="dot dot-line" aria-hidden="true"></i> district border</span>
+        <span><i class="dot dot-window" aria-hidden="true"></i> API search box</span>
+      </p>
       <label class="try-row" for="main-slider">
         <span>Year: <strong id="slider-year-badge">2015</strong> <span id="era-regime-text" class="muted small"></span></span>
         <input type="range" id="main-slider" min="2002" max="2021" value="2015" step="1" aria-label="Map year">
@@ -181,7 +195,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- 6. LIMITS -->
-    <section class="card limits">
+    <section class="card limits" id="limits">
       <p class="kicker">Please read · Honest limits</p>
       <h2>What this is NOT</h2>
       <ul class="plain-list">

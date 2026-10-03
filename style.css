@@ -173,3 +173,143 @@ body {
   .map { height: 320px; }
 }
 
+
+
+/* ==========================================================================
+   UX POLISH — sticky nav, anchors, accents, hover states (reduced-motion
+   safe: the media block above already kills transitions when asked for)
+   ========================================================================== */
+
+/* Smooth in-page jumps with a sticky-bar offset */
+html { scroll-behavior: smooth; }
+:target, section[id] { scroll-margin-top: 88px; }
+
+/* Sticky top bar so the jump links stay reachable */
+.topbar {
+  position: sticky; top: 0; z-index: 500;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+}
+
+/* Quick-jump nav */
+.topnav { display: flex; gap: 4px; flex-wrap: wrap; }
+.topnav a {
+  color: var(--muted); text-decoration: none;
+  font-size: 0.9rem; font-weight: 700;
+  padding: 6px 12px; border-radius: 999px;
+  border: 1px solid transparent;
+  transition: color 200ms var(--ease), background 200ms var(--ease), border-color 200ms var(--ease);
+}
+.topnav a:hover { color: var(--green); background: var(--green-soft); border-color: #bbe3c9; }
+.topnav a:focus-visible, .more summary:focus-visible, a:focus-visible {
+  outline: 2px solid var(--green); outline-offset: 2px;
+}
+
+/* Kicker gets a small leading bar */
+.kicker { display: flex; align-items: center; gap: 8px; }
+.kicker::before {
+  content: ""; width: 18px; height: 4px; border-radius: 2px;
+  background: linear-gradient(90deg, var(--green), #34d399);
+  flex: none;
+}
+
+/* Hero headline: subtle two-tone gradient + hero breathing room */
+.hero {
+  background:
+    radial-gradient(ellipse at 90% 0%, rgba(26, 127, 75, 0.07), transparent 55%),
+    var(--card);
+}
+.hero h1 {
+  background: linear-gradient(90deg, var(--ink) 35%, var(--green));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+@supports not (-webkit-background-clip: text) {
+  .hero h1 { background: none; -webkit-text-fill-color: unset; color: var(--ink); }
+}
+
+/* Fact chips (Where / What / How sure) */
+.chips { list-style: none; margin: 18px 0 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: #fbfdff; border: 1px solid var(--line);
+  border-radius: 999px; padding: 8px 14px;
+  font-size: 0.92rem; color: var(--muted);
+  transition: border-color 200ms var(--ease), transform 200ms var(--ease);
+}
+.chip strong { color: var(--ink); font-size: 0.82rem; letter-spacing: 0.4px; text-transform: uppercase; }
+.chip:hover { border-color: #bbe3c9; transform: translateY(-1px); }
+
+/* Inline code ("metrics.json" mentions) */
+code {
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.9em; background: #eef2f7; color: #334155;
+  border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px;
+}
+
+/* ---- Cards: coloured signals + gentle hover lift ---- */
+.chart-card, .proof-card, .try-box {
+  transition: transform 200ms var(--ease), box-shadow 200ms var(--ease);
+}
+.chart-card:hover, .proof-card:hover, .try-box:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 22px -14px rgba(15, 23, 42, 0.35);
+}
+/* Red top = wrong join, green top = fixed */
+.two-charts .chart-card:nth-child(1) { border-top: 4px solid var(--red); }
+.two-charts .chart-card:nth-child(2) { border-top: 4px solid var(--green); }
+.chart-card figcaption {
+  display: inline-block;
+  background: #eef2f7; border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 10px;
+}
+
+/* ---- Proof cards: per-card accent + bigger number ---- */
+.proof-card:nth-child(1) { border-top: 4px solid var(--blue); }
+.proof-card:nth-child(2) { border-top: 4px solid var(--green); }
+.proof-card:nth-child(3) { border-top: 4px solid #7c3aed; }
+.proof-card:nth-child(1) .proof-num { color: var(--blue); }
+.proof-card:nth-child(3) .proof-num { color: #7c3aed; }
+.proof-num { font-size: 2.1rem; letter-spacing: -0.5px; }
+
+/* ---- Try-it result boxes: tinted states ---- */
+.try-box:nth-child(1) { background: var(--green-soft); border-color: #bbe3c9; }
+.try-box:nth-child(2) { background: #f1f5f9; }
+.try-box:nth-child(3) { background: var(--red-soft); border-color: #fed7aa; }
+.slider-scale {
+  display: flex; justify-content: space-between;
+  font-size: 0.78rem; color: var(--muted);
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+}
+
+/* ---- Map legend as pills (matches the actual layer colours) ---- */
+.map-legend {
+  gap: 8px; margin-top: 10px;
+}
+.map-legend span {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #fbfdff; border: 1px solid var(--line);
+  border-radius: 999px; padding: 4px 10px;
+  font-size: 0.82rem; color: var(--muted);
+}
+.dot-window {
+  background: transparent; border: 2px dashed var(--blue);
+  border-radius: 3px; width: 13px; height: 11px;
+}
+.dot-line { background: transparent; border: 2px solid #22d3ee; border-radius: 2px; }
+
+/* ---- Limits + footer ---- */
+.limits {
+  background: linear-gradient(0deg, rgba(194, 65, 12, 0.04), rgba(194, 65, 12, 0.04)), var(--card);
+}
+.limits .kicker { color: var(--red); }
+.limits .kicker::before { background: linear-gradient(90deg, var(--red), #f97316); }
+.footer { border-top: 1px solid var(--line); margin-top: 8px; }
+
+/* ---- Small phones: nav shrinks gracefully ---- */
+@media (max-width: 640px) {
+  .topnav { order: 3; width: 100%; justify-content: flex-start; }
+  .topbar-inner { row-gap: 8px; }
+  .topnav a { padding: 5px 10px; font-size: 0.82rem; }
+}
+
