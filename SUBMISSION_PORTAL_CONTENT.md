@@ -22,15 +22,21 @@
 > (September 2027), while NOAA/NESDIS has announced that Suomi-NPP VIIRS data delivery stops
 > permanently on 1 November 2026. Earth-observation scientists therefore face an operational
 > dilemma: merging 1 km MODIS and 375 m VIIRS active-fire records produces an artificial
-> **+185% (2.85×) step-function jump** in fire counts over Bangladesh's Chittagong Hill Tracts
-> (CHT). BD-FireOps bridges this sensor gap. Using a rigorously filtered Aqua MODIS reference
+> step at the 2012 hand-off in fire counts over Bangladesh's Chittagong Hill Tracts
+> (CHT): **+185% (2.85×)** comparing Chart-A era means (mean raw VIIRS 2012–2021 ÷
+> mean MODIS 2002–2011, zero months counted on both sides — the jump Chart A draws),
+> and **3.71×** comparing the same 2012–2021 months where both sensors observe together
+> (the sensor sensitivity difference the model is fitted on). BD-FireOps bridges this sensor gap. Using a rigorously filtered Aqua MODIS reference
 > baseline, time-split empirical modelling (2012–2018 train, 2019–2021 held-out test) and a
 > 500-sample bootstrap coefficient interval, BD-FireOps reduces held-out test RMSE by
-> **95.1%** (from 1,130.64 to 55.67 hotspots/month) and cuts mean sensor bias by **99.1%**
-> (from +468.92 to −4.09 hotspots/month), reaching **R² = 0.9811** on unseen months.
+> **95.1%** (from 1,130.64 to 55.67 hotspots/month) and cuts mean prediction bias by **99.1%**
+> (from +468.92 to −4.09 hotspots/month) on the 2019–2021 held-out test window,
+> reaching **R² = 0.9811** on unseen months.
 > Deployed as a clean, light-themed web GIS and a Streamlit data-science console, it
 > gives climate scientists, the Bangladesh Forest Department and indigenous CHT communities
-> a continuous, uncertainty-quantified 20-year active-fire record (2002–2021) with the 2012
+> a continuous, uncertainty-quantified 2002–2021 monthly active-fire record (observed Aqua
+> MODIS 2002–2011, then VIIRS converted to MODIS-equivalent — the 2012–2018 overlap used
+> only to fit the conversion, tested on 2019–2021) with the 2012
 > sensor step quantified and removed rather than hidden.
 
 ### Space Agency Data Used (Checkboxes & Citations)
@@ -72,7 +78,7 @@ Unlike prototypes that report in-sample metrics, BD-FireOps validates on an unto
 | Evaluation Metric | Naive Splice (Raw VIIRS) | BD-FireOps (Harmonized) | Performance Delta |
 |:---|:---:|:---:|:---:|
 | **Root Mean Squared Error (RMSE)** | **1,130.64** | **55.67** | **−95.1% Error Reduction** |
-| **Mean Sensor Bias** | **+468.92** | **−4.09** | **−99.1% Bias Reduction** |
+| **Mean Sensor Bias** | **+468.92** | **−4.09** | **−99.1% Bias Reduction (held-out 2019–2021)** |
 | **Mean Absolute Error (MAE)** | 468.92 | 21.56 | **−95.4% Error Reduction** |
 | **Coefficient of Determination (R²)** | −6.8012 (invalid/anti-predictive) | **0.9811** | Strong held-out fit |
 | **Spearman Rank Correlation (ρ)** | 0.9280 | 0.9488 | Seasonal ranking preserved |
@@ -81,7 +87,7 @@ Fitted regional empirical relationship: `MODIS_eq = 0.2694 × VIIRS + (−1.18)`
 57 of the 120 overlap months contain a zero (57 MODIS / 31 VIIRS); zero months are retained, not dropped.
 
 ### 2.5 Practical Applications & Local Impact
-1. **Bangladesh Forest Department:** consistent 20-year fire-vulnerability mapping without sensor-induced bias.
+1. **Bangladesh Forest Department:** consistent 2002–2021 monthly fire record without sensor-induced bias, for seasonal hill-burning (Jhum) monitoring — not a live alert, and not a wildfire-crisis claim.
 2. **Disaster Management & Early Warning:** a harmonised baseline so local fire emergencies are judged against true historical normals rather than sensor steps.
 3. **Indigenous Land Management:** preserves *Jhum* cultivation data continuity without inflating indigenous farming activity through a sensor change.
 
@@ -101,10 +107,10 @@ Record this walkthrough using OBS Studio, Loom, or Windows Game Bar (`Win + G`):
 | Time Code | Visual on Screen | Spoken Script (English Voiceover) |
 |:---|:---|:---|
 | **0:00 – 0:45** | Title slide + NASA Earthdata alert screenshot of the S-NPP cessation notice. | *"Hello judges, we are Team Claude Fable 7.0 presenting BD-FireOps. NASA projects end-of-science for Terra MODIS in February 2027 and Aqua in September 2027, and NOAA has announced that Suomi-NPP VIIRS data delivery stops permanently on November 1st, 2026. Simply stitching 20 years of MODIS and VIIRS records together creates an artificial +185% — a 2.85-times — step jump in recorded fires. Today we show how BD-FireOps harmonizes those records for the Chittagong Hill Tracts in Bangladesh."* |
-| **0:45 – 1:30** | Web App (`index.html`). **Chart A (Naive Splice)**, hover the Jan 2012 transition line. | *"Here is the core problem. From 2002 to 2011, Aqua MODIS recorded a mean of 207 hotspots per month across the CHT districts. After VIIRS comes online in 2012 at 375-metre resolution, the raw mean jumps to 590 hotspots per month — a 2.85-times step at the splice, and 3.71-times when we compare only months where both sensors observe together. Only the sensor changed; a policy maker reading the raw chart would think fires nearly tripled overnight."* |
-| **1:30 – 2:30** | **Chart B (Harmonized Splice)**, then the 20-year calendar heatmap and the Leaflet map. | *"Now Chart B: BD-FireOps's harmonized series. We keep only Aqua MODIS afternoon overpasses, keep only detections inside the official Bandarban, Rangamati and Khagrachhari district polygons, drop low-confidence detections, and fit an empirical scaling model on 2012–2018 only, converting later VIIRS counts into MODIS-equivalent activity. Coefficient uncertainty is reported separately as a 95% bootstrap interval — the slope sits between 0.230 and 0.320. Look at the burning calendar: the March–April peak stays continuous and comparable across two decades."* |
-| **2:30 – 3:20** | **Held-Out Validation KPI cards** + Validation Scatter plot. | *"We did not just fit a curve. On three full years of unseen data — 2019 through 2021, never touched during training — Root Mean Squared Error drops from 1,131 to 56 hotspots per month, a 95.1% reduction. Mean sensor bias falls from plus 469 to minus 4, a 99.1% reduction, with an R-squared of 0.9811 on held-out months."* |
-| **3:20 – 4:00** | **Live Calibration Playground**, then limitations and the GitHub repo. | *"Our interface also includes an interactive calibration playground where researchers can test the fitted calibration live. In conclusion, BD-FireOps gives Bangladesh forest managers and climate researchers a continuous, scientifically defensible 20-year active-fire record. The code is reproducible, open-source, and every number here is generated from metrics.json rather than typed by hand. Thank you!"* |
+| **0:45 – 1:30** | Web App (`index.html`). **Chart A (wrong join) vs Chart B (fixed line)**, side by side. | *"Here is the core problem. From 2002 to 2011, Aqua MODIS recorded a mean of 207 hotspots per month across the CHT districts. After VIIRS comes online in 2012 at 375-metre resolution, the raw mean jumps to 590 hotspots per month — a 2.85-times step at the splice, and 3.71-times when we compare only months where both sensors observe together. Only the sensor changed; a policy maker reading the raw chart would think fires nearly tripled overnight."* |
+| **1:30 – 2:30** | **Chart B (fixed line)**, then the simplified hill-district map. | *"Now Chart B: BD-FireOps's harmonized series. We keep only Aqua MODIS afternoon overpasses, keep only detections inside the Bandarban, Rangamati and Khagrachhari district polygons (geoBoundaries BGD-ADM2 simplified geometry — border cells have ~1% tolerance), drop low-confidence detections, and fit an empirical scaling model on 2012–2018 only, converting later VIIRS counts into MODIS-equivalent activity. Coefficient uncertainty is reported separately as a 95% bootstrap interval — the slope sits between 0.230 and 0.320. Note the March–April seasonal peak stays continuous and comparable across two decades."* |
+| **2:30 – 3:20** | **Held-out test results (2019–2021)** + validation scatter plot. | *"We did not just fit a curve. On three full years of unseen data — 2019 through 2021, never touched during training — held-out test RMSE drops from 1,131 to 56 hotspots per month, a 95.1% RMSE reduction. Mean prediction bias falls from plus 469 to minus 4, a 99.1% bias reduction on the same held-out window, with an R-squared of 0.9811 on held-out months."* |
+| **3:20 – 4:00** | **Interactive Calibration box**, then limitations and the GitHub repo. | *"Our interface also includes an interactive calibration box where you can try the fitted conversion. In conclusion, BD-FireOps gives Bangladesh forest managers and climate researchers a continuous 2002–2021 record (observed Aqua MODIS 2002–2011, VIIRS converted to MODIS-equivalent after — model fitted on 2012–2018, tested on 2019–2021). The code is reproducible, open-source, and every number here is generated from metrics.json rather than typed by hand. Thank you!"* |
 
 ---
 
