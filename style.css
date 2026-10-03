@@ -1,6 +1,7 @@
 /* ==========================================================================
-   BD-FIREOPS · LIGHT & SIMPLE (easy to read, easy to explain)
-   White background · dark text · big cards · one accent palette
+   BD-FIREOPS · FIELD-DOCUMENT DESIGN SYSTEM
+   Editorial serif headlines · mono data labels · hairline rules · one accent
+   palette. No webfonts: Georgia/Charter serif + system sans + system mono.
    ========================================================================== */
 
 :root {
@@ -9,11 +10,14 @@
   --ink: #0f172a;
   --muted: #5b6b82;
   --line: #e2e8f0;
+  --hair: #cbd5e1;
   --green: #1a7f4b;
   --green-soft: #e7f4ec;
   --red: #c2410c;
   --red-soft: #fdeee4;
   --blue: #1d4ed8;
+  --serif: Georgia, 'Times New Roman', serif;
+  --mono: ui-monospace, 'Cascadia Mono', Consolas, monospace;
   --radius: 14px;
   --shadow: 0 8px 24px -12px rgba(15, 23, 42, 0.25);
   --dur: 200ms;
@@ -32,7 +36,15 @@ body {
   min-height: 100vh;
 }
 
-.font-mono { font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace; }
+/* Editorial hierarchy: serif headlines, sans body, mono for data labels */
+h1, h2, h3, .brand-title, .proof-num {
+  font-family: var(--serif);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.lead { line-height: 1.7; }
+
+.font-mono { font-family: var(--mono); }
 .muted { color: var(--muted); }
 .small { font-size: 0.9rem; }
 .text-green { color: var(--green) !important; }
@@ -94,8 +106,14 @@ body {
 .try-box span[id^="sim-out"] { font-size: 1.4rem; font-weight: 800; }
 
 .brand { display: flex; align-items: center; gap: 12px; }
-.brand-mark { font-size: 1.8rem; }
-.brand-title { font-size: 1.3rem; font-weight: 800; }
+.brand-mark {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 6px;
+  background: var(--ink); color: #fff;
+  font-family: var(--mono); font-size: 0.85rem; font-weight: 700;
+  letter-spacing: 0.05em;
+}
+.brand-title { font-size: 1.25rem; font-weight: 700; }
 .brand-sub { font-size: 0.85rem; color: var(--muted); }
 .topbar-note {
   font-size: 0.85rem; font-weight: 700; color: var(--red);
@@ -119,16 +137,22 @@ body {
 }
 .lead { font-size: 1.1rem; }
 .pill {
-  font-size: 0.75rem; font-weight: 800; color: var(--red);
-  background: var(--red-soft); padding: 2px 10px; border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--red);
+  background: var(--red-soft); padding: 3px 9px; border-radius: 4px;
   vertical-align: middle;
 }
 .plain-list { margin: 12px 0 0 20px; display: grid; gap: 6px; }
 .more { margin-top: 14px; border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
 .more summary { cursor: pointer; font-weight: 700; }
 
-/* Hero: small green accent */
-.hero { border-left: 6px solid var(--green); }
+/* Hero: clean document header, serif headline, hairline rule under it */
+.hero {
+  background: var(--card);
+  border-left: 6px solid var(--ink);
+}
+.hero h1 { color: var(--ink); }
 
 /* Map */
 .map { height: 420px; border: 1px solid var(--line); border-radius: 10px; z-index: 0; }
@@ -186,58 +210,55 @@ html { scroll-behavior: smooth; }
   backdrop-filter: blur(8px);
 }
 
-/* Quick-jump nav */
-.topnav { display: flex; gap: 4px; flex-wrap: wrap; }
+/* Quick-jump nav — quiet mono labels, document style */
+.topnav { display: flex; gap: 2px; flex-wrap: wrap; }
 .topnav a {
   color: var(--muted); text-decoration: none;
-  font-size: 0.9rem; font-weight: 700;
-  padding: 6px 12px; border-radius: 999px;
+  font-family: var(--mono); font-size: 0.72rem; font-weight: 600;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  padding: 6px 10px; border-radius: 4px;
   border: 1px solid transparent;
   transition: color 200ms var(--ease), background 200ms var(--ease), border-color 200ms var(--ease);
 }
-.topnav a:hover { color: var(--green); background: var(--green-soft); border-color: #bbe3c9; }
+.topnav a:hover { color: var(--ink); background: #eef2f7; border-color: var(--hair); }
 .topnav a:focus-visible, .more summary:focus-visible, a:focus-visible {
   outline: 2px solid var(--green); outline-offset: 2px;
 }
 
-/* Kicker gets a small leading bar */
-.kicker { display: flex; align-items: center; gap: 8px; }
+/* Kicker: mono label with a hairline rule to the right (document style) */
+.kicker {
+  display: flex; align-items: center; gap: 12px;
+  font-family: var(--mono);
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--muted);
+}
 .kicker::before {
-  content: ""; width: 18px; height: 4px; border-radius: 2px;
-  background: linear-gradient(90deg, var(--green), #34d399);
-  flex: none;
+  content: ""; width: 18px; height: 2px; background: var(--hair); flex: none;
 }
+.kicker::after { content: ""; height: 1px; background: var(--hair); flex: 1 1 auto; }
+.limits .kicker { color: var(--red); }
+.limits .kicker::before, .limits .kicker::after { background: #e5b9a4; }
+.method .kicker { color: var(--blue); }
+.method .kicker::before, .method .kicker::after { background: #b9c6f5; }
 
-/* Hero headline: subtle two-tone gradient + hero breathing room */
-.hero {
-  background:
-    radial-gradient(ellipse at 90% 0%, rgba(26, 127, 75, 0.07), transparent 55%),
-    var(--card);
-}
-.hero h1 {
-  background: linear-gradient(90deg, var(--ink) 35%, var(--green));
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-@supports not (-webkit-background-clip: text) {
-  .hero h1 { background: none; -webkit-text-fill-color: unset; color: var(--ink); }
-}
+/* Hero headline: plain serif (no gradient — document look) */
 
-/* Fact chips (Where / What / How sure) */
-.chips { list-style: none; margin: 18px 0 0; display: flex; flex-wrap: wrap; gap: 10px; }
+/* Fact chips (Where / What / How sure) — squared, mono labels */
+.chips { list-style: none; margin: 20px 0 0; display: flex; flex-wrap: wrap; gap: 10px; }
 .chip {
   display: inline-flex; align-items: center; gap: 8px;
-  background: #fbfdff; border: 1px solid var(--line);
-  border-radius: 999px; padding: 8px 14px;
-  font-size: 0.92rem; color: var(--muted);
-  transition: border-color 200ms var(--ease), transform 200ms var(--ease);
+  background: #fbfdff; border: 1px solid var(--hair);
+  border-radius: 6px; padding: 9px 14px;
+  font-size: 0.9rem; color: var(--ink);
 }
-.chip strong { color: var(--ink); font-size: 0.82rem; letter-spacing: 0.4px; text-transform: uppercase; }
-.chip:hover { border-color: #bbe3c9; transform: translateY(-1px); }
+.chip strong {
+  font-family: var(--mono); color: var(--muted);
+  font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+}
 
 /* Inline code ("metrics.json" mentions) */
 code {
-  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-family: var(--mono);
   font-size: 0.9em; background: #eef2f7; color: #334155;
   border: 1px solid var(--line); border-radius: 6px; padding: 1px 6px;
 }
@@ -251,21 +272,17 @@ code {
   box-shadow: 0 10px 22px -14px rgba(15, 23, 42, 0.35);
 }
 /* Red top = wrong join, green top = fixed */
-.two-charts .chart-card:nth-child(1) { border-top: 4px solid var(--red); }
-.two-charts .chart-card:nth-child(2) { border-top: 4px solid var(--green); }
+.two-charts .chart-card:nth-child(1) { border-top: 3px solid var(--red); }
+.two-charts .chart-card:nth-child(2) { border-top: 3px solid var(--green); }
 .chart-card figcaption {
-  display: inline-block;
-  background: #eef2f7; border: 1px solid var(--line);
-  border-radius: 8px; padding: 6px 10px;
+  font-family: var(--mono); font-size: 0.82rem;
+  color: var(--muted); letter-spacing: 0.02em;
+  margin-bottom: 10px;
 }
 
-/* ---- Proof cards: per-card accent + bigger number ---- */
-.proof-card:nth-child(1) { border-top: 4px solid var(--blue); }
-.proof-card:nth-child(2) { border-top: 4px solid var(--green); }
-.proof-card:nth-child(3) { border-top: 4px solid #7c3aed; }
-.proof-card:nth-child(1) .proof-num { color: var(--blue); }
-.proof-card:nth-child(3) .proof-num { color: #7c3aed; }
-.proof-num { font-size: 2.1rem; letter-spacing: -0.5px; }
+/* ---- Proof cards: one accent, editorial numbers ---- */
+.proof-card { border-top: 3px solid var(--ink); }
+.proof-num { font-size: 2.2rem; color: var(--ink); font-variant-numeric: tabular-nums; }
 
 /* ---- Try-it result boxes: tinted states ---- */
 .try-box:nth-child(1) { background: var(--green-soft); border-color: #bbe3c9; }
@@ -274,7 +291,7 @@ code {
 .slider-scale {
   display: flex; justify-content: space-between;
   font-size: 0.78rem; color: var(--muted);
-  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-family: var(--mono);
 }
 
 /* ---- Map legend as pills (matches the actual layer colours) ---- */
@@ -295,16 +312,12 @@ code {
 
 /* ---- Limits + footer ---- */
 .limits {
-  background: linear-gradient(0deg, rgba(194, 65, 12, 0.04), rgba(194, 65, 12, 0.04)), var(--card);
+  background: #fffdfa;
 }
-.limits .kicker { color: var(--red); }
-.limits .kicker::before { background: linear-gradient(90deg, var(--red), #f97316); }
 .footer { border-top: 1px solid var(--line); margin-top: 8px; }
 
 /* ---- Method (5 steps) ---- */
 .method { border-left: 6px solid var(--blue); }
-.method .kicker { color: var(--blue); }
-.method .kicker::before { background: linear-gradient(90deg, var(--blue), #60a5fa); }
 .steps { margin: 12px 0 0 22px; display: grid; gap: 10px; counter-reset: step; list-style: none; }
 .steps li {
   position: relative; padding-left: 44px;
