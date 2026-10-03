@@ -327,11 +327,39 @@ const map = L.map('map', {
 
 L.control.zoom({ position: 'topright' }).addTo(map);
 
-// Esri True Color High-Res Satellite (single basemap on the light page)
+// Basemaps: Esri True Color High-Res Satellite + CartoDB Dark Matter
 const tileSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-  attribution: 'Tiles &copy; Esri &middot; Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community',
+  attribution: 'Tiles &copy; Esri &middot; Source: Esri, Maxar, Earthstar Geographics',
   maxZoom: 18
 }).addTo(map);
+
+const tileDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  attribution: '&copy; OpenStreetMap &copy; CARTO',
+  subdomains: 'abcd',
+  maxZoom: 19
+});
+
+const toggleSatBtn = document.getElementById('toggle-sat-btn');
+const toggleCartoBtn = document.getElementById('toggle-carto-btn');
+
+if (toggleSatBtn && toggleCartoBtn) {
+  toggleSatBtn.addEventListener('click', () => {
+    if (!map.hasLayer(tileSat)) {
+      if (map.hasLayer(tileDark)) map.removeLayer(tileDark);
+      map.addLayer(tileSat);
+      toggleSatBtn.classList.add('active');
+      toggleCartoBtn.classList.remove('active');
+    }
+  });
+  toggleCartoBtn.addEventListener('click', () => {
+    if (!map.hasLayer(tileDark)) {
+      if (map.hasLayer(tileSat)) map.removeLayer(tileSat);
+      map.addLayer(tileDark);
+      toggleCartoBtn.classList.add('active');
+      toggleSatBtn.classList.remove('active');
+    }
+  });
+}
 
 // FIRMS API search window [91.9-92.9E, 21.4-23.8N] - where rows were requested.
 L.rectangle([[21.4, 91.9], [23.8, 92.9]], {
@@ -1275,25 +1303,37 @@ function updateMapHotspots(year) {
   modisGroup.clearLayers();
   viirsGroup.clearLayers();
 
+  const mCells = (MAP_CELLS.modis || []).filter(c => c.y === year);
   drawCells(
-    (MAP_CELLS.modis || []).filter(c => c.y === year),
+    mCells,
     modisGroup,
     { color: '#38bdf8', fill: '#0284c7', label: 'Aqua MODIS · 0.05° cell', cls: 'pop-modis', isModis: true },
     year
   );
 
+  let vCells = [];
   if (year >= 2012) {
+    vCells = (MAP_CELLS.viirs || []).filter(c => c.y === year);
     drawCells(
-      (MAP_CELLS.viirs || []).filter(c => c.y === year),
+      vCells,
       viirsGroup,
       { color: '#ef4444', fill: '#dc2626', label: 'S-NPP VIIRS · 0.05° cell', cls: 'pop-viirs', isModis: false },
       year
     );
   }
+
+  const mapCountEl = document.getElementById('map-cell-count');
+  if (mapCountEl) {
+    const totalD = mCells.reduce((s, c) => s + c.n, 0) + vCells.reduce((s, c) => s + c.n, 0);
+    const cellCount = mCells.length + vCells.length;
+    mapCountEl.textContent = year < 2012
+      ? `Year ${year}: ${cellCount} MODIS cells (${totalD.toLocaleString()} detections)`
+      : `Year ${year}: ${cellCount} cells (${totalD.toLocaleString()} total detections)`;
+  }
 }
 
 // =============================================================================
-// 3. CHART A (wrong join) & CHART B (our fix)
+// 3. CHART A (wrong join) & CHART B (our fix) + COMBINED VIEW
 // =============================================================================
 let chartNaiveInstance = null;
 let chartHarmInstance = null;
@@ -1303,47 +1343,80 @@ const modisSeries = CHT_SERIES.map(d => d.modis);
 const naiveSeries = CHT_SERIES.map(d => d.y < 2012 ? d.modis : d.viirs);
 const harmSeries = CHT_SERIES.map(d => d.harm);
 
-// One shared style block for both charts — light page, dark text.
-const CHART_OPTS = (yTitle) => ({
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: {
-      labels: {
-        color: '#334155',
-        font: { size: 13, weight: 600 }
+function getChartColors() {
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  return {
+    text: isLight ? '#475569' : '#94a3b8',
+    grid: isLight ? 'rgba(15, 23, 42, 0.08)' : 'rgba(255, 255, 255, 0.08)',
+    legend: isLight ? '#0f172a' : '#f8fafc'
+  };
+}
+
+const CHART_OPTS = (yTitle) => {
+  const c = getChartColors();
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index',
+      intersect: false
+    },
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          color: c.legend,
+          font: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: 600 },
+          boxWidth: 14,
+          boxHeight: 14,
+          usePointStyle: true
+        }
+      },
+      tooltip: {
+        padding: 12,
+        backgroundColor: 'rgba(8, 12, 22, 0.94)',
+        titleFont: { family: "'JetBrains Mono', monospace", size: 13, weight: 700 },
+        bodyFont: { family: "'Plus Jakarta Sans', sans-serif", size: 13 },
+        borderColor: 'rgba(56, 189, 248, 0.3)',
+        borderWidth: 1,
+        displayColors: true
+      }
+    },
+    scales: {
+      x: {
+        ticks: { color: c.text, font: { family: "'JetBrains Mono', monospace", size: 11 }, maxTicksLimit: 14 },
+        grid: { color: c.grid }
+      },
+      y: {
+        ticks: { color: c.text, font: { family: "'JetBrains Mono', monospace", size: 11 } },
+        grid: { color: c.grid },
+        title: { display: true, text: yTitle, color: c.text, font: { family: "'Plus Jakarta Sans', sans-serif", size: 12, weight: 700 } }
       }
     }
-  },
-  scales: {
-    x: {
-      ticks: { color: '#64748b', size: 12, maxTicksLimit: 12 },
-      grid: { color: 'rgba(15, 23, 42, 0.08)' }
-    },
-    y: {
-      ticks: { color: '#64748b', size: 13 },
-      grid: { color: 'rgba(15, 23, 42, 0.08)' },
-      title: { display: true, text: yTitle, color: '#64748b', font: { size: 14 } }
-    }
-  }
-});
+  };
+};
 
 function initCharts() {
-  // Chart A: wrong join (MODIS then raw VIIRS — the fake jump)
   const elA = document.getElementById('chartNaive');
-  if (!elA) return;
+  const elB = document.getElementById('chartHarm');
+  if (!elA || !elB) return;
+
+  if (chartNaiveInstance) chartNaiveInstance.destroy();
+  if (chartHarmInstance) chartHarmInstance.destroy();
+
+  // Chart A: Naive Splice
   const ctxA = elA.getContext('2d');
   chartNaiveInstance = new Chart(ctxA, {
     type: 'line',
     data: {
       labels,
       datasets: [{
-        label: 'Fires per month (wrong join)',
+        label: 'Raw Sensor Splice (Artificial +185% Spike)',
         data: naiveSeries,
-        borderColor: '#dc2626',
-        backgroundColor: 'rgba(220, 38, 38, 0.12)',
-        borderWidth: 2.5,
-        pointRadius: 2,
+        borderColor: '#ef4444',
+        backgroundColor: 'rgba(239, 68, 68, 0.12)',
+        borderWidth: 2,
+        pointRadius: 1.5,
         fill: true,
         tension: 0.25
       }]
@@ -1351,9 +1424,7 @@ function initCharts() {
     options: CHART_OPTS('Fires per month')
   });
 
-  // Chart B: our fix (VIIRS turned into MODIS-like counts)
-  const elB = document.getElementById('chartHarm');
-  if (!elB) return;
+  // Chart B: BD-FireOps Harmonized Splice
   const ctxB = elB.getContext('2d');
   chartHarmInstance = new Chart(ctxB, {
     type: 'line',
@@ -1361,20 +1432,20 @@ function initCharts() {
       labels,
       datasets: [
         {
-          label: 'Seen by old camera (MODIS)',
+          label: 'Aqua MODIS (Empirical 1 km)',
           data: modisSeries,
-          borderColor: '#2563eb',
-          borderWidth: 2,
-          pointRadius: 2,
+          borderColor: '#38bdf8',
+          borderWidth: 1.8,
+          pointRadius: 1.5,
           tension: 0.25
         },
         {
-          label: 'Our fixed line (MODIS-like)',
+          label: 'BD-FireOps Harmonized (Calibrated Baseline)',
           data: harmSeries,
-          borderColor: '#1a7f4b',
-          backgroundColor: 'rgba(26, 127, 75, 0.12)',
-          borderWidth: 2.5,
-          pointRadius: 2,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.12)',
+          borderWidth: 2.2,
+          pointRadius: 1.5,
           fill: true,
           tension: 0.25
         }
@@ -1384,32 +1455,162 @@ function initCharts() {
   });
 }
 
+// Chart View Switcher (Split vs Combined)
+const viewSplitBtn = document.getElementById('view-split-btn');
+const viewCombinedBtn = document.getElementById('view-combined-btn');
+const chartsWrapper = document.getElementById('charts-wrapper');
+
+function setupChartViews() {
+  if (!viewSplitBtn || !viewCombinedBtn || !chartsWrapper) return;
+
+  viewCombinedBtn.addEventListener('click', () => {
+    viewCombinedBtn.classList.add('active');
+    viewSplitBtn.classList.remove('active');
+    chartsWrapper.classList.add('combined-active');
+
+    // In combined view, update Chart B to show all 3 lines on one unified graph
+    if (chartHarmInstance) {
+      chartHarmInstance.data.datasets = [
+        {
+          label: 'Raw Naive Splice (Artificial Spike)',
+          data: naiveSeries,
+          borderColor: '#ef4444',
+          borderWidth: 2,
+          borderDash: [5, 4],
+          pointRadius: 1.2,
+          tension: 0.2
+        },
+        {
+          label: 'Aqua MODIS (Ground Truth Baseline)',
+          data: modisSeries,
+          borderColor: '#38bdf8',
+          borderWidth: 2,
+          pointRadius: 1.5,
+          tension: 0.2
+        },
+        {
+          label: 'BD-FireOps Continuous Calibration',
+          data: harmSeries,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.14)',
+          borderWidth: 2.5,
+          pointRadius: 1.5,
+          fill: true,
+          tension: 0.2
+        }
+      ];
+      chartHarmInstance.update();
+    }
+  });
+
+  viewSplitBtn.addEventListener('click', () => {
+    viewSplitBtn.classList.add('active');
+    viewCombinedBtn.classList.remove('active');
+    chartsWrapper.classList.remove('combined-active');
+
+    if (chartHarmInstance) {
+      chartHarmInstance.data.datasets = [
+        {
+          label: 'Aqua MODIS (Empirical 1 km)',
+          data: modisSeries,
+          borderColor: '#38bdf8',
+          borderWidth: 1.8,
+          pointRadius: 1.5,
+          tension: 0.25
+        },
+        {
+          label: 'BD-FireOps Harmonized (Calibrated Baseline)',
+          data: harmSeries,
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.12)',
+          borderWidth: 2.2,
+          pointRadius: 1.5,
+          fill: true,
+          tension: 0.25
+        }
+      ];
+      chartHarmInstance.update();
+    }
+  });
+}
+
 // =============================================================================
-// 4. YEAR SLIDER (map filter) + TRY-IT BOX
+// 4. ANIMATED TIMELINE SLIDER + PLAYBACK + YEAR PILLS
 // =============================================================================
 const slider = document.getElementById('main-slider');
 const yearBadge = document.getElementById('slider-year-badge');
 const eraText = document.getElementById('era-regime-text');
+const playBtn = document.getElementById('play-btn');
+let playTimer = null;
 
 function updateTimeline(year) {
-  const yr = parseInt(year);
+  const yr = parseInt(year, 10);
   if (yearBadge) yearBadge.innerText = yr;
   updateMapHotspots(yr);
 
-  // One plain sentence under the slider (no jargon).
   if (eraText) {
-    if (yr < 2012) eraText.innerText = "— old camera years (MODIS only)";
-    else if (yr <= 2018) eraText.innerText = "— years we learned from";
-    else eraText.innerText = "— test years (hidden while learning)";
+    if (yr < 2012) {
+      eraText.innerText = "Aqua MODIS Baseline Era (2002–2011)";
+      eraText.className = "regime-badge font-mono text-blue";
+    } else if (yr <= 2018) {
+      eraText.innerText = "Dual-Orbit Calibration Window (2012–2018)";
+      eraText.className = "regime-badge font-mono text-green";
+    } else {
+      eraText.innerText = "Blind Held-Out Test Horizon (2019–2021)";
+      eraText.className = "regime-badge font-mono text-amber";
+    }
+  }
+
+  // Update quick pills active state
+  document.querySelectorAll('.year-pill').forEach(pill => {
+    const py = parseInt(pill.getAttribute('data-year'), 10);
+    pill.classList.toggle('active', py === yr);
+  });
+}
+
+if (slider) {
+  slider.addEventListener('input', (e) => {
+    if (playTimer) toggleAutoPlay();
+    updateTimeline(e.target.value);
+  });
+}
+
+// Quick Year Jump Pills
+document.querySelectorAll('.year-pill').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const yr = parseInt(btn.getAttribute('data-year'), 10);
+    if (!isNaN(yr) && slider) {
+      if (playTimer) toggleAutoPlay();
+      slider.value = yr;
+      updateTimeline(yr);
+    }
+  });
+});
+
+// Auto Play Timeline Loop
+function toggleAutoPlay() {
+  if (!playBtn || !slider) return;
+  if (playTimer) {
+    clearInterval(playTimer);
+    playTimer = null;
+    playBtn.textContent = '▶ Auto Play (2002–2021)';
+  } else {
+    playBtn.textContent = '⏸ Pause Playback';
+    playTimer = setInterval(() => {
+      let cur = parseInt(slider.value, 10);
+      cur = cur >= 2021 ? 2002 : cur + 1;
+      slider.value = cur;
+      updateTimeline(cur);
+    }, 850);
   }
 }
 
-slider.addEventListener('input', (e) => {
-  updateTimeline(e.target.value);
-});
+if (playBtn) {
+  playBtn.addEventListener('click', toggleAutoPlay);
+}
 
 // =============================================================================
-// 5. TRY-IT BOX ("if VIIRS sees X, what would MODIS have seen?")
+// 5. LIVE CALIBRATION PLAYGROUND (SIMULATOR)
 // =============================================================================
 const simSlider = document.getElementById('sim-input-slider');
 const simVal = document.getElementById('sim-input-val');
@@ -1419,14 +1620,14 @@ const simOutMitigation = document.getElementById('sim-out-mitigation');
 const simOutRaw = document.getElementById('sim-out-raw');
 
 function updateSimulator(count) {
-  if (simVal) simVal.innerText = count;
-  if (simOutRaw) simOutRaw.innerText = count;
+  if (simVal) simVal.innerText = count.toLocaleString();
+  if (simOutRaw) simOutRaw.innerText = count.toLocaleString();
 
   const P = MODEL_PARAMS;
   const modisEq = Math.max(0, P.slope * count + P.intercept);
   if (simOutModis) simOutModis.innerText = modisEq.toFixed(1);
 
-  // Safety range from 500 re-checks (how unsure the line itself is).
+  // 95% Bootstrap parameter confidence band
   const lo = Math.max(0, P.slopeCI[0] * count + Math.min(P.interceptCI[0], P.interceptCI[1]));
   const hi = P.slopeCI[1] * count + Math.max(P.interceptCI[0], P.interceptCI[1]);
   if (simOutCI) simOutCI.innerText = `[${lo.toFixed(1)}, ${hi.toFixed(1)}]`;
@@ -1441,16 +1642,121 @@ function updateSimulator(count) {
 
 if (simSlider) {
   simSlider.addEventListener('input', (e) => {
-    updateSimulator(parseInt(e.target.value));
+    updateSimulator(parseInt(e.target.value, 10));
+  });
+}
+
+// Simulator Presets
+document.querySelectorAll('.preset-chip').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const val = parseInt(btn.getAttribute('data-val'), 10);
+    if (!isNaN(val) && simSlider) {
+      simSlider.value = val;
+      updateSimulator(val);
+    }
+  });
+});
+
+// =============================================================================
+// 6. 20-YEAR SEASONALITY BURNING MATRIX (HEATMAP)
+// =============================================================================
+function buildSeasonalityMatrix() {
+  const container = document.getElementById('seasonality-matrix');
+  if (!container) return;
+
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  let html = '<div class="matrix-grid">';
+
+  // Header row
+  html += '<div class="matrix-header">Year</div>';
+  months.forEach(m => {
+    html += `<div class="matrix-header">${m}</div>`;
+  });
+
+  // Group by year
+  for (let yr = 2002; yr <= 2021; yr++) {
+    html += `<div class="matrix-year-label font-mono">${yr}</div>`;
+    for (let mn = 1; mn <= 12; mn++) {
+      const row = CHT_SERIES.find(d => d.y === yr && d.mn === mn);
+      if (!row) {
+        html += '<div class="matrix-cell c-0" title="No satellite orbit data"></div>';
+        continue;
+      }
+      const val = row.harm !== null ? row.harm : (row.modis !== null ? row.modis : 0);
+      let cls = 'c-0';
+      if (val > 600) cls = 'c-5';
+      else if (val > 250) cls = 'c-4';
+      else if (val > 100) cls = 'c-3';
+      else if (val > 20) cls = 'c-2';
+      else if (val > 0) cls = 'c-1';
+
+      const tip = `${months[mn - 1]} ${yr}: ${Math.round(val)} harmonized fires (click to jump map)`;
+      html += `<div class="matrix-cell ${cls}" data-year="${yr}" title="${tip}"></div>`;
+    }
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+
+  // Add click to jump
+  container.querySelectorAll('.matrix-cell').forEach(cell => {
+    cell.addEventListener('click', () => {
+      const yr = parseInt(cell.getAttribute('data-year'), 10);
+      if (yr && slider) {
+        if (playTimer) toggleAutoPlay();
+        slider.value = yr;
+        updateTimeline(yr);
+        document.getElementById('map-section').scrollIntoView({ behavior: 'smooth' });
+      }
+    });
   });
 }
 
 // =============================================================================
-// 7. INITIALIZE (guarded: one failing widget must not kill the rest)
+// 7. THEME CONTROLLER (DARK COMMAND CENTER / LIGHT MODE)
+// =============================================================================
+function initTheme() {
+  const toggleBtn = document.getElementById('theme-toggle');
+  const icon = document.getElementById('theme-icon');
+  const label = document.getElementById('theme-label');
+  const saved = localStorage.getItem('bd_fireops_theme') || 'dark';
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('bd_fireops_theme', theme);
+    if (icon) icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    if (label) label.textContent = theme === 'dark' ? 'Light' : 'Dark';
+    
+    // Switch tile basemap to dark or sat according to user theme preference
+    if (toggleCartoBtn && toggleSatBtn && map) {
+      if (theme === 'dark' && !map.hasLayer(tileDark)) {
+        // preserve current user basemap selection
+      }
+    }
+
+    // Re-render charts with updated theme palette
+    initCharts();
+  }
+
+  applyTheme(saved);
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    });
+  }
+}
+
+// =============================================================================
+// 8. SAFE INITIALIZE
 // =============================================================================
 (function safeInit() {
   try {
     initCharts();
+    setupChartViews();
+    buildSeasonalityMatrix();
+    initTheme();
     if (slider) updateTimeline(slider.value || 2015);
     if (simSlider) updateSimulator(parseInt(simSlider.value, 10) || 300);
   } catch (err) {
@@ -1458,7 +1764,7 @@ if (simSlider) {
     const banner = document.getElementById('app-error-banner');
     if (banner) {
       banner.hidden = false;
-      banner.textContent = 'Some interactive widgets failed to load. The rest of the page still works.';
+      banner.textContent = 'Some interactive widgets encountered an issue. Basic tables and data remain functional.';
     }
   }
 })();
