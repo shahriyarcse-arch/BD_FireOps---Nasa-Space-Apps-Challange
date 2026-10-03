@@ -25,7 +25,7 @@
   },
   "clean_detections": {
     "modis": 42716,
-    "viirs": 70858
+    "viirs": 70857
   },
   "rows": 234,
   "zero_months_kept": true,

@@ -162,6 +162,19 @@ def run_aggregate() -> pd.DataFrame:
 
     grid = _month_grid(list(coverage.values()))
 
+    # Defence-in-depth: clean.py clamps to the study window, but if a clean row
+    # ever falls outside the monthly grid it would vanish silently here.
+    # Fail loudly (or count loudly) instead of publishing a censored series.
+    for s in SOURCES:
+        counts = _monthly_counts(cleans[s])
+        outside = [str(p) for p in counts.index if p not in grid]
+        if outside:
+            raise SystemExit(
+                f"[AGGREGATE] {s.upper()}: {len(outside)} clean month(s) outside the monthly grid "
+                f"({', '.join(sorted(outside)[:5])}) — clean.py study-window clamp and "
+                "data/raw chunk coverage disagree. Refusing to silently drop them."
+            )
+
     out = pd.DataFrame({"month": grid.astype(str)})
     out["year"] = grid.year
     out["month_num"] = grid.month

@@ -28,14 +28,14 @@
 > 500-sample bootstrap coefficient interval, BD-FireOps reduces held-out test RMSE by
 > **95.1%** (from 1,130.64 to 55.67 hotspots/month) and cuts mean sensor bias by **99.1%**
 > (from +468.92 to −4.09 hotspots/month), reaching **R² = 0.9811** on unseen months.
-> Deployed as a NASA-style Mission Control Web GIS and a Streamlit data-science console, it
+> Deployed as a clean, light-themed web GIS and a Streamlit data-science console, it
 > gives climate scientists, the Bangladesh Forest Department and indigenous CHT communities
 > a continuous, uncertainty-quantified 20-year active-fire record (2002–2021) with the 2012
 > sensor step quantified and removed rather than hidden.
 
 ### Space Agency Data Used (Checkboxes & Citations)
 - **NASA FIRMS Area API — source `MODIS_SP` (MODIS 1 km active fire, Collection 6.1):** daily hotspots for the CHT search window, coverage window **2002-07 → 2021-12** (first CHT-district detection 2002-12-15); Aqua-only gate applied for the reference series (`satellite = Aqua`; Terra rows counted but excluded); district-polygon gate keeps 42,716 of 112,681 raw rows.
-- **NASA FIRMS Area API — source `VIIRS_SNPP_SP` (VIIRS 375 m active fire, Suomi-NPP):** daily hotspots for the CHT search window, coverage window **2012-01 → 2021-12** (`satellite = N`); district-polygon gate keeps 70,858 of 172,197 raw rows.
+- **NASA FIRMS Area API — source `VIIRS_SNPP_SP` (VIIRS 375 m active fire, Suomi-NPP):** daily hotspots for the CHT search window, coverage window **2012-01 → 2021-12** (`satellite = N`); study-window clamp drops 1 straggler day (2022-01-01) returned inside the final chunk, then the district-polygon gate keeps 70,857 of 172,197 raw rows.
 - **Boundary reference:** geoBoundaries BGD-ADM2 (BBS / OCHA ROAP), CC BY 3.0 — 54,300 MODIS / 85,857 VIIRS bbox rows outside Bandarban, Rangamati and Khagrachhari dropped.
 - **NASA Earthdata / NOAA NESDIS alerts:** *Suomi NPP Data Product Delivery to Cease on November 1, 2026* (NESDIS notice issued 2026-08-03 at 16:00 UTC; impact 13:00 UTC on 2026-11-01) and *Suomi NPP VIIRS Data Outage / Anomaly on June 1, 2026*.
 - **Academic Grounding:** Schroeder et al. (2014) *Remote Sensing of Environment*; Li et al. (2018) *JGR Atmospheres*; Farukh et al. (2023) *Atmosphere*.

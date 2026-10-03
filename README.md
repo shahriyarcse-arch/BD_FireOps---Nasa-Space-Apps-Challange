@@ -50,7 +50,7 @@ $$\text{MODIS}_{\text{equivalent}} = 0.2694 \times \text{VIIRS}_{375\text{m}} + 
 * **Same-month sensor ratio:** `3.71x` — mean raw VIIRS ÷ mean MODIS over the *same*
   2012–2021 months, i.e. the sensor sensitivity difference itself.
 * **log1p check:** did **not** improve held-out RMSE (243.95 vs 55.67) — reported as a robustness check, not as the chosen model.
-* **Confidence-threshold sensitivity:** Keeping low-confidence detections changes the fitted slope `0.2694` → `0.2464` (-8.54%) and held-out RMSE `55.67` → `58.43` (+4.96%, i.e. worse when looser thresholds are kept). Row counts: MODIS 42,716 → 43,792, VIIRS 70,858 → 77,873. The baseline thresholds are therefore the reported configuration; `data/processed/sensitivity.json` holds the numbers.
+* **Confidence-threshold sensitivity:** Keeping low-confidence detections changes the fitted slope `0.2694` → `0.2464` (-8.54%) and held-out RMSE `55.67` → `58.43` (+4.96%, i.e. worse when looser thresholds are kept). Row counts: MODIS 42,716 → 43,792, VIIRS 70,857 → 77,872. The baseline thresholds are therefore the reported configuration; `data/processed/sensitivity.json` holds the numbers.
 * **Interpretation:** a fitted *regional empirical relationship* for monthly counts — not a
   universal MODIS↔VIIRS conversion, and not a fire-cause classifier.
 * **Zero months:** 57 of 120 overlap months contain a zero
@@ -100,7 +100,7 @@ bd-fireops/
 ├── vendor/                     # Leaflet 1.9.4 + Chart.js 4.4.1, vendored (no CDN dependency)
 ├── probe_firms.py              # Master CLI pipeline runner
 ├── index.html                  # Standalone client-side Web GIS dashboard
-├── style.css                   # NASA space-grade dark CSS design tokens
+├── style.css                   # Light, simple CSS (white background, big cards)
 ├── app.js                      # Leaflet mapping and Chart.js interactive controls
 ├── robots.txt                  # Crawler policy for the deployed static site
 ├── requirements.txt            # Python dependencies (pinned)

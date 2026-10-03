@@ -63,6 +63,13 @@ pd.DataFrame(modis_rows, columns=MODIS_COLS).to_csv(m_dir / "2002-07-01_2002-07-
 pd.DataFrame(columns=MODIS_COLS).to_csv(m_dir / "2002-07-06_2002-07-10.csv", index=False)
 # later zero chunk, leaving a coverage GAP between 2002-08 and 2011-11
 pd.DataFrame(columns=MODIS_COLS).to_csv(m_dir / "2011-12-01_2011-12-05.csv", index=False)
+# out-of-window straggler: chunk name is inside coverage, but the API sometimes
+# returns a day past the study edge (real 2022-01-01 case in VIIRS). The
+# study-window clamp must drop it loudly instead of aggregating it silently.
+pd.DataFrame([{"latitude": 22.19, "longitude": 92.22, "acq_date": "2030-05-01", "acq_time": 510,
+     "satellite": "Aqua", "instrument": "MODIS", "confidence": 90, "version": "6.1",
+     "type": 0, "scan": 1.0, "track": 1.0, "frp": 20.0, "daynight": "D"}],
+    columns=MODIS_COLS).to_csv(m_dir / "2011-12-06_2011-12-10.csv", index=False)
 
 v_dir = RAW / "viirs"
 v_dir.mkdir(parents=True)
@@ -97,12 +104,18 @@ def check(name, cond, detail=""):
         print(f"FAIL: {name} {detail}")
 
 
-check("modis raw 6 rows", audits["modis"]["raw_rows"] == 6, audits["modis"])
+check("modis raw 6 rows", audits["modis"]["raw_rows"] == 7, audits["modis"])
 check("modis clean 1 row (dup+lowconf+Terra+bbox+region removed)", audits["modis"]["clean_rows"] == 1, audits["modis"])
 check("modis region gate dropped the out-of-CHT row", audits["modis"]["dropped_outside_region"] == 1, audits["modis"])
+check("study-window clamp dropped the 2030 straggler", audits["modis"].get("dropped_outside_window") == 1, audits["modis"])
+check("study window recorded", audits["modis"].get("study_window") == "2002-07-01 .. 2021-12-31", audits["modis"])
+check("raw pre-filter aqua/terra split recorded",
+      audits["modis"].get("raw_aqua_rows") == 6 and audits["modis"].get("raw_terra_rows") == 1, audits["modis"])
+check("post-filter split recorded with note",
+      audits["modis"].get("aqua_rows") == 5 and "post-confidence" in audits["modis"].get("aqua_terra_note", ""))
 check("region filter recorded with source", "geoBoundaries" in (audits["modis"].get("region_filter") or {}).get("source", ""), audits["modis"])
 check("aqua filter applied", audits["modis"]["aqua_filter_applied"] is True)
-check("terra counted but dropped", audits["modis"]["terra_rows"] == 1 and audits["modis"]["aqua_rows"] == 4,
+check("terra counted but dropped", audits["modis"]["terra_rows"] == 1 and audits["modis"]["aqua_rows"] == 5,
       audits["modis"])
 check("viirs raw 4 rows", audits["viirs"]["raw_rows"] == 4, audits["viirs"])
 check("viirs clean 2 rows (low conf 'l' + out-of-CHT dropped)", audits["viirs"]["clean_rows"] == 2, audits["viirs"])

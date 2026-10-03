@@ -2,7 +2,7 @@
   "question": "does keeping low-confidence detections change the fitted relationship?",
   "baseline": {
     "modis_rows": 42716,
-    "viirs_rows": 70858,
+    "viirs_rows": 70857,
     "slope": 0.2694,
     "intercept": -1.18,
     "test_months": 36,
@@ -12,7 +12,7 @@
   },
   "low_confidence_kept": {
     "modis_rows": 43792,
-    "viirs_rows": 77873,
+    "viirs_rows": 77872,
     "slope": 0.2464,
     "intercept": 2.31,
     "test_months": 36,

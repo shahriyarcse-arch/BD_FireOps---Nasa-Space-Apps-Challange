@@ -2,9 +2,12 @@
   "modis": {
     "sensor": "modis",
     "raw_rows": 112681,
+    "raw_aqua_rows": 99636,
+    "raw_terra_rows": 13045,
     "dropped_low_confidence": 0,
     "aqua_rows": 99636,
     "terra_rows": 13045,
+    "aqua_terra_note": "post-confidence-filter split; raw_aqua_rows/raw_terra_rows are the pre-filter split",
     "reference_sensor": "Aqua MODIS",
     "aqua_filter_applied": true,
     "dropped_bad_coords": 0,
@@ -15,6 +18,8 @@
     "dropped_outside_region": 55844,
     "dropped_duplicates": 0,
     "dropped_bad_dates": 0,
+    "study_window": "2002-07-01 .. 2021-12-31",
+    "dropped_outside_window": 0,
     "clean_rows": 43792,
     "first_date": "2002-12-15",
     "last_date": "2021-12-30"
@@ -35,8 +40,14 @@
     "dropped_outside_region": 94322,
     "dropped_duplicates": 0,
     "dropped_bad_dates": 0,
-    "clean_rows": 77873,
+    "study_window": "2012-01-01 .. 2021-12-31",
+    "dropped_outside_window": 1,
+    "outside_window_range": [
+      "2022-01-01",
+      "2022-01-01"
+    ],
+    "clean_rows": 77872,
     "first_date": "2012-01-20",
-    "last_date": "2022-01-01"
+    "last_date": "2021-12-31"
   }
 }
