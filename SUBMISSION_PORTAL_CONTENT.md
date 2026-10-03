@@ -28,7 +28,7 @@
 > and **3.71×** comparing the same 2012–2021 months where both sensors observe together
 > (the sensor sensitivity difference the model is fitted on). BD-FireOps bridges this sensor gap. Using a rigorously filtered Aqua MODIS reference
 > baseline, time-split empirical modelling (2012–2018 train, 2019–2021 held-out test) and a
-> 500-sample bootstrap coefficient interval, BD-FireOps reduces held-out test RMSE by
+> 500-sample **moving-block** bootstrap coefficient interval, BD-FireOps reduces held-out test RMSE by
 > **95.1%** (from 1,130.64 to 55.67 hotspots/month) and cuts mean prediction bias by **99.1%**
 > (from +468.92 to −4.09 hotspots/month) on the 2019–2021 held-out test window,
 > reaching **R² = 0.9811** on unseen months.
