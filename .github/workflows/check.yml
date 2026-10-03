@@ -32,3 +32,6 @@ jobs:
 
       - name: Fixture pipeline end-to-end (synthetic, no API key)
         run: python tests/test_pipeline.py
+
+      - name: Shipped bootstrap interval is reproducible
+        run: python tools/verify_bootstrap.py

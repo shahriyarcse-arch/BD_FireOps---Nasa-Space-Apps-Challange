@@ -71,10 +71,10 @@ BD-FireOps is an uncertainty-aware, region-specific empirical harmonisation engi
 - **Quality-Assurance Cleaning:** bbox filter to the CHT window, **district-polygon gate (Bandarban / Rangamati / Khagrachhari)**, de-duplication (highest-confidence row wins inside a duplicate group), UTC `acq_date` parsing, study-window clamp, and per-sensor confidence thresholds (`confidence ≥ 30` for MODIS; VIIRS low-confidence `l` rows dropped).
 - **Time-Split Modelling:** trained strictly on the 2012–2018 overlap (84 months) with ordinary least squares on raw counts, plus a `log(1+x)` variant as a zero-robust check (it did not beat the linear model: 243.95 vs 55.67 RMSE).
 - **Uncertainty Quantification:** a 500-sample **moving-block bootstrap** (12-month blocks, because monthly fire counts are seasonal/autocorrelated) gives a 95% **coefficient** interval (not a prediction interval) of **[0.2198, 0.2970]** for the slope (±14.3% of the point estimate) and **[−6.79, 6.52]** for the intercept.
-- **Two extra robustness runs:** (i) keeping low-confidence detections moves the slope `0.2694 → 0.2464 (−8.54%)` and RMSE `55.67 → 58.43 (+4.96%)`; (ii) restricting **both sensors to daytime only** (`daynight = D`; MODIS 42,391 / VIIRS 64,537 rows) moves the slope to `0.2956 (+9.73%)` and RMSE to `49.69 (−10.74%)`. Night rows therefore add noise rather than signal — reported plainly, with the day-only configuration listed as future work (switching the headline config days before submission would invalidate the tested numbers).
+- **Two extra robustness runs:** (i) keeping low-confidence detections moves the slope `0.2694 → 0.2464 (−8.54%)` and RMSE `55.67 → 58.43 (+4.96%)`; (ii) restricting **both sensors to daytime only** (`daynight = D`; MODIS 42,391 / VIIRS 64,537 rows) moves the slope to `0.2956 (+9.73%)` and RMSE to `49.69 (−10.74%)`. Both alternative cleaning choices measurably change the fit; they are published as-is instead of being folded into the headline. The baseline retains day+night observations for cross-sensor consistency; the day-only variant is listed as future work because promoting it days before submission would invalidate the tested headline numbers.
 
 ### 2.4 Held-Out Validation Benchmark (2019–2021)
-Unlike prototypes that report in-sample metrics, BD-FireOps validates on an untouched 3-year held-out window (N = 36 months; train 84 / test 36, no leakage):
+Unlike prototypes that report in-sample metrics, BD-FireOps validates on an untouched 3-year held-out window (N = 36 months; train 84 / test 36, strict chronological split with no train/test month overlap):
 
 | Evaluation Metric | Naive Splice (Raw VIIRS) | BD-FireOps (Harmonized) | Performance Delta |
 |:---|:---:|:---:|:---:|
@@ -89,7 +89,7 @@ Fitted regional empirical relationship: `MODIS_eq = 0.2694 × VIIRS + (−1.18)`
 
 ### 2.5 Practical Applications & Local Impact
 1. **Bangladesh Forest Department:** consistent 2002–2021 monthly fire record without sensor-induced bias, for seasonal hill-burning (Jhum) monitoring — not a live alert, and not a wildfire-crisis claim.
-2. **Disaster Management & Early Warning:** a harmonised baseline so local fire emergencies are judged against true historical normals rather than sensor steps.
+2. **Disaster Management & Planning:** a harmonised baseline so historical fire anomalies are compared against true multi-year normals rather than sensor steps (this is a historical analysis product, not an early-warning or alerting system).
 3. **Indigenous Land Management:** preserves *Jhum* cultivation data continuity without inflating indigenous farming activity through a sensor change.
 
 ### 2.6 Scientific Integrity & Honest Limitations

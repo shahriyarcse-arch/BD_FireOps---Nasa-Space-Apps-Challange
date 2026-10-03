@@ -9,7 +9,7 @@ Regenerate the browser dashboard's numbers from the pipeline outputs.
   * index.html  -> naive-spike callout from the measured sensor-shift ratio
 
 Same idea as tools/sync_readme.py: the HTML/JS never carries a metric that was
-typed by hand, so a re-run of the pipeline can never be contradicted by the UI.
+typed by hand, so the UI cannot drift from metrics.json (enforced by --check in CI).
 
 Usage:  python tools/sync_web.py [--check]
 """

@@ -225,7 +225,7 @@ def build_block(m: dict) -> str:
 > Every number in this section is generated from `data/processed/metrics.json`
 > by `python tools/sync_readme.py` — edit the metrics, not this table.
 
-To prevent data leakage, the harmonization model was trained on **{m.get('training_period', '2012-01 to 2018-12')}**
+A strict chronological split (no train/test month overlap) was used to limit temporal leakage: the harmonization model was trained on **{m.get('training_period', '2012-01 to 2018-12')}**
 and evaluated on an independent **held-out test set from {m.get('held_out_test_period', '2019-01 to 2021-12')}**.
 
 | Metric | Naive Sensor Splice (Raw VIIRS) | BD-FireOps (Harmonized Linear) | Performance Improvement |

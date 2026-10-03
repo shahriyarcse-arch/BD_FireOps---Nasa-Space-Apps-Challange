@@ -269,7 +269,8 @@ with tab2:
     st.subheader(f"2. Rigorous Held-Out Validation (Test Set: {metrics.get('held_out_test_period', '2019-01 to 2021-12')})")
     st.markdown(
         f"""
-    To avoid over-fitting and prevent data leakage, the harmonization models were trained strictly on
+    To limit temporal leakage and avoid over-fitting, a strict chronological split (no train/test
+    month overlap) was used: the harmonization models were trained on
     **{metrics.get('training_period', '2012-01 to 2018-12')}** and evaluated on an independent,
     **held-out test set from {metrics.get('held_out_test_period', '2019-01 to 2021-12')}**.
     """

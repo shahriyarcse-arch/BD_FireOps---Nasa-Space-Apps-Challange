@@ -27,7 +27,7 @@ Transitioning directly to VIIRS (375 m) introduces severe spatial and energetic 
 > Every number in this section is generated from `data/processed/metrics.json`
 > by `python tools/sync_readme.py` — edit the metrics, not this table.
 
-To prevent data leakage, the harmonization model was trained on **2012-01 to 2018-12 (84 months)**
+A strict chronological split (no train/test month overlap) was used to limit temporal leakage: the harmonization model was trained on **2012-01 to 2018-12 (84 months)**
 and evaluated on an independent **held-out test set from 2019-01 to 2021-12 (36 months)**.
 
 | Metric | Naive Sensor Splice (Raw VIIRS) | BD-FireOps (Harmonized Linear) | Performance Improvement |
@@ -144,7 +144,11 @@ copy .env.example .env      # Windows  (or: cp .env.example .env)
 [FIRMS data citation & access policy](https://www.earthdata.nasa.gov/data/instruments/firms)
 (attribution required; raw bulk redistribution limits apply). This repository ships
 derived monthly counts, audit JSON and figures — not the raw chunk files
-(`data/raw/` is git-ignored for exactly this reason).
+(`data/raw/` is git-ignored for exactly this reason). The repository preserves the
+processed outputs and the code needed to reproduce the analysis from the specified
+FIRMS source; re-running against the live FIRMS archive reproduces the key fitted
+slope and held-out RMSE, but the live archive is not a frozen snapshot, so exact
+historical raw rows are not guaranteed to be byte-identical later.
 
 ### Step 3: Run Full Analysis Pipeline & Model Validation
 ```bash
@@ -165,7 +169,20 @@ python tools/sync_readme.py        # refresh the §2 numbers after any run
 python tools/sync_readme.py --check  # fail if README is stale (CI/pre-commit)
 ```
 
-### Step 4: Launch Interactive Streamlit Dashboard
+### Step 4: Verify the shipped numbers
+```bash
+python tools/verify_bootstrap.py      # recomputes the published CI and compares it with metrics.json
+python tools/sync_readme.py --check   # README numbers still match metrics.json
+python tools/sync_web.py --check      # website numbers still match metrics.json
+python tests/test_pipeline.py         # clean/aggregate fixture checks
+```
+`verify_bootstrap.py` re-derives the moving-block bootstrap interval from
+`monthly.csv` (same split, same 12-month blocks, same seed) and exits non-zero if
+the shipped `metrics.json` interval disagrees — so the uncertainty claim is
+reproducible evidence rather than a statement. Re-running the pipeline reproduces
+the key fitted slope and the held-out RMSE exactly.
+
+### Step 5: Launch Interactive Streamlit Dashboard
 ```bash
 python -m streamlit run dashboard/app.py
 ```
@@ -238,7 +255,7 @@ In accordance with NASA Open Science principles, BD-FireOps explicitly documents
    Regional monthly counts, not paired fire-level detections. No overpass-time, scan-angle, exact administrative boundary, land-cover or FRP modeling. Sub-pixel scan-angle distortions and diurnal overpass offsets were not explicitly modeled in this MVP.
 3. **Zero & Gap Handling:**  
    Months inside a sensor's coverage window with no detection are retained as `0`; months outside coverage (delivery/orbital gaps) are left blank rather than reported as fire-free. Confidence thresholds are applied per sensor (MODIS ≥ 30, VIIRS low-confidence dropped); the alternative threshold choice is reproduced with `python analysis/clean.py --sensitivity`, and its effect on the *fitted* coefficients is measured with `python tools/sensitivity.py` (numbers in §2 and in `data/processed/sensitivity.json`).
-   **Day/night mix:** the baseline counts daytime and nighttime detections together (both sensors see both); the day-only run in §2 shows the fit is *not* driven by night rows — restricting to `daynight = D` moves the slope +9.73% and actually lowers held-out RMSE by 10.74%. Switching the reported configuration to day-only is left as future work rather than done days before submission (it would invalidate the tested headline numbers).
+   **Day/night mix:** the baseline counts daytime and nighttime detections together (both sensors see both). The day-only sensitivity run moves the slope +9.73% relative to baseline and reports 10.74% lower held-out RMSE — i.e. this alternative cleaning choice measurably changes the fit, so it is published as-is in §2 rather than folded silently into the baseline. Switching the reported configuration to day-only is left as future work rather than done days before submission (it would invalidate the tested headline numbers).
 4. **Duplicate rule:** duplicate detections (same coordinates, date, time, satellite) are collapsed keeping the highest-confidence row; the audit records that **zero** duplicate-key groups disagreed on confidence in this dataset, so the rule is defensive rather than a data change.
 5. **Detection Caveat (data limitation):**  
    FIRMS reports positive detections. A missing detection may reflect cloud, viewing geometry, algorithm sensitivity or no observation. BD-FireOps does **not** classify fire cause (agricultural, forest, or otherwise) — it only estimates a harmonized detection count.
