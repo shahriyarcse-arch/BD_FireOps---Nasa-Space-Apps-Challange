@@ -78,8 +78,15 @@ def _monthly_counts(clean: pd.DataFrame) -> pd.Series:
 
 
 def _month_grid(month_sets: list[set[pd.Period]]) -> pd.PeriodIndex:
-    lo = min(min(s) for s in month_sets)
-    hi = max(max(s) for s in month_sets)
+    non_empty = [s for s in month_sets if s]
+    if not non_empty:
+        raise SystemExit(
+            "[AGGREGATE] No coverage months found for any sensor — "
+            "data/raw/<sensor>/ has no chunks (or they carry no parseable dates). "
+            "Re-run analysis/download.py before aggregating."
+        )
+    lo = min(min(s) for s in non_empty)
+    hi = max(max(s) for s in non_empty)
     return pd.period_range(lo, hi, freq="M")
 
 

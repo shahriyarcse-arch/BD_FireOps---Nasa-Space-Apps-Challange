@@ -239,6 +239,21 @@ def clean_modis(df: pd.DataFrame, keep_low_conf: bool = False) -> tuple[pd.DataF
 
     before = len(df)
     dup_keys = ["latitude", "longitude", "acq_date", "acq_time"] + ([sat_col] if sat_col else [])
+    # Highest-confidence row wins inside a duplicate group. In the real data
+    # zero duplicate-key groups disagree on confidence (audited), so this only
+    # removes arbitrary first-row ordering risk.
+    if "confidence" in df.columns and len(df):
+        _dk = df.loc[df.duplicated(subset=dup_keys, keep=False)]
+        if not _dk.empty:
+            _nuniq = _dk.groupby(dup_keys, sort=False)["confidence"].nunique()
+            audit["duplicate_conflict_keys"] = int((_nuniq > 1).sum())
+        else:
+            audit["duplicate_conflict_keys"] = 0
+        if audit["duplicate_conflict_keys"]:
+            rank = _norm_confidence(df["confidence"]).fillna(-1)
+            df = (df.assign(_rank=rank)
+                    .sort_values("_rank", ascending=False, kind="mergesort")
+                    .drop(columns="_rank"))
     df = df.drop_duplicates(subset=dup_keys)
     audit["dropped_duplicates"] = before - int(len(df))
 
@@ -296,6 +311,21 @@ def clean_viirs(df: pd.DataFrame, keep_low_conf: bool = False) -> tuple[pd.DataF
     dup_keys = ["latitude", "longitude", "acq_date", "acq_time"]
     if "satellite" in df.columns:
         dup_keys.append("satellite")
+    # Same max-confidence dedup rule as MODIS (see clean_modis): count
+    # duplicate groups whose confidence disagrees, then keep the strongest.
+    if "confidence" in df.columns and len(df):
+        _dk = df.loc[df.duplicated(subset=dup_keys, keep=False)]
+        if not _dk.empty:
+            _nuniq = _dk.groupby(dup_keys, sort=False)["confidence"].nunique()
+            audit["duplicate_conflict_keys"] = int((_nuniq > 1).sum())
+        else:
+            audit["duplicate_conflict_keys"] = 0
+        if audit["duplicate_conflict_keys"]:
+            rank = (df["confidence"].astype(str).str.lower()
+                    .map({"h": 3, "n": 2, "l": 1}).fillna(0))
+            df = (df.assign(_rank=rank)
+                    .sort_values("_rank", ascending=False, kind="mergesort")
+                    .drop(columns="_rank"))
     df = df.drop_duplicates(subset=dup_keys)
     audit["dropped_duplicates"] = before - int(len(df))
 

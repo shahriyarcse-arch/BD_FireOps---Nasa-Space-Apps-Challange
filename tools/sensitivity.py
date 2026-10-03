@@ -32,7 +32,16 @@ PROCESSED = ROOT / "data" / "processed"
 TRAIN_END = "2019-01"
 
 
-def build_monthly(suffix: str) -> pd.DataFrame | None:
+def build_monthly(suffix: str, day_only: bool = False) -> pd.DataFrame | None:
+    """Baseline comes straight from the pipeline's own monthly.csv (single
+    source of truth); alternative scenarios are rebuilt from clean_* CSVs the
+    same way analysis/aggregate.py builds the main grid."""
+    if suffix == "" and not day_only:
+        p = PROCESSED / "monthly.csv"
+        if not p.exists():
+            return None
+        return pd.read_csv(p)[["month", "year", "month_num", "modis", "viirs"]]
+
     paths = {s: PROCESSED / f"clean_{s}{suffix}.csv" for s in ("modis", "viirs")}
     if not all(p.exists() for p in paths.values()):
         return None
@@ -43,6 +52,11 @@ def build_monthly(suffix: str) -> pd.DataFrame | None:
             cleans[s] = pd.read_csv(p)
         except pd.errors.EmptyDataError:
             cleans[s] = pd.DataFrame()
+        # Day-only scenario: both sensors restricted to daytime detections so
+        # the diurnal mix (VIIRS carries ~9% night rows here) cannot drive the
+        # fitted relationship.
+        if day_only and not cleans[s].empty and "daynight" in cleans[s].columns:
+            cleans[s] = cleans[s][cleans[s]["daynight"].astype(str).str.upper() == "D"]
 
     coverage = {}
     for s in ("modis", "viirs"):
@@ -93,16 +107,17 @@ def row_count(suffix: str, sensor: str) -> int | None:
 def main() -> int:
     baseline = build_monthly("")
     lowconf = build_monthly("_lowconf")
+    day_only = build_monthly("", day_only=True)
 
     if baseline is None:
-        print("[SENS] baseline clean_*.csv missing — run the pipeline first.")
+        print("[SENS] monthly.csv missing — run the pipeline first.")
         return 1
     if lowconf is None:
         print("[SENS] low-confidence outputs missing — run: python analysis/clean.py --sensitivity")
         return 1
 
     result = {
-        "question": "does keeping low-confidence detections change the fitted relationship?",
+        "question": "does keeping low-confidence detections (or night rows) change the fitted relationship?",
         "baseline": {"modis_rows": row_count("", "modis"), "viirs_rows": row_count("", "viirs"),
                      **fit_split(baseline)},
         "low_confidence_kept": {"modis_rows": row_count("_lowconf", "modis"),
@@ -116,12 +131,41 @@ def main() -> int:
         d_rmse = round(100 * (l["test_rmse"] - b["test_rmse"]) / b["test_rmse"], 2) if b["test_rmse"] else None
         result["delta"] = {"slope_percent": d_slope, "test_rmse_percent": d_rmse}
 
+    # Day-only scenario: same grid and split, but detections restricted to
+    # daytime (daynight == "D") on both sensors.
+    if day_only is not None and "month" in day_only.columns:
+        day_fit = fit_split(day_only)
+        result["day_only"] = dict(day_fit)
+        # Row numbers: count daytime rows from the clean CSVs (the monthly
+        # grid holds months, not detections).
+        for s in ("modis", "viirs"):
+            p = PROCESSED / f"clean_{s}.csv"
+            if p.exists():
+                try:
+                    d = pd.read_csv(p, usecols=["daynight"])
+                    result["day_only"][f"{s}_rows"] = int(
+                        (d["daynight"].astype(str).str.upper() == "D").sum())
+                except (pd.errors.EmptyDataError, ValueError):
+                    pass
+        db, dd = result["baseline"], result["day_only"]
+        if "slope" in db and "slope" in dd and db.get("slope"):
+            result["delta_day"] = {
+                "slope_percent": round(100 * (dd["slope"] - db["slope"]) / db["slope"], 2),
+                "test_rmse_percent": (round(100 * (dd["test_rmse"] - db["test_rmse"]) / db["test_rmse"], 2)
+                                      if db.get("test_rmse") else None),
+            }
+
     (PROCESSED / "sensitivity.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     print("[SENS] baseline        :", json.dumps(b))
     print("[SENS] low-conf kept   :", json.dumps(l))
     if "delta" in result:
         print(f"[SENS] slope change: {result['delta']['slope_percent']}% · "
               f"test RMSE change: {result['delta']['test_rmse_percent']}%")
+    if "day_only" in result:
+        print("[SENS] day-only        :", json.dumps(result["day_only"]))
+    if "delta_day" in result:
+        print(f"[SENS] day-only slope change: {result['delta_day']['slope_percent']}% · "
+              f"test RMSE change: {result['delta_day']['test_rmse_percent']}%")
     print("[SENS] wrote data/processed/sensitivity.json")
     return 0
 

@@ -1,5 +1,5 @@
 {
-  "question": "does keeping low-confidence detections change the fitted relationship?",
+  "question": "does keeping low-confidence detections (or night rows) change the fitted relationship?",
   "baseline": {
     "modis_rows": 42716,
     "viirs_rows": 70857,
@@ -23,5 +23,19 @@
   "delta": {
     "slope_percent": -8.54,
     "test_rmse_percent": 4.96
+  },
+  "day_only": {
+    "slope": 0.2956,
+    "intercept": -3.49,
+    "test_months": 36,
+    "test_rmse": 49.69,
+    "test_bias": -7.5,
+    "test_r2": 0.9847,
+    "modis_rows": 42391,
+    "viirs_rows": 64537
+  },
+  "delta_day": {
+    "slope_percent": 9.73,
+    "test_rmse_percent": -10.74
   }
 }

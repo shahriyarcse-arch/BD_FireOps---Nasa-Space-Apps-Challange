@@ -63,13 +63,14 @@
     "slope": 0.2694,
     "intercept": -1.18,
     "bootstrap_slope_95_ci": [
-      0.2296,
-      0.3202
+      0.2198,
+      0.297
     ],
     "bootstrap_intercept_95_ci": [
-      -10.9,
-      7.87
+      -6.79,
+      6.52
     ],
+    "bootstrap_method": "500 resamples of contiguous 12-month blocks (moving-block bootstrap, seed 42); coefficient interval, not a prediction interval",
     "interpretation": "fitted regional empirical relationship (monthly counts), not a universal MODIS-VIIRS conversion"
   },
   "fitted_log1p_model": {

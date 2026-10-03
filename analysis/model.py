@@ -196,13 +196,27 @@ def run_harmonization_pipeline(input_csv=None):
     metrics_lin = calc_metrics(y_true, y_lin)
     metrics_log = calc_metrics(y_true, y_log)
     
-    # Bootstrap Parameter Uncertainty (500 resamples on train set)
-    np.random.seed(42)
+    # Bootstrap Parameter Uncertainty (500 resamples on the train set).
+    # Months are seasonal, so single-month resampling assumes away the
+    # autocorrelation and under-states the interval: resample contiguous
+    # 12-month blocks (one full seasonal cycle) instead — moving-block
+    # bootstrap, deterministic via default_rng(42).
+    rng = np.random.default_rng(42)
+    train_vals = train[["viirs", "modis"]].to_numpy(dtype=float)
+    n_obs = len(train_vals)
+    block = 12
+    starts = np.arange(0, n_obs - block + 1) if n_obs >= block else np.arange(n_obs)
+    n_blocks = int(np.ceil(n_obs / block))
     boot_slopes = []
     boot_intercepts = []
     for _ in range(500):
-        sample = train.sample(n=len(train), replace=True)
-        m_boot = LinearRegression().fit(sample[["viirs"]], sample["modis"])
+        if n_obs >= block:
+            picks = rng.choice(starts, size=n_blocks, replace=True)
+            idx = (picks[:, None] + np.arange(block)).ravel()[:n_obs]
+        else:  # degenerate short train: fall back to single-row resampling
+            idx = rng.integers(0, n_obs, size=n_obs)
+        sample = train_vals[idx]
+        m_boot = LinearRegression().fit(sample[:, 0].reshape(-1, 1), sample[:, 1])
         boot_slopes.append(m_boot.coef_[0])
         boot_intercepts.append(m_boot.intercept_)
         
@@ -283,6 +297,7 @@ def run_harmonization_pipeline(input_csv=None):
             "intercept": round(lin_intercept, 2),
             "bootstrap_slope_95_ci": slope_ci,
             "bootstrap_intercept_95_ci": intercept_ci,
+            "bootstrap_method": "500 resamples of contiguous 12-month blocks (moving-block bootstrap, seed 42); coefficient interval, not a prediction interval",
             "interpretation": "fitted regional empirical relationship (monthly counts), not a universal MODIS-VIIRS conversion"
         },
         "fitted_log1p_model": {

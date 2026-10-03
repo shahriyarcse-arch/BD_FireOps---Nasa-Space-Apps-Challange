@@ -137,7 +137,13 @@ except (FileNotFoundError, json.JSONDecodeError, OSError):
 
 
 def pct_text(v):
-    return "n/a" if v is None else f"{-v:+}%"
+    """Reduction percent shown on the metric cards. Positive v = error went down."""
+    if v is None:
+        return "n/a"
+    if v >= 0:
+        return f"-{v}%"
+    return f"+{-v}%"
+
 
 
 def metric_card(value: str, label: str) -> str:
@@ -146,7 +152,10 @@ def metric_card(value: str, label: str) -> str:
 
 
 # ----------------- SIDEBAR -----------------
-st.sidebar.image("https://www.nasa.gov/wp-content/themes/nasa/assets/images/nasa-logo.svg", width=120)
+# No external logo: the old version hot-linked an SVG from nasa.gov, which
+# breaks offline / on weak hall Wi-Fi and contradicts the vendored-offline
+# claim. A text header always renders.
+st.sidebar.markdown("# :fire: BD-FireOps")
 st.sidebar.markdown("### **NASA Space Apps 2026**")
 st.sidebar.markdown("**Challenge:** *Harmonization of MODIS & VIIRS Hot Spots*")
 st.sidebar.markdown("**Team:** `Claude Fable 7.0` (Bangladesh)")
@@ -379,6 +388,13 @@ with tab4:
                       f"`{_sb.get('test_rmse')}` → `{_sl.get('test_rmse')}` "
                       f"({float(_sd['test_rmse_percent']):+.2f}%). The baseline thresholds "
                       f"(MODIS conf ≥ 30, VIIRS drops `l`) are the reported configuration.")
+        if (SENS.get("delta_day") or {}).get("slope_percent") is not None:
+            _dday, _donly = SENS["delta_day"], SENS.get("day_only", {})
+            _sens_item += (f" Day-only check (`daynight = D`, both sensors): slope "
+                           f"`{_donly.get('slope')}` ({float(_dday['slope_percent']):+.2f}%), "
+                           f"held-out RMSE {_donly.get('test_rmse')} "
+                           f"({float(_dday['test_rmse_percent']):+.2f}%) — tests whether night rows "
+                           f"change the fitted relationship.")
     else:
         _sens_item = ("No sensitivity run recorded — reproduce with "
                       "`python analysis/clean.py --sensitivity` then `python tools/sensitivity.py`.")

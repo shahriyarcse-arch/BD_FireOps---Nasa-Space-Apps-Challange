@@ -42,19 +42,27 @@ and evaluated on an independent **held-out test set from 2019-01 to 2021-12 (36 
 ### Fitted Empirical Calibration Model
 $$\text{MODIS}_{\text{equivalent}} = 0.2694 \times \text{VIIRS}_{375\text{m}} + (-1.18)$$
 
-* **Bootstrap 95% Confidence Interval (Slope):** `[0.2296, 0.3202]`
-* **Bootstrap 95% Confidence Interval (Intercept):** `[-10.9, 7.87]`
-* **Interval width:** ±16.8% of the point slope — the bootstrap here is a *coefficient* interval, not a prediction interval.
+* **Bootstrap 95% Confidence Interval (Slope):** `[0.2198, 0.297]`
+* **Bootstrap 95% Confidence Interval (Intercept):** `[-6.79, 6.52]`
+* **Interval width:** ±14.3% of the point slope — the bootstrap here is a *coefficient* interval, not a prediction interval.
 * **Chart-A step ratio:** `2.85x` — mean raw VIIRS (2012–2021) ÷ mean MODIS (2002–2011),
   zero months counted on both sides; this is the discontinuity Chart A draws.
 * **Same-month sensor ratio:** `3.71x` — mean raw VIIRS ÷ mean MODIS over the *same*
   2012–2021 months, i.e. the sensor sensitivity difference itself.
 * **log1p check:** did **not** improve held-out RMSE (243.95 vs 55.67) — reported as a robustness check, not as the chosen model.
 * **Confidence-threshold sensitivity:** Keeping low-confidence detections changes the fitted slope `0.2694` → `0.2464` (-8.54%) and held-out RMSE `55.67` → `58.43` (+4.96%, i.e. worse when looser thresholds are kept). Row counts: MODIS 42,716 → 43,792, VIIRS 70,857 → 77,872. The baseline thresholds are therefore the reported configuration; `data/processed/sensitivity.json` holds the numbers.
+* **Day-only sensitivity (daynight = D on both sensors):** slope `0.2694` → `0.2956` (+9.73%) and held-out RMSE `55.67` → `49.69` (-10.74%). Detections: MODIS 42,391 / VIIRS 64,537 daytime rows kept.
 * **Interpretation:** a fitted *regional empirical relationship* for monthly counts — not a
   universal MODIS↔VIIRS conversion, and not a fire-cause classifier.
 * **Zero months:** 57 of 120 overlap months contain a zero
   (57 MODIS / 31 VIIRS); zero months were retained, not dropped.
+* **Held-out test, year by year (RMSE / bias / months in that year):**
+
+| Year | RMSE | Bias | Months |
+| :--- | ---: | ---: | ---: |
+| **2019** | **67.87** | **-11.52** | **12 months** |
+| **2020** | **47.61** | **-17.61** | **12 months** |
+| **2021** | **49.23** | **+16.86** | **12 months** |
 <!-- END:SUPPORTED_METRICS -->
 
 ---
@@ -195,14 +203,19 @@ Schroeder et al. (2014) for VIIRS 375 m.
 
 1. **Clean** (`analysis/clean.py`) — MODIS confidence ≥ 30, VIIRS low-confidence (`l`) dropped,
    Aqua-only reference gate, bounding-box filter, **CHT district-polygon gate** (drops the
-   India/Myanmar fringe of the rectangle), de-duplication; every drop is counted into
-   `clean_audit_baseline.json`.
+   India/Myanmar fringe of the rectangle), de-duplication (highest-confidence row wins; the
+   audit records how many duplicate-key groups disagreed on confidence — zero here), UTC date
+   parsing, study-window clamp; every drop is counted into `clean_audit_baseline.json`.
 2. **Aggregate** (`analysis/aggregate.py`) — regional **monthly** detection counts. Zero months
    inside coverage are kept as `0`; months outside coverage stay blank.
 3. **Fit & validate** (`analysis/model.py`) — ordinary least squares and a log1p variant,
    fitted on **2012–2018**, evaluated on the **held-out 2019–2021** split; slope/intercept
-   uncertainty from a **500-resample bootstrap** (a coefficient interval — not a prediction
-   interval).
+   uncertainty from a **500-resample moving-block bootstrap** (12-month blocks, because monthly
+   fire counts are seasonal) reported as a coefficient interval — not a prediction interval.
+4. **Sensitivity** (`tools/sensitivity.py`) — re-fits the same split under two alternative
+   cleaning choices: keeping low-confidence rows, and **daytime-only** detections
+   (`daynight = D` on both sensors). Both results are published as-is in
+   `data/processed/sensitivity.json` and §2 of this README.
 
 **What this is (and is not).**
 
@@ -225,9 +238,11 @@ In accordance with NASA Open Science principles, BD-FireOps explicitly documents
    Regional monthly counts, not paired fire-level detections. No overpass-time, scan-angle, exact administrative boundary, land-cover or FRP modeling. Sub-pixel scan-angle distortions and diurnal overpass offsets were not explicitly modeled in this MVP.
 3. **Zero & Gap Handling:**  
    Months inside a sensor's coverage window with no detection are retained as `0`; months outside coverage (delivery/orbital gaps) are left blank rather than reported as fire-free. Confidence thresholds are applied per sensor (MODIS ≥ 30, VIIRS low-confidence dropped); the alternative threshold choice is reproduced with `python analysis/clean.py --sensitivity`, and its effect on the *fitted* coefficients is measured with `python tools/sensitivity.py` (numbers in §2 and in `data/processed/sensitivity.json`).
-4. **Detection Caveat (data limitation):**  
+   **Day/night mix:** the baseline counts daytime and nighttime detections together (both sensors see both); the day-only run in §2 shows the fit is *not* driven by night rows — restricting to `daynight = D` moves the slope +9.73% and actually lowers held-out RMSE by 10.74%. Switching the reported configuration to day-only is left as future work rather than done days before submission (it would invalidate the tested headline numbers).
+4. **Duplicate rule:** duplicate detections (same coordinates, date, time, satellite) are collapsed keeping the highest-confidence row; the audit records that **zero** duplicate-key groups disagreed on confidence in this dataset, so the rule is defensive rather than a data change.
+5. **Detection Caveat (data limitation):**  
    FIRMS reports positive detections. A missing detection may reflect cloud, viewing geometry, algorithm sensitivity or no observation. BD-FireOps does **not** classify fire cause (agricultural, forest, or otherwise) — it only estimates a harmonized detection count.
-5. **Sensor Transition Roadmap:**  
+6. **Sensor Transition Roadmap:**  
    Suomi-NPP VIIRS delivery permanently ceases on **1 November 2026** — the record therefore needs a refit against **NOAA-20 (VJ114) / NOAA-21 (VJ214)** before it can be extended past 2021. NASA projects Terra/Aqua MODIS end-of-science for Feb/Sep 2027.
 
 ---
@@ -235,11 +250,12 @@ In accordance with NASA Open Science principles, BD-FireOps explicitly documents
 ## 8. Future Work
 
 1. **NOAA-20 / NOAA-21 refit** — repeat the overlap fit across VIIRS generations once S-NPP ends, so the record continues past 2021.
-2. **Grid matching** — compare on a common spatial grid instead of region-level counts.
-3. **Overpass timing & scan-angle correction** — model the ~13:30 vs ~13:45 equator crossing and swath geometry explicitly.
-4. **FRP-based harmonization** — calibrate on radiative power rather than detection counts.
-5. **Burned-area validation** — cross-check harmonized counts against an independent burned-area product.
-6. **Polygon-precise districts** — tighten the ADM2 district gate (simplified geoBoundaries rings can shave ~1% near borders).
+2. **Daytime-only configuration** — the §2 day-only run already fits better (RMSE −10.74%); promote it from sensitivity to the reported baseline in a future, fully re-tested release.
+3. **Grid matching** — compare on a common spatial grid instead of region-level counts.
+4. **Overpass timing & scan-angle correction** — model the ~13:30 vs ~13:45 equator crossing and swath geometry explicitly.
+5. **FRP-based harmonization** — calibrate on radiative power rather than detection counts.
+6. **Burned-area validation** — cross-check harmonized counts against an independent burned-area product.
+7. **Polygon-precise districts** — tighten the ADM2 district gate (simplified geoBoundaries rings can shave ~1% near borders).
 
 ---
 

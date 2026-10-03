@@ -16,6 +16,7 @@
       "source": "geoBoundaries BGD-ADM2 (BBS / OCHA ROAP), CC BY 3.0, data/reference/geoBoundaries-BGD-ADM2_simplified.geojson"
     },
     "dropped_outside_region": 55844,
+    "duplicate_conflict_keys": 0,
     "dropped_duplicates": 0,
     "dropped_bad_dates": 0,
     "study_window": "2002-07-01 .. 2021-12-31",
@@ -38,6 +39,7 @@
       "source": "geoBoundaries BGD-ADM2 (BBS / OCHA ROAP), CC BY 3.0, data/reference/geoBoundaries-BGD-ADM2_simplified.geojson"
     },
     "dropped_outside_region": 94322,
+    "duplicate_conflict_keys": 0,
     "dropped_duplicates": 0,
     "dropped_bad_dates": 0,
     "study_window": "2012-01-01 .. 2021-12-31",

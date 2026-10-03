@@ -110,7 +110,15 @@ def fetch_firms_chunk(
             raise SystemExit(f"[DOWNLOAD] Invalid MAP_KEY for source {source} (HTTP 401).")
         if resp.status_code == 429 or resp.status_code >= 500:
             last_error = RuntimeError(f"HTTP {resp.status_code}")
-            time.sleep(BACKOFF_BASE_S * (2 ** attempt))
+            wait = BACKOFF_BASE_S * (2 ** attempt)
+            if resp.status_code == 429:
+                # Honour Retry-After when the server says how long to wait
+                # (capped at 60 s); fall back to exponential backoff otherwise.
+                try:
+                    wait = max(wait, min(float(resp.headers.get("Retry-After", 0)), 60.0))
+                except ValueError:
+                    pass
+            time.sleep(wait)
             continue
 
         resp.raise_for_status()
@@ -319,6 +327,9 @@ def main(argv: list[str] | None = None) -> int:
         end = (args.until or dt.date.fromisoformat(d_end)).isoformat()
         if args.since or args.until:
             print(f"[DOWNLOAD] {sensor}: window override {start} -> {end}")
+            print(f"[DOWNLOAD] {sensor}: NOTE — clean.py/aggregate.py still clamp to the study "
+                  f"window {WINDOWS[sensor][0]} .. {WINDOWS[sensor][1]} (plan scope lock); "
+                  "rows outside it are dropped loudly.")
         download_source(key, sensor, start, end, resume=not args.no_resume)
     print("[DOWNLOAD] Done. Next: python analysis/clean.py")
     return 0

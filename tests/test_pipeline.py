@@ -113,6 +113,7 @@ check("raw pre-filter aqua/terra split recorded",
       audits["modis"].get("raw_aqua_rows") == 6 and audits["modis"].get("raw_terra_rows") == 1, audits["modis"])
 check("post-filter split recorded with note",
       audits["modis"].get("aqua_rows") == 5 and "post-confidence" in audits["modis"].get("aqua_terra_note", ""))
+check("dup groups all agree on confidence", audits["modis"].get("duplicate_conflict_keys") == 0, audits["modis"])
 check("region filter recorded with source", "geoBoundaries" in (audits["modis"].get("region_filter") or {}).get("source", ""), audits["modis"])
 check("aqua filter applied", audits["modis"]["aqua_filter_applied"] is True)
 check("terra counted but dropped", audits["modis"]["terra_rows"] == 1 and audits["modis"]["aqua_rows"] == 5,

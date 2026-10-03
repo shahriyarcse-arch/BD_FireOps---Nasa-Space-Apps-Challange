@@ -25,8 +25,8 @@ if (typeof window !== 'undefined' && typeof window.addEventListener === 'functio
 const MODEL_PARAMS = {
   slope: 0.2694,
   intercept: -1.18,
-  slopeCI: [0.2296, 0.3202],
-  interceptCI: [-10.9, 7.87],
+  slopeCI: [0.2198, 0.297],
+  interceptCI: [-6.79, 6.52],
   stepRatio: 2.85,
   overlapRatio: 3.71
 };
@@ -1327,7 +1327,6 @@ if (mapBtnSat && mapBtnDark) {
 // =============================================================================
 let chartNaiveInstance = null;
 let chartHarmInstance = null;
-let chartOverlayInstance = null;
 
 const labels = CHT_SERIES.map(d => d.m);
 const modisSeries = CHT_SERIES.map(d => d.modis);
@@ -1412,30 +1411,6 @@ function initCharts() {
       ]
     },
     options: CHART_OPTS('Fires per month')
-  });
-
-  // Overlay chart only exists on the old full page — skip on the light page.
-  return;
-  // (old overlay code below kept for reference, never runs on light page)
-}
-
-// Split/overlay toggle only exists on the old full page.
-const btnSplit = document.getElementById('view-btn-split');
-const btnOverlay = document.getElementById('view-btn-overlay');
-const containerSplit = document.getElementById('split-charts-container');
-const containerOverlay = document.getElementById('overlay-chart-container');
-if (btnSplit && btnOverlay && containerSplit && containerOverlay) {
-  btnSplit.addEventListener('click', () => {
-    setPressed(btnSplit, btnOverlay);
-    containerSplit.classList.remove('is-hidden');
-    containerOverlay.classList.remove('is-visible');
-  });
-
-  btnOverlay.addEventListener('click', () => {
-    setPressed(btnOverlay, btnSplit);
-    containerSplit.classList.add('is-hidden');
-    containerOverlay.classList.add('is-visible');
-    if (chartOverlayInstance) chartOverlayInstance.resize();
   });
 }
 
@@ -1561,86 +1536,11 @@ if (simSlider) {
 }
 
 // =============================================================================
-// 6. YEAR CALENDAR (only on the old full page — skip if missing)
-// =============================================================================
-function buildCalendarGrid() {
-  const grid = document.getElementById('calendar-heatmap-grid');
-  if (!grid) return;
-  grid.innerHTML = '';
-
-  const months = ["Year", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  months.forEach(m => {
-    const th = document.createElement('div');
-    th.className = 'grid-th';
-    th.innerText = m;
-    grid.appendChild(th);
-  });
-
-  for (let yr = 2002; yr <= 2021; yr++) {
-    const yrLabel = document.createElement('div');
-    yrLabel.className = 'grid-row-year';
-    yrLabel.innerText = yr;
-    grid.appendChild(yrLabel);
-
-    for (let m = 1; m <= 12; m++) {
-      const cell = document.createElement('div');
-      cell.className = 'cal-cell';
-
-      const entry = CHT_SERIES.find(d => d.y === yr && d.mn === m);
-      const hasData = entry && entry.harm !== null;
-      const cellKey = `${yr}-${String(m).padStart(2, '0')}`;
-
-      let title;
-      if (!hasData) {
-        cell.classList.add('c-nodata');
-        title = `${cellKey}: No data in record (record starts 2002-07)`;
-      } else if (entry.harm === 0) {
-        cell.classList.add('c-dormant');
-        title = `${cellKey}: 0 Hotspots (Monsoon / Inactive)`;
-      } else if (entry.harm <= 20) {
-        cell.classList.add('c-low');
-        title = `${cellKey}: ${Math.round(entry.harm)} Hotspots (Low Baseline)`;
-      } else if (entry.harm <= 100) {
-        cell.classList.add('c-mid');
-        title = `${cellKey}: ${Math.round(entry.harm)} Hotspots (Moderate Activity)`;
-      } else if (entry.harm <= 250) {
-        cell.classList.add('c-high');
-        title = `${cellKey}: ${Math.round(entry.harm)} Hotspots (High Jhum Burning)`;
-      } else {
-        cell.classList.add('c-peak');
-        title = `${cellKey}: ${Math.round(entry.harm)} Hotspots (Peak Fire Season)`;
-      }
-      cell.title = title;
-
-      // Keyboard-operable: cells are interactive, so they must be reachable and
-      // activatable without a mouse (Enter/Space), with an accessible name.
-      cell.tabIndex = 0;
-      cell.setAttribute('role', 'button');
-      cell.setAttribute('aria-label', `${title}. Jump timeline to ${yr}.`);
-      const jump = () => {
-        slider.value = yr;
-        updateTimeline(yr);
-      };
-      cell.addEventListener('click', jump);
-      cell.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
-          e.preventDefault();
-          jump();
-        }
-      });
-
-      grid.appendChild(cell);
-    }
-  }
-}
-
-// =============================================================================
 // 7. INITIALIZE (guarded: one failing widget must not kill the rest)
 // =============================================================================
 (function safeInit() {
   try {
     initCharts();
-    buildCalendarGrid();
     if (slider) updateTimeline(slider.value || 2015);
     if (simSlider) updateSimulator(parseInt(simSlider.value, 10) || 300);
   } catch (err) {

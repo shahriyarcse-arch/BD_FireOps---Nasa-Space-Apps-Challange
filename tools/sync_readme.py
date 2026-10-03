@@ -108,6 +108,7 @@ def build_block(m: dict) -> str:
 
     # Confidence-threshold sensitivity, if tools/sensitivity.py has been run.
     sens_text = None
+    day_note = ""
     sens_path = ROOT / "data" / "processed" / "sensitivity.json"
     if sens_path.exists():
         try:
@@ -117,6 +118,23 @@ def build_block(m: dict) -> str:
         d = (sens or {}).get("delta") or {}
         b = (sens or {}).get("baseline") or {}
         l = (sens or {}).get("low_confidence_kept") or {}
+
+        # Day-only sensitivity (daynight == "D" on both sensors): guards the
+        # fitted relationship against the night rows VIIRS carries (~9% here).
+        _donly = (sens or {}).get("day_only") or {}
+        _dd = (sens or {}).get("delta_day") or {}
+        if (_dd.get("slope_percent") is not None and _dd.get("test_rmse_percent") is not None
+                and b.get("slope") is not None and _donly.get("slope") is not None):
+            day_note = (
+                f"* **Day-only sensitivity (daynight = D on both sensors):** slope "
+                f"`{b['slope']}` → `{_donly['slope']}` ({_dd['slope_percent']:+.2f}%) and "
+                f"held-out RMSE `{b.get('test_rmse')}` → `{_donly.get('test_rmse')}` "
+                f"({_dd['test_rmse_percent']:+.2f}%)."
+            )
+            _mr, _vr = _donly.get("modis_rows"), _donly.get("viirs_rows")
+            if isinstance(_mr, int) and isinstance(_vr, int):
+                day_note += f" Detections: MODIS {_mr:,} / VIIRS {_vr:,} daytime rows kept."
+
         if d and b.get("slope") is not None and l.get("slope") is not None:
             def _pct(v):
                 try:
@@ -155,6 +173,35 @@ def build_block(m: dict) -> str:
         sens_note = f"* **Confidence-threshold sensitivity:** {sens_text}"
     else:
         sens_note = ""
+
+    # Per-year held-out proof: one strong overall number can hide a weak year,
+    # so the 2019–2021 test window is also reported year by year straight from
+    # the harmonized CSV (same pred_linear the headline metrics are built on).
+    per_year_note = ""
+    try:
+        import pandas as _pd
+
+        _harm = _pd.read_csv(ROOT / "data" / "processed" / "monthly_harmonized.csv")
+        _rows = []
+        for _yr in (2019, 2020, 2021):
+            _t = _harm[_harm["month"].astype(str).str.startswith(str(_yr))].dropna(
+                subset=["modis", "pred_linear"])
+            if _t.empty:
+                continue
+            _e = _t["pred_linear"].to_numpy(dtype=float) - _t["modis"].to_numpy(dtype=float)
+            _rmse = round(float((_e ** 2).mean() ** 0.5), 2)
+            _bias = round(float(_e.mean()), 2)
+            _rows.append(f"| **{_yr}** | **{_rmse}** | **{_bias:+}** | **{len(_t)} months** |")
+        if _rows:
+            per_year_note = (
+                "* **Held-out test, year by year (RMSE / bias / months in that year):**\n"
+                "\n"
+                "| Year | RMSE | Bias | Months |\n"
+                "| :--- | ---: | ---: | ---: |\n"
+                + "\n".join(_rows)
+            )
+    except Exception:
+        per_year_note = ""
 
     l_rmse, g_rmse = lin.get("rmse"), log.get("rmse")
     if l_rmse is not None and g_rmse is not None:
@@ -197,10 +244,12 @@ $$\\text{{MODIS}}_{{\\text{{equivalent}}}} = {flm['slope']} \\times \\text{{VIIR
   2012–2021 months, i.e. the sensor sensitivity difference itself.
 {log_note}
 {sens_note}
+{day_note}
 * **Interpretation:** a fitted *regional empirical relationship* for monthly counts — not a
   universal MODIS↔VIIRS conversion, and not a fire-cause classifier.
 * **Zero months:** {zh.get('months_with_any_zero', 'n/a')} of {zh.get('overlap_months', 'n/a')} overlap months contain a zero
   ({zh.get('zero_modis_months', 'n/a')} MODIS / {zh.get('zero_viirs_months', 'n/a')} VIIRS); zero months were retained, not dropped.
+{per_year_note}
 <!-- END:SUPPORTED_METRICS -->"""
 
 
