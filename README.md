@@ -115,7 +115,6 @@ bd-fireops/
 ├── robots.txt                  # Crawler policy for the deployed static site
 ├── requirements.txt            # Python dependencies (pinned)
 ├── vercel.json                 # Static deploy config + security headers (CSP, etc.)
-├── SUBMISSION_PORTAL_CONTENT.md# Portal copy-paste text, 4-minute video script, deploy checklist
 ├── .env.example                # Sample environment configuration for FIRMS MAP_KEY
 ├── LICENSE                     # MIT (Team Claude Fable 7.0)
 └── README.md                   # Complete scientific documentation

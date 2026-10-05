@@ -23,9 +23,6 @@ data/raw/*.zip
 # Sensitivity temporary files & logs
 data/processed/*_lowconf.csv
 *.log
-# Generated presentation temporary files
-tools/video_script_template.html
-
 
 # Editor / deploy tooling
 .vercel/

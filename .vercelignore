@@ -15,6 +15,5 @@ requirements.txt
 *.pdf
 .github/
 .gitattributes
-SUBMISSION_PORTAL_CONTENT.md
 data/processed/chart_*.png
 data/processed/clean_audit*.json
