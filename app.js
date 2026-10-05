@@ -1396,6 +1396,61 @@ const CHART_OPTS = (yTitle) => {
   };
 };
 
+function buildSplitDatasets() {
+  return [
+    {
+      label: 'Aqua MODIS (Empirical 1 km)',
+      data: modisSeries,
+      borderColor: '#38bdf8',
+      borderWidth: 1.8,
+      pointRadius: 1.5,
+      tension: 0.25
+    },
+    {
+      label: 'BD-FireOps Harmonized (Calibrated Baseline)',
+      data: harmSeries,
+      borderColor: '#10b981',
+      backgroundColor: 'rgba(16, 185, 129, 0.12)',
+      borderWidth: 2.2,
+      pointRadius: 1.5,
+      fill: true,
+      tension: 0.25
+    }
+  ];
+}
+
+function buildCombinedDatasets() {
+  return [
+    {
+      label: 'Raw Naive Splice (Artificial Spike)',
+      data: naiveSeries,
+      borderColor: '#ef4444',
+      borderWidth: 2,
+      borderDash: [5, 4],
+      pointRadius: 1.2,
+      tension: 0.2
+    },
+    {
+      label: 'Aqua MODIS (Ground Truth Baseline)',
+      data: modisSeries,
+      borderColor: '#38bdf8',
+      borderWidth: 2,
+      pointRadius: 1.5,
+      tension: 0.2
+    },
+    {
+      label: 'BD-FireOps Continuous Calibration',
+      data: harmSeries,
+      borderColor: '#10b981',
+      backgroundColor: 'rgba(16, 185, 129, 0.14)',
+      borderWidth: 2.5,
+      pointRadius: 1.5,
+      fill: true,
+      tension: 0.2
+    }
+  ];
+}
+
 function initCharts() {
   const elA = document.getElementById('chartNaive');
   const elB = document.getElementById('chartHarm');
@@ -1404,14 +1459,15 @@ function initCharts() {
   if (chartNaiveInstance) chartNaiveInstance.destroy();
   if (chartHarmInstance) chartHarmInstance.destroy();
 
-  // Chart A: Naive Splice
+  // Chart A: Naive Splice — the label is derived from the synced step ratio
+  // so it can never drift from MODEL_PARAMS.
   const ctxA = elA.getContext('2d');
   chartNaiveInstance = new Chart(ctxA, {
     type: 'line',
     data: {
       labels,
       datasets: [{
-        label: 'Raw Sensor Splice (Artificial +185% Spike)',
+        label: `Raw Sensor Splice · ${SENSOR_SHIFT_LABEL}`,
         data: naiveSeries,
         borderColor: '#ef4444',
         backgroundColor: 'rgba(239, 68, 68, 0.12)',
@@ -1424,32 +1480,15 @@ function initCharts() {
     options: CHART_OPTS('Fires per month')
   });
 
-  // Chart B: BD-FireOps Harmonized Splice
+  // Chart B: a rebuild (e.g. theme toggle) must honour the *current* view,
+  // otherwise Combined View silently reverts to split datasets.
+  const combined = !!(chartsWrapper && chartsWrapper.classList.contains('combined-active'));
   const ctxB = elB.getContext('2d');
   chartHarmInstance = new Chart(ctxB, {
     type: 'line',
     data: {
       labels,
-      datasets: [
-        {
-          label: 'Aqua MODIS (Empirical 1 km)',
-          data: modisSeries,
-          borderColor: '#38bdf8',
-          borderWidth: 1.8,
-          pointRadius: 1.5,
-          tension: 0.25
-        },
-        {
-          label: 'BD-FireOps Harmonized (Calibrated Baseline)',
-          data: harmSeries,
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.12)',
-          borderWidth: 2.2,
-          pointRadius: 1.5,
-          fill: true,
-          tension: 0.25
-        }
-      ]
+      datasets: combined ? buildCombinedDatasets() : buildSplitDatasets()
     },
     options: CHART_OPTS('Fires per month')
   });
@@ -1470,35 +1509,7 @@ function setupChartViews() {
 
     // In combined view, update Chart B to show all 3 lines on one unified graph
     if (chartHarmInstance) {
-      chartHarmInstance.data.datasets = [
-        {
-          label: 'Raw Naive Splice (Artificial Spike)',
-          data: naiveSeries,
-          borderColor: '#ef4444',
-          borderWidth: 2,
-          borderDash: [5, 4],
-          pointRadius: 1.2,
-          tension: 0.2
-        },
-        {
-          label: 'Aqua MODIS (Ground Truth Baseline)',
-          data: modisSeries,
-          borderColor: '#38bdf8',
-          borderWidth: 2,
-          pointRadius: 1.5,
-          tension: 0.2
-        },
-        {
-          label: 'BD-FireOps Continuous Calibration',
-          data: harmSeries,
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.14)',
-          borderWidth: 2.5,
-          pointRadius: 1.5,
-          fill: true,
-          tension: 0.2
-        }
-      ];
+      chartHarmInstance.data.datasets = buildCombinedDatasets();
       chartHarmInstance.update();
     }
   });
@@ -1509,26 +1520,7 @@ function setupChartViews() {
     chartsWrapper.classList.remove('combined-active');
 
     if (chartHarmInstance) {
-      chartHarmInstance.data.datasets = [
-        {
-          label: 'Aqua MODIS (Empirical 1 km)',
-          data: modisSeries,
-          borderColor: '#38bdf8',
-          borderWidth: 1.8,
-          pointRadius: 1.5,
-          tension: 0.25
-        },
-        {
-          label: 'BD-FireOps Harmonized (Calibrated Baseline)',
-          data: harmSeries,
-          borderColor: '#10b981',
-          backgroundColor: 'rgba(16, 185, 129, 0.12)',
-          borderWidth: 2.2,
-          pointRadius: 1.5,
-          fill: true,
-          tension: 0.25
-        }
-      ];
+      chartHarmInstance.data.datasets = buildSplitDatasets();
       chartHarmInstance.update();
     }
   });
@@ -1550,13 +1542,13 @@ function updateTimeline(year) {
 
   if (eraText) {
     if (yr < 2012) {
-      eraText.innerText = "Aqua MODIS Baseline Era (2002–2011)";
+      eraText.innerText = "MODIS Years (2002–2011)";
       eraText.className = "regime-badge font-mono text-blue";
     } else if (yr <= 2018) {
-      eraText.innerText = "Dual-Orbit Calibration Window (2012–2018)";
+      eraText.innerText = "Training Years (2012–2018)";
       eraText.className = "regime-badge font-mono text-green";
     } else {
-      eraText.innerText = "Blind Held-Out Test Horizon (2019–2021)";
+      eraText.innerText = "Test Years (2019–2021)";
       eraText.className = "regime-badge font-mono text-amber";
     }
   }
@@ -1679,7 +1671,7 @@ function buildSeasonalityMatrix() {
     for (let mn = 1; mn <= 12; mn++) {
       const row = CHT_SERIES.find(d => d.y === yr && d.mn === mn);
       if (!row) {
-        html += '<div class="matrix-cell c-0" title="No satellite orbit data"></div>';
+        html += '<div class="matrix-cell c-na" title="No satellite orbit data (sensor not covering this month)"></div>';
         continue;
       }
       const val = row.harm !== null ? row.harm : (row.modis !== null ? row.modis : 0);
@@ -1718,25 +1710,27 @@ function buildSeasonalityMatrix() {
 function initTheme() {
   const toggleBtn = document.getElementById('theme-toggle');
   const label = document.getElementById('theme-label');
-  const saved = localStorage.getItem('bd_fireops_theme') || 'dark';
+  let saved = 'dark';
+  try {
+    saved = localStorage.getItem('bd_fireops_theme') || 'dark';
+  } catch (err) { /* storage blocked (private mode) — keep default */ }
 
-  function applyTheme(theme) {
+  function applyTheme(theme, rebuildCharts = true) {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('bd_fireops_theme', theme);
+    try {
+      localStorage.setItem('bd_fireops_theme', theme);
+    } catch (err) { /* storage blocked — theme still applies for this session */ }
     if (label) label.textContent = theme === 'dark' ? 'Light' : 'Dark';
-    
-    // Switch tile basemap to dark or sat according to user theme preference
-    if (toggleCartoBtn && toggleSatBtn && map) {
-      if (theme === 'dark' && !map.hasLayer(tileDark)) {
-        // preserve current user basemap selection
-      }
-    }
 
-    // Re-render charts with updated theme palette
-    initCharts();
+    // Basemap choice (Satellite / Dark carto buttons) is intentionally
+    // independent from the color theme — do not touch it here.
+
+    // Re-render charts with the updated theme palette. Skipped on the first
+    // apply: safeInit calls initCharts() once right after initTheme().
+    if (rebuildCharts) initCharts();
   }
 
-  applyTheme(saved);
+  applyTheme(saved, false);
 
   if (toggleBtn) {
     toggleBtn.addEventListener('click', () => {
@@ -1747,15 +1741,72 @@ function initTheme() {
 }
 
 // =============================================================================
+// 7b. TOP NAV · MOBILE MENU + SCROLL-SPY ACTIVE STATE
+// =============================================================================
+function initMobileNav() {
+  const navToggleBtn = document.getElementById('nav-toggle');
+  const topnavEl = document.getElementById('topnav');
+  if (!navToggleBtn || !topnavEl) return;
+
+  function setOpen(open) {
+    topnavEl.classList.toggle('open', open);
+    navToggleBtn.setAttribute('aria-expanded', String(open));
+    navToggleBtn.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+  }
+
+  navToggleBtn.addEventListener('click', () => {
+    setOpen(!topnavEl.classList.contains('open'));
+  });
+
+  // Close the drawer after navigating to a section.
+  topnavEl.querySelectorAll('a').forEach((a) => {
+    a.addEventListener('click', () => setOpen(false));
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') setOpen(false);
+  });
+}
+
+function initScrollSpy() {
+  const links = Array.from(document.querySelectorAll('.topnav a[href^="#"]'));
+  if (!links.length || typeof IntersectionObserver === 'undefined') return;
+
+  const sections = links
+    .map((a) => document.getElementById(a.getAttribute('href').slice(1)))
+    .filter(Boolean);
+  if (!sections.length) return;
+
+  const visible = new Set();
+  let activeId = null;
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) visible.add(entry.target.id);
+      else visible.delete(entry.target.id);
+    });
+    const hit = sections.find((s) => visible.has(s.id));
+    const nextId = hit ? hit.id : null;
+    if (nextId === activeId) return;
+    activeId = nextId;
+    links.forEach((a) => a.classList.toggle('active', a.getAttribute('href') === '#' + nextId));
+  }, { rootMargin: '-35% 0px -55% 0px', threshold: 0 });
+
+  sections.forEach((s) => observer.observe(s));
+}
+
+// =============================================================================
 // 8. SAFE INITIALIZE
 // =============================================================================
 (function safeInit() {
   try {
-    initCharts();
+    initTheme();            // resolve saved theme first (no chart rebuild)
+    initCharts();           // build charts once, with the final theme applied
     setupChartViews();
     buildSeasonalityMatrix();
-    initTheme();
-    if (slider) updateTimeline(slider.value || 2015);
+    initScrollSpy();
+    initMobileNav();
+    if (slider) updateTimeline(slider.value || 2014);
     if (simSlider) updateSimulator(parseInt(simSlider.value, 10) || 300);
   } catch (err) {
     console.error('[BD-FireOps] init failed:', err);

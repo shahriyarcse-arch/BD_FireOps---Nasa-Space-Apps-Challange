@@ -4,12 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BD-FireOps · 20-Year NASA Satellite Fire Record for Bangladesh Hills</title>
-  <meta name="description" content="Cross-sensor harmonization of NASA MODIS and VIIRS thermal active fire records for the Chittagong Hill Tracts (2002-2021). NASA Space Apps Challenge 2026.">
+  <meta name="description" content="One 20-year fire record for the Bangladesh hills, built from NASA MODIS and VIIRS satellite data. NASA Space Apps Challenge 2026.">
   <meta name="theme-color" content="#060913">
   <meta property="og:type" content="website">
   <meta property="og:title" content="BD-FireOps · Continuous Fire Record for Bangladesh Hills">
-  <meta property="og:description" content="Uncertainty-aware empirical cross-calibration for 20 years of NASA satellite fire detections. NASA Space Apps Challenge 2026.">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:description" content="One continuous 20-year record of satellite fire detections in the Chittagong Hill Tracts, Bangladesh. NASA Space Apps Challenge 2026.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta property="og:image" content="https://raw.githubusercontent.com/shahriyarcse-arch/BD_FireOps---Nasa-Space-Apps-Challange/main/data/processed/chart_b_harmonized_splice.png">
+  <meta name="twitter:image" content="https://raw.githubusercontent.com/shahriyarcse-arch/BD_FireOps---Nasa-Space-Apps-Challange/main/data/processed/chart_b_harmonized_splice.png">
   
   <link rel="icon" type="image/svg+xml" href="vendor/nasa-logo.svg">
   <link rel="apple-touch-icon" href="vendor/nasa-logo.svg">
@@ -45,7 +47,7 @@
         </div>
       </a>
 
-      <nav class="topnav" aria-label="Jump to section">
+      <nav id="topnav" class="topnav" aria-label="Jump to section">
         <a href="#problem">Problem</a>
         <a href="#proof">Proof</a>
         <a href="#map-section">Map</a>
@@ -56,9 +58,14 @@
       </nav>
 
       <div class="topbar-actions">
-        <div class="status-pill" title="Validated empirical baseline (Aqua MODIS & S-NPP VIIRS)">
+        <button id="nav-toggle" class="nav-toggle-btn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="topnav">
+          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"></path>
+          </svg>
+        </button>
+        <div class="status-pill" title="Checked historical records from NASA's Aqua MODIS and S-NPP VIIRS satellites">
           <span class="status-dot" aria-hidden="true"></span>
-          <span>EMPIRICAL ARCHIVE · VALIDATED</span>
+          <span>HISTORICAL DATA · CHECKED</span>
         </div>
         <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark/light theme" title="Toggle theme">
           <span id="theme-label" class="small">Light</span>
@@ -76,10 +83,10 @@
         <h1>One Continuous Fire Record for 20 Years of NASA Satellite Data</h1>
         <p class="hero-lead">
           Two NASA satellite instruments have monitored forest and agricultural burning in the Chittagong Hill Tracts: 
-          <strong>Aqua MODIS</strong> (2002–2011, 1 km resolution) and <strong>S-NPP VIIRS</strong> (2012–2021, 375 m resolution).
-          Because VIIRS detects small fires that MODIS could not see, a naive splice falsely looks like fire activity 
+          <strong>Aqua MODIS</strong> (2002–2021, 1 km pixels) and <strong>S-NPP VIIRS</strong> (2012–2021, 375 m pixels).
+          Because VIIRS sees small fires that MODIS missed, joining the two cameras directly makes it look like fires 
           <span class="hero-highlight">almost tripled overnight (+185%)</span>.
-          <strong>BD-FireOps</strong> provides an uncertainty-aware, cross-calibrated model that eliminates this sensor artifact, 
+          <strong>BD-FireOps</strong> provides one simple correction formula that removes this satellite trick, 
           giving scientists and forest managers one continuous 20-year baseline.
         </p>
 
@@ -113,7 +120,7 @@
     <section class="card" id="problem">
       <div class="card-header-row">
         <div>
-          <span class="kicker">STEP 01 · THE SENSOR TRANSITION ARTIFACT</span>
+          <span class="kicker">STEP 01 · WHY THE JOIN LOOKS WRONG</span>
           <h2>Wrong Join vs BD-FireOps Harmonized Splice</h2>
           <p class="muted">
             <!-- BEGIN:NAIVE_COPY -->
@@ -162,10 +169,10 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       </div>
 
       <details class="formula-collapse">
-        <summary>Mathematical Transfer Model & Overlap Training</summary>
+        <summary>The Formula &amp; How It Was Trained</summary>
         <div class="formula-collapse-body">
           <p>
-            Fitted across <strong>73 overlapping months</strong> (2012–2018) when both Aqua MODIS and S-NPP VIIRS orbited simultaneously:
+            Fitted across <strong>84 overlapping months</strong> (2012–2018) when both Aqua MODIS and S-NPP VIIRS orbited simultaneously:
           </p>
           <p class="font-mono text-blue" style="margin: 8px 0; font-size: 1.05rem;">
             MODIS-Equivalent = 0.2694 × VIIRS − 1.18
@@ -181,7 +188,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     <section class="card" id="proof">
       <div class="card-header-row">
         <div>
-          <span class="kicker">STEP 02 · HELD-OUT VALIDATION EVIDENCE</span>
+          <span class="kicker">STEP 02 · THE PROOF</span>
           <h2>Blind Verification on Unseen Data (2019–2021)</h2>
           <p class="muted">
             The model was trained exclusively on 2012–2018. We hid the final 3 years (36 months) completely, 
@@ -205,12 +212,11 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
         <div class="proof-card">
           <p class="proof-num">0.9811</p>
           <p class="proof-label">How well it follows real ups and downs (1.0 = perfect)</p>
-          <p class="proof-hint">Right 98.1% of the time. Wrong join: -6.8012.</p>
+          <p class="proof-hint">Scored 98.1 out of 100 against the real record. Wrong join: -6.8012.</p>
         </div>
       </div>
-      <p class="proof-note">Data: NASA FIRMS API (MODIS + VIIRS S-NPP), hill-district polygons only.
-      Learned on 2012–2018, tested on 2019–2021. Formula:
-      <span class="font-mono">MODIS-like = 0.2694 × VIIRS -1.18</span>.</p>
+      <p class="proof-note"><strong>Data source: NASA FIRMS Area API</strong> (MODIS_SP, VIIRS_SNPP_SP) over the CHT window — recorded in <code>data/processed/data_source.json</code>. Detections restricted to <strong>CHT districts (Bandarban, Khagrachhari, Rangamati)</strong> polygons (geoBoundaries BGD-ADM2); 54,300 MODIS and 85,857 VIIRS rows outside the CHT dropped.
+      Learned on 2012–2018, tested on 2019–2021. Full formula &amp; confidence intervals: see the “Wrong Join” section above.</p>
 <!-- END:VALIDATION_METRICS -->
 
       <!-- PER-YEAR BREAKDOWN TABLE -->
@@ -229,23 +235,23 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
             <tr>
               <td><strong>2019</strong> (12 months)</td>
               <td class="font-mono text-green">67.87</td>
-              <td class="font-mono">-17.61</td>
-              <td class="font-mono text-green">-95.6%</td>
-              <td><span class="chart-badge good">PASS (RMSE ≤ 68)</span></td>
+              <td class="font-mono">-11.52</td>
+              <td class="font-mono text-green">-93.9%</td>
+              <td><span class="chart-badge good">PASS</span></td>
             </tr>
             <tr>
               <td><strong>2020</strong> (12 months)</td>
               <td class="font-mono text-green">47.61</td>
-              <td class="font-mono">-13.58</td>
-              <td class="font-mono text-green">-95.1%</td>
-              <td><span class="chart-badge good">PASS (RMSE ≤ 48)</span></td>
+              <td class="font-mono">-17.61</td>
+              <td class="font-mono text-green">-95.3%</td>
+              <td><span class="chart-badge good">PASS</span></td>
             </tr>
             <tr>
               <td><strong>2021</strong> (12 months)</td>
               <td class="font-mono text-green">49.23</td>
-              <td class="font-mono">+18.91</td>
-              <td class="font-mono text-green">-94.7%</td>
-              <td><span class="chart-badge good">PASS (RMSE ≤ 50)</span></td>
+              <td class="font-mono">+16.86</td>
+              <td class="font-mono text-green">-96.1%</td>
+              <td><span class="chart-badge good">PASS</span></td>
             </tr>
           </tbody>
         </table>
@@ -260,7 +266,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     <section class="card" id="map-section">
       <div class="card-header-row">
         <div>
-          <span class="kicker">STEP 03 · SPATIAL GIS TELEMETRY</span>
+          <span class="kicker">STEP 03 · THE FIRE MAP</span>
           <h2>Chittagong Hill Tracts Fire Distribution Map</h2>
           <p class="muted">
             Aggregated NASA FIRMS active fire detections plotted at 0.05° (~5 km) resolution over high-resolution satellite imagery.
@@ -289,9 +295,9 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
         <div class="timeline-card">
           <div class="timeline-header">
             <div class="timeline-year-group">
-              <span class="muted small">INSPECTION YEAR:</span>
-              <span id="slider-year-badge" class="year-big font-mono">2015</span>
-              <span id="era-regime-text" class="regime-badge font-mono text-blue">Overlap Training Window</span>
+              <span class="muted small">YEAR:</span>
+              <span id="slider-year-badge" class="year-big font-mono">2014</span>
+              <span id="era-regime-text" class="regime-badge font-mono text-blue">Training Years (2012–2018)</span>
             </div>
 
             <div class="timeline-playback">
@@ -300,7 +306,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
           </div>
 
           <div class="slider-wrapper">
-            <input type="range" id="main-slider" min="2002" max="2021" value="2015" step="1" class="giant-slider"
+            <input type="range" id="main-slider" min="2002" max="2021" value="2014" step="1" class="giant-slider"
                    aria-label="Filter fire map by year">
             <div class="slider-scale">
               <span>2002 (Aqua Start)</span>
@@ -313,9 +319,9 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
           <div class="year-pills" role="group" aria-label="Quick jump to milestone years">
             <span class="muted small" style="display: flex; align-items: center;">Quick Jumps:</span>
             <button class="year-pill" data-year="2002" type="button">2002 (Launch)</button>
-            <button class="year-pill" data-year="2003" type="button">2003 (Peak Jhum)</button>
+            <button class="year-pill" data-year="2007" type="button">2007 (Peak Fire Year)</button>
             <button class="year-pill" data-year="2012" type="button">2012 (Sensor Shift)</button>
-            <button class="year-pill active" data-year="2015" type="button">2015 (El Niño)</button>
+            <button class="year-pill active" data-year="2014" type="button">2014 (Naive Join Peak)</button>
             <button class="year-pill" data-year="2019" type="button">2019 (Test Start)</button>
             <button class="year-pill" data-year="2021" type="button">2021 (Held-out End)</button>
           </div>
@@ -330,7 +336,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
           <span class="kicker">STEP 04 · INTERACTIVE SENSOR SIMULATOR</span>
           <h2>Live Calibration Playground</h2>
           <p class="muted">
-            Drag the slider or click a scenario to simulate a raw VIIRS monthly detection count and see the calibrated MODIS-equivalent.
+            Drag the slider or pick a scenario to see how many fires MODIS would have counted for that month.
           </p>
         </div>
       </div>
@@ -347,14 +353,14 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
           <span>Presets:</span>
           <button class="preset-chip" data-val="25" type="button">Low Season (25)</button>
           <button class="preset-chip" data-val="300" type="button">Typical (300)</button>
-          <button class="preset-chip" data-val="940" type="button">Peak Jhum Month (940)</button>
+          <button class="preset-chip" data-val="940" type="button">Peak Season (940)</button>
           <button class="preset-chip" data-val="2500" type="button">Severe Outbreak (2,500)</button>
         </div>
       </div>
 
       <div class="try-out">
         <div class="try-box modis-box">
-          <span class="try-label">Calibrated MODIS-Equiv</span>
+          <span class="try-label">Our Estimate (MODIS-like Count)</span>
           <!-- BEGIN:SIM_DEFAULT_MODIS -->
 <span id="sim-out-modis" class="sim-out-val font-mono text-green">79.6</span>
 <!-- END:SIM_DEFAULT_MODIS -->
@@ -362,15 +368,15 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
         </div>
 
         <div class="try-box">
-          <span class="try-label">95% Coefficient Band</span>
+          <span class="try-label">Range of Possible Answers (95%)</span>
           <!-- BEGIN:SIM_DEFAULT_CI -->
 <span id="sim-out-ci" class="sim-out-val font-mono">[59.1, 95.6]</span>
 <!-- END:SIM_DEFAULT_CI -->
-          <span class="small muted">Parameter uncertainty envelope (500 bootstrap iterations)</span>
+          <span class="small muted">Margin of error from 500 re-runs</span>
         </div>
 
         <div class="try-box mitigation-box">
-          <span class="try-label">Artificial Inflation Mitigated</span>
+          <span class="try-label">Fake Increase Removed</span>
           <div style="display: flex; align-items: baseline; justify-content: center; gap: 8px;">
             <span id="sim-out-raw" class="font-mono text-muted" style="text-decoration: line-through; font-size: 1.1rem;">300</span>
             <!-- BEGIN:SIM_DEFAULT_MITIGATION -->
@@ -386,11 +392,11 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     <section class="card" id="matrix">
       <div class="card-header-row">
         <div>
-          <span class="kicker">STEP 05 · TEMPORAL SEASONALITY MATRIX</span>
+          <span class="kicker">STEP 05 · WHICH MONTHS BURN?</span>
           <h2>20-Year Monthly Burning Activity Matrix (2002–2021)</h2>
           <p class="muted">
-            Visualizing the strict seasonal calendar of the Chittagong Hill Tracts: intense slash-and-burn clearing in 
-            <strong>February–May</strong> (peaking in March/April), followed by near-zero fire detections during the monsoon deluge (June–October).
+            Visualizing the strict seasonal calendar of the Chittagong Hill Tracts: slash-and-burn clearing is concentrated in 
+            <strong>March–April</strong> (tapering through February and May), followed by near-zero fire detections from June to October (the monsoon rains).
           </p>
         </div>
       </div>
@@ -402,6 +408,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       <div class="matrix-legend">
         <span>Fire Intensity Scale:</span>
         <span><i class="matrix-legend-swatch" style="background: var(--track); border: 1px solid var(--line);"></i> 0 (Dormant Monsoon)</span>
+        <span><i class="matrix-legend-swatch matrix-legend-na" aria-hidden="true"></i> No data (no coverage)</span>
         <span><i class="matrix-legend-swatch" style="background: #1e3a5f;"></i> 1–20 (Low)</span>
         <span><i class="matrix-legend-swatch" style="background: #2563eb;"></i> 21–100 (Moderate)</span>
         <span><i class="matrix-legend-swatch" style="background: #f59e0b;"></i> 101–250 (High Jhum)</span>
@@ -417,7 +424,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
         <div>
           <span class="kicker">HONEST SCIENTIFIC LIMITS</span>
           <h2>What BD-FireOps Is and Is Not</h2>
-          <p class="muted">Clear scientific boundaries ensuring responsible operational adoption.</p>
+          <p class="muted">Where this tool stops — stated plainly.</p>
         </div>
       </div>
 
@@ -434,7 +441,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     <section class="card method" id="method">
       <div class="card-header-row">
         <div>
-          <span class="kicker">REPRODUCIBLE PIPELINE · AUDITABLE METHODOLOGY</span>
+          <span class="kicker">OPEN SOURCE · STEP BY STEP</span>
           <h2>Five Steps, Completely Open Source</h2>
           <p class="muted">Every data point, script, and test is version-controlled and reproducible.</p>
         </div>
@@ -451,7 +458,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
           <strong>Monthly Aggregation & Zero-Month Preservation:</strong> Preserved true <code>0</code> counts during sensor coverage while distinguishing unobserved months as <code>null</code>.
         </li>
         <li>
-          <strong>Overlap Training & Blind Testing:</strong> Trained the linear transfer model on 2012–2018 (73 overlapping months) and evaluated blind on 2019–2021 (36 held-out months). Evaluated parameter stability with 500 moving-block bootstrap resamples.
+          <strong>Overlap Training & Blind Testing:</strong> Trained the linear transfer model on 2012–2018 (84 overlapping months) and evaluated blind on 2019–2021 (36 held-out months). Evaluated parameter stability with 500 moving-block bootstrap resamples.
         </li>
         <li>
           <strong>Automated Sync & CI Guards:</strong> Automated continuous-integration pipeline (<code>sync_web.py</code>, <code>sync_readme.py</code>) guaranteeing zero drift between model parameters and presentation surfaces.

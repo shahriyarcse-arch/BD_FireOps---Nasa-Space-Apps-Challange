@@ -370,6 +370,26 @@ h3 { font-size: clamp(1.1rem, 2vw, 1.35rem); font-weight: 700; }
   background: var(--blue-soft);
 }
 
+/* Mobile menu button (only visible ≤1024px where .topnav collapses) */
+.nav-toggle-btn {
+  display: none;
+  background: var(--bg-elevated);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 7px 12px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--sans);
+  transition: all var(--dur) var(--ease);
+}
+.nav-toggle-btn:hover,
+.nav-toggle-btn:focus-visible {
+  border-color: var(--blue);
+  background: var(--blue-soft);
+}
+
 /* ==========================================================================
    PAGE WRAPPER & CARDS
    ========================================================================== */
@@ -754,14 +774,6 @@ h3 { font-size: clamp(1.1rem, 2vw, 1.35rem); font-weight: 700; }
   gap: var(--sp-16);
 }
 
-.map-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
 .map-layer-toggles {
   display: flex;
   align-items: center;
@@ -917,6 +929,10 @@ h3 { font-size: clamp(1.1rem, 2vw, 1.35rem); font-weight: 700; }
   background: var(--bg-elevated);
   cursor: pointer;
   outline: none;
+}
+.giant-slider:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
 }
 
 .slider-scale {
@@ -1100,6 +1116,18 @@ h3 { font-size: clamp(1.1rem, 2vw, 1.35rem); font-weight: 700; }
 .matrix-cell.c-3 { background: #f59e0b; }
 .matrix-cell.c-4 { background: #ef4444; }
 .matrix-cell.c-5 { background: #ff0055; box-shadow: 0 0 6px rgba(255, 0, 85, 0.6); }
+.matrix-cell.c-na {
+  background: repeating-linear-gradient(45deg, var(--track-soft) 0 4px, var(--track) 4px 8px);
+  cursor: default;
+}
+.matrix-cell.c-na:hover {
+  transform: none;
+  box-shadow: none;
+}
+.matrix-legend-na {
+  background: repeating-linear-gradient(45deg, var(--track-soft) 0 4px, var(--track) 4px 8px);
+  border: 1px solid var(--line);
+}
 
 .matrix-legend {
   display: flex;
@@ -1169,7 +1197,15 @@ h3 { font-size: clamp(1.1rem, 2vw, 1.35rem); font-weight: 700; }
   .try-out { grid-template-columns: 1fr; }
   .chart-box { height: 280px; }
   .map { height: 380px; }
-  .topnav { display: none; } /* Mobile drawer or simplified nav */
+  .nav-toggle-btn { display: inline-flex; }
+  .topnav { display: none; }
+  .topnav.open {
+    display: flex;
+    order: 3;
+    flex-basis: 100%;
+    justify-content: center;
+    border-radius: var(--radius);
+  }
 }
 
 @media (max-width: 640px) {

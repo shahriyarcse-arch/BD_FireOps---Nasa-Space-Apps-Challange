@@ -187,7 +187,6 @@ def build_validation(m: dict) -> str:
     imp = m.get("performance_improvement", {})
     naive = m["held_out_test_comparison"]["naive_raw_viirs_vs_modis"]
     lin = m["held_out_test_comparison"]["harmonized_linear_vs_modis"]
-    flm = m["fitted_linear_model"]
 
     region = m.get("region_filter") or {}
     if src.get("is_nasa_firms"):
@@ -197,9 +196,9 @@ def build_validation(m: dict) -> str:
             modis_dropped = dropped.get('modis', 0)
             viirs_dropped = dropped.get('viirs', 0)
             region_note = (
-                f" Detections restricted to <strong>{region['name']}</strong> polygons "
-                f"(geoBoundaries BGD-ADM2); {modis_dropped:,} MODIS / "
-                f"{viirs_dropped:,} bbox rows outside the CHT dropped."
+                f" Detections restricted to <strong>{region['name']}</strong> "
+                f"polygons (geoBoundaries BGD-ADM2); {modis_dropped:,} MODIS and "
+                f"{viirs_dropped:,} VIIRS rows outside the CHT dropped."
             )
         prov = ("<strong>Data source: NASA FIRMS Area API</strong> (MODIS_SP, VIIRS_SNPP_SP) "
                 "over the CHT window — recorded in <code>data/processed/data_source.json</code>."
@@ -278,12 +277,11 @@ def build_validation(m: dict) -> str:
         <div class="proof-card">
           <p class="proof-num">{r2 if r2 is not None else "n/a"}</p>
           <p class="proof-label">How well it follows real ups and downs (1.0 = perfect)</p>
-          <p class="proof-hint">{("Right " + str(r2_pct) + "% of the time." if r2_pct is not None else "")} Wrong join: {naive_r2}.</p>
+          <p class="proof-hint">{("Scored " + str(r2_pct) + " out of 100 against the real record." if r2_pct is not None else "")} Wrong join: {naive_r2}.</p>
         </div>
       </div>
-      <p class="proof-note">Data: NASA FIRMS API (MODIS + VIIRS S-NPP), hill-district polygons only.
-      Learned on 2012–2018, tested on 2019–2021. Formula:
-      <span class="font-mono">MODIS-like = {flm["slope"]} × VIIRS {flm["intercept"]:+}</span>.</p>"""
+      <p class="proof-note">{prov}
+      Learned on 2012–2018, tested on 2019–2021. Full formula &amp; confidence intervals: see the “Wrong Join” section above.</p>"""
 
 
 def build_naive_callout(m: dict) -> str:
