@@ -177,6 +177,7 @@ python tools/verify_bootstrap.py      # recomputes the published CI and compares
 python tools/sync_readme.py --check   # README numbers still match metrics.json
 python tools/sync_web.py --check      # website numbers still match metrics.json
 python tests/test_pipeline.py         # clean/aggregate fixture checks
+python tools/e2e_audit.py             # 35-point end-to-end frontend audit vs metrics.json
 ```
 `verify_bootstrap.py` re-derives the moving-block bootstrap interval from
 `monthly.csv` (same split, same 12-month blocks, same seed) and exits non-zero if
