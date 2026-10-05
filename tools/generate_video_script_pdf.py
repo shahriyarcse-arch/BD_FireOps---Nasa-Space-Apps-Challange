@@ -592,6 +592,9 @@ def generate_pdf():
     if res.returncode == 0 and PDF_OUT.exists():
         size_kb = PDF_OUT.stat().st_size / 1024
         print(f"[SUCCESS] PDF generated successfully: {PDF_OUT} ({size_kb:.1f} KB)")
+        if HTML_OUT.exists():
+            HTML_OUT.unlink()
+            print(f"[CLEAN] Removed temporary HTML template {HTML_OUT}")
     else:
         print(f"[FAIL] Return code: {res.returncode}")
         print(f"Stderr: {res.stderr}")
