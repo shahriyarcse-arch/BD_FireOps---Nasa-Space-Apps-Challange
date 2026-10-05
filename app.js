@@ -327,16 +327,15 @@ const map = L.map('map', {
 
 L.control.zoom({ position: 'topright' }).addTo(map);
 
-// Basemaps: Esri True Color High-Res Satellite + CartoDB Dark Matter
+// Basemaps: Esri True Color High-Res Satellite + Esri Dark Gray (key-free, no API key needed)
 const tileSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
   attribution: 'Tiles &copy; Esri &middot; Source: Esri, Maxar, Earthstar Geographics',
   maxZoom: 18
 }).addTo(map);
 
-const tileDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  attribution: '&copy; OpenStreetMap &copy; CARTO',
-  subdomains: 'abcd',
-  maxZoom: 19
+const tileDark = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+  attribution: 'Tiles &copy; Esri &mdash; Esri, HERE, Garmin, OpenStreetMap contributors',
+  maxZoom: 17
 });
 
 const toggleSatBtn = document.getElementById('toggle-sat-btn');
@@ -1722,7 +1721,7 @@ function initTheme() {
     } catch (err) { /* storage blocked — theme still applies for this session */ }
     if (label) label.textContent = theme === 'dark' ? 'Light' : 'Dark';
 
-    // Basemap choice (Satellite / Dark carto buttons) is intentionally
+    // Basemap choice (Satellite / Dark gray buttons) is intentionally
     // independent from the color theme — do not touch it here.
 
     // Re-render charts with the updated theme palette. Skipped on the first
