@@ -1,4 +1,8 @@
-"""One-shot E2E audit: frontend numbers vs pipeline outputs. Not part of CI; run manually."""
+"""E2E audit: frontend numbers vs pipeline outputs (35 checks).
+
+Runs in CI via .github/workflows/check.yml; run locally with:
+    python tools/e2e_audit.py
+"""
 import json
 import pathlib
 import re
@@ -90,6 +94,12 @@ for src, text in (("index.html", html), ("app.js", js)):
     begins = len(re.findall(r"BEGIN:", text))
     ends = len(re.findall(r"END:", text))
     chk(f"{src} BEGIN/END markers balanced", begins == ends, f"({begins}/{ends})")
+
+# --- every DOM id the JS asks for must exist in the HTML ---
+js_targets = sorted(set(re.findall(r"getElementById\('([^']+)'\)", js)))
+missing_ids = [t for t in js_targets if f'id="{t}"' not in html]
+chk("every getElementById target exists in HTML", not missing_ids,
+    str(missing_ids) if missing_ids else f"({len(js_targets)} targets)")
 
 print("TOTAL FAILURES:", len(fails))
 sys.exit(1 if fails else 0)
