@@ -95,7 +95,9 @@ bd-fireops/
 ├── tools/
 │   ├── sync_readme.py          # Regenerates the §2 metrics block from metrics.json
 │   ├── sync_web.py             # Regenerates app.js/index.html generated blocks (series, model, map cells, boundary, sim defaults)
-│   └── sensitivity.py          # Low-confidence-kept robustness run → sensitivity.json
+│   ├── sensitivity.py          # Low-confidence-kept robustness run → sensitivity.json
+│   ├── verify_bootstrap.py     # Verifies bootstrap intervals match metrics.json
+│   └── e2e_audit.py            # End-to-end audit verifying frontend UI matches metrics.json
 ├── data/
 │   ├── raw/                    # Raw FIRMS chunk files, <start>_<end>.csv per 5-day window (git-ignored)
 │   ├── reference/              # geoBoundaries BGD-ADM2 district polygons (CHT boundary gate)
