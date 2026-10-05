@@ -46,11 +46,11 @@
       </a>
 
       <nav class="topnav" aria-label="Jump to section">
-        <a href="#problem">Problem & Fix</a>
-        <a href="#proof">Held-Out Proof</a>
-        <a href="#map-section">Satellite Map</a>
-        <a href="#try">Calibration Playground</a>
-        <a href="#matrix">Seasonality Matrix</a>
+        <a href="#problem">Problem</a>
+        <a href="#proof">Proof</a>
+        <a href="#map-section">Map</a>
+        <a href="#try">Try it</a>
+        <a href="#matrix">Seasonality</a>
         <a href="#limits">Limits</a>
         <a href="#method">Method</a>
       </nav>
@@ -61,7 +61,6 @@
           <span>EMPIRICAL ARCHIVE · VALIDATED</span>
         </div>
         <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark/light theme" title="Toggle theme">
-          <span id="theme-icon" aria-hidden="true">☀️</span>
           <span id="theme-label" class="small">Light</span>
         </button>
       </div>
@@ -89,7 +88,7 @@
           <div class="kpi-tile">
             <span class="kpi-val blue">20 Yrs</span>
             <span class="kpi-label">Continuous Coverage</span>
-            <span class="kpi-sub">2002–2021 (240 months)</span>
+            <span class="kpi-sub">2002–2021 · 234 monthly records</span>
           </div>
           <div class="kpi-tile">
             <span class="kpi-val green">-95.1%</span>
@@ -98,12 +97,12 @@
           </div>
           <div class="kpi-tile">
             <span class="kpi-val amber">-99.1%</span>
-            <span class="kpi-label">Bias Eliminated</span>
+            <span class="kpi-label">Bias Reduced (Test Set)</span>
             <span class="kpi-sub">+468.92 down to -4.09 fires</span>
           </div>
           <div class="kpi-tile">
-            <span class="kpi-val green">0.981</span>
-            <span class="kpi-label">Rank Correlation</span>
+            <span class="kpi-val green">0.9811</span>
+            <span class="kpi-label">Test-Set R²</span>
             <span class="kpi-sub">Tracks real ups & downs</span>
           </div>
         </div>
@@ -253,7 +252,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       </div>
 
       <p class="small muted" style="margin-top: 10px;">
-        💡 <em>Sensitivity Disclosure:</em> Re-evaluating with afternoon day-only observations (<code>daynight=D</code>) yields RMSE 49.69 (-10.74% shift). Baseline includes both day and night passes for complete 24h operational safety.
+        <em>Sensitivity check:</em> Re-evaluating with afternoon day-only observations (<code>daynight=D</code>) yields RMSE 49.69 (-10.74% shift). The reported baseline includes both day and night passes; the alternative is published here rather than folded in.
       </p>
     </section>
 
@@ -269,8 +268,8 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
         </div>
 
         <div class="map-layer-toggles">
-          <button id="toggle-sat-btn" class="layer-toggle-btn active" type="button">🛰️ Satellite</button>
-          <button id="toggle-carto-btn" class="layer-toggle-btn" type="button">🗺️ Dark Carto</button>
+          <button id="toggle-sat-btn" class="layer-toggle-btn active" type="button">Satellite</button>
+          <button id="toggle-carto-btn" class="layer-toggle-btn" type="button">Dark carto</button>
           <span id="map-cell-count" class="map-stats-counter font-mono">Loading cells...</span>
         </div>
       </div>
@@ -296,7 +295,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
             </div>
 
             <div class="timeline-playback">
-              <button id="play-btn" class="play-btn" type="button">▶ Auto Play (2002–2021)</button>
+              <button id="play-btn" class="play-btn" type="button">Auto play 2002–2021</button>
             </div>
           </div>
 
@@ -402,13 +401,13 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
 
       <div class="matrix-legend">
         <span>Fire Intensity Scale:</span>
-        <span><i class="matrix-legend-swatch" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--line);"></i> 0 (Dormant Monsoon)</span>
+        <span><i class="matrix-legend-swatch" style="background: var(--track); border: 1px solid var(--line);"></i> 0 (Dormant Monsoon)</span>
         <span><i class="matrix-legend-swatch" style="background: #1e3a5f;"></i> 1–20 (Low)</span>
         <span><i class="matrix-legend-swatch" style="background: #2563eb;"></i> 21–100 (Moderate)</span>
         <span><i class="matrix-legend-swatch" style="background: #f59e0b;"></i> 101–250 (High Jhum)</span>
         <span><i class="matrix-legend-swatch" style="background: #ef4444;"></i> 251–600 (Peak Flare)</span>
         <span><i class="matrix-legend-swatch" style="background: #ff0055;"></i> 600+ (Extreme Fire Season)</span>
-        <span class="small muted" style="margin-left: auto;">💡 Click any year row to jump the satellite map directly to that year.</span>
+        <span class="small muted" style="margin-left: auto;">Click any year row to jump the satellite map to that year.</span>
       </div>
     </section>
 

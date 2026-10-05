@@ -1593,9 +1593,9 @@ function toggleAutoPlay() {
   if (playTimer) {
     clearInterval(playTimer);
     playTimer = null;
-    playBtn.textContent = '▶ Auto Play (2002–2021)';
+    playBtn.textContent = 'Auto play 2002–2021';
   } else {
-    playBtn.textContent = '⏸ Pause Playback';
+    playBtn.textContent = 'Pause playback';
     playTimer = setInterval(() => {
       let cur = parseInt(slider.value, 10);
       cur = cur >= 2021 ? 2002 : cur + 1;
@@ -1717,14 +1717,12 @@ function buildSeasonalityMatrix() {
 // =============================================================================
 function initTheme() {
   const toggleBtn = document.getElementById('theme-toggle');
-  const icon = document.getElementById('theme-icon');
   const label = document.getElementById('theme-label');
   const saved = localStorage.getItem('bd_fireops_theme') || 'dark';
 
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('bd_fireops_theme', theme);
-    if (icon) icon.textContent = theme === 'dark' ? '☀️' : '🌙';
     if (label) label.textContent = theme === 'dark' ? 'Light' : 'Dark';
     
     // Switch tile basemap to dark or sat according to user theme preference
