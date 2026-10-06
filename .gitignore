@@ -23,6 +23,7 @@ data/raw/*.zip
 # Sensitivity temporary files & logs
 data/processed/*_lowconf.csv
 *.log
+*.mp4
 
 # Editor / deploy tooling
 .vercel/

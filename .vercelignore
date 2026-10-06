@@ -13,6 +13,7 @@ __pycache__/
 requirements.txt
 *.log
 *.pdf
+*.mp4
 .github/
 .gitattributes
 data/processed/chart_*.png
