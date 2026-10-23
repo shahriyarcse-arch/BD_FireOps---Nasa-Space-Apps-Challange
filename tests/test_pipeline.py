@@ -13,6 +13,7 @@ sys.path.insert(0, str(ROOT))
 from analysis import aggregate as agg
 from analysis import clean as cln
 from analysis import download as dl
+from analysis import model as mdl
 
 TMP = Path(tempfile.mkdtemp(prefix="bd-fireops_fixture_"))
 if TMP.exists():
@@ -108,7 +109,9 @@ check("modis raw 6 rows", audits["modis"]["raw_rows"] == 7, audits["modis"])
 check("modis clean 1 row (dup+lowconf+Terra+bbox+region removed)", audits["modis"]["clean_rows"] == 1, audits["modis"])
 check("modis region gate dropped the out-of-CHT row", audits["modis"]["dropped_outside_region"] == 1, audits["modis"])
 check("study-window clamp dropped the 2030 straggler", audits["modis"].get("dropped_outside_window") == 1, audits["modis"])
-check("study window recorded", audits["modis"].get("study_window") == "2002-07-01 .. 2021-12-31", audits["modis"])
+from analysis.window import study_windows as _study_windows  # noqa: E402
+_mw = _study_windows()["modis"]
+check("study window recorded", audits["modis"].get("study_window") == f"{_mw[0]} .. {_mw[1]}", audits["modis"])
 check("raw pre-filter aqua/terra split recorded",
       audits["modis"].get("raw_aqua_rows") == 6 and audits["modis"].get("raw_terra_rows") == 1, audits["modis"])
 check("post-filter split recorded with note",
@@ -138,6 +141,62 @@ check("2011-12 viirs NaN (VIIRS absent)", pd.isna(v.iloc[113]), v.iloc[113])
 check("2012-01 viirs=2", int(v.iloc[114]) == 2, v.iloc[114])
 check("modis zero-months = 1", int((m == 0).sum()) == 1, int((m == 0).sum()))
 check("viirs zero-months = 0", int((v == 0).sum()) == 0, int((v == 0).sum()))
+check("viirs_noaa20 column present", "viirs_noaa20" in df.columns)
+check("viirs_noaa20 is NaN when the archive is absent", df["viirs_noaa20"].isna().all())
+
+# --- per-district assignment and file (F6/P4) ---
+pts = pd.DataFrame({"latitude": [22.19, 30.0], "longitude": [92.22, 95.0]})
+labels = cln.assign_districts(pts)
+check("assign_districts labels a CHT point", labels.iloc[0] == "Bandarban", labels.iloc[0])
+check("assign_districts leaves out-of-region blank", labels.iloc[1] == "", labels.iloc[1])
+
+dist_path = PROC / "monthly_districts.csv"
+check("monthly_districts.csv written", dist_path.exists())
+if dist_path.exists():
+    dd = pd.read_csv(dist_path)
+    check("district grid rows = months x 3", len(dd) == 3 * len(df), len(dd))
+    check("district grid uses the three CHT districts",
+          sorted(dd["district"].unique()) == ["Bandarban", "Khagrachhari", "Rangamati"])
+    for col in ("modis", "viirs"):
+        got = float(pd.to_numeric(dd[col], errors="coerce").fillna(0).sum())
+        want = float(pd.to_numeric(df[col], errors="coerce").fillna(0).sum())
+        check(f"district {col} sums equal the regional series", got == want, f"{got} vs {want}")
+
+# --- per-district fit on a synthetic noiseless series ---
+months = pd.period_range("2012-01", "2021-12", freq="M").astype(str)
+rows = []
+for name, offset in (("Bandarban", 0), ("Khagrachhari", 10), ("Rangamati", 20)):
+    base = 50 + offset + (pd.Series(range(len(months))) % 12) * 5
+    for month, modis_val in zip(months, base):
+        rows.append({"month": month, "district": name,
+                     "modis": float(modis_val), "viirs": float(modis_val * 3)})
+synth = PROC / "monthly_districts_synth.csv"
+pd.DataFrame(rows).to_csv(synth, index=False)
+pf = mdl.fit_per_district(str(synth))
+check("fit_per_district fits all three districts", pf["status"] == "fitted" and pf["fitted_districts"] == 3,
+      pf["status"])
+check("fit_per_district recovers the synthetic slope",
+      all(abs(e["slope"] - 1 / 3) < 0.01 for e in pf["districts"].values()),
+      {k: v.get("slope") for k, v in pf["districts"].items()})
+
+# --- NOAA-20 leg: refuses under 24 months, fits above it (F2/P2) ---
+short = pd.DataFrame({"month": pd.period_range("2021-01", "2021-12", freq="M").astype(str)})
+short["viirs"] = range(100, 112)
+short["viirs_noaa20"] = short["viirs"] * 1.2
+n_short = mdl.fit_noaa20_leg(short)
+check("NOAA-20 leg refuses a 12-month overlap", n_short["status"] == "insufficient_overlap", n_short["status"])
+check("NOAA-20 refusal exposes no slope", "slope" not in n_short, n_short.get("slope"))
+
+long = pd.DataFrame({"month": pd.period_range("2019-01", "2022-12", freq="M").astype(str)})
+long["viirs"] = [100 + (i % 12) * 10 for i in range(len(long))]
+long["viirs_noaa20"] = long["viirs"] * 1.2 + 5
+n_long = mdl.fit_noaa20_leg(long)
+check("NOAA-20 leg fits a 48-month overlap", n_long["status"] == "fitted", n_long.get("reason"))
+check("NOAA-20 leg learns NOAA-20 -> S-NPP direction",
+      abs(n_long["slope"] - 1 / 1.2) < 0.01, n_long.get("slope"))
+check("NOAA-20 leg records its train/test split",
+      n_long["train_period"].startswith("2019-01") and n_long["test_period"].startswith("2021-01"),
+      (n_long["train_period"], n_long["test_period"]))
 
 if failures:
     print("\n".join(failures))

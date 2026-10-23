@@ -19,12 +19,252 @@
       "viirs": 85857
     }
   },
+  "coverage_gaps": {
+    "modis": [],
+    "viirs": [
+      [
+        "2002-07",
+        "2011-12"
+      ]
+    ]
+  },
+  "coverage_gaps_note": "Contiguous months with no downloaded chunk inside the grid. They are delivery gaps, not fire-free months, and stay blank rather than becoming zeros.",
+  "per_district": {
+    "status": "fitted",
+    "min_overlap_months": 24,
+    "source": "monthly_districts.csv",
+    "districts": {
+      "Bandarban": {
+        "clean_detections": {
+          "modis": 19131,
+          "viirs": 30539
+        },
+        "overlap_months": 120,
+        "min_overlap_months": 24,
+        "split_month": "2019-01",
+        "status": "fitted",
+        "train_months": 84,
+        "test_months": 36,
+        "train_period": "2012-01 to 2018-12",
+        "test_period": "2019-01 to 2021-12",
+        "slope": 0.2692,
+        "intercept": 2.03,
+        "bootstrap_slope_95_ci": [
+          0.2205,
+          0.2985
+        ],
+        "bootstrap_intercept_95_ci": [
+          -1.87,
+          4.75
+        ],
+        "bootstrap_method": "500 resamples of contiguous 12-month blocks (seed 42)",
+        "scalar_ratio": 0.2775,
+        "held_out": {
+          "bias": -2.6,
+          "mae": 14.71,
+          "rmse": 33.85,
+          "r2": 0.9685,
+          "spearman_corr": 0.8583
+        },
+        "held_out_scalar": {
+          "bias": -2.34,
+          "mae": 13.05,
+          "rmse": 32.93,
+          "r2": 0.9702,
+          "spearman_corr": 0.8583
+        },
+        "held_out_rmse": 33.85,
+        "held_out_bias": -2.6,
+        "held_out_mae": 14.71,
+        "held_out_r2": 0.9685,
+        "held_out_spearman": 0.8583,
+        "held_out_scalar_rmse": 32.93,
+        "fit_quality": "strong"
+      },
+      "Khagrachhari": {
+        "clean_detections": {
+          "modis": 5480,
+          "viirs": 8734
+        },
+        "overlap_months": 120,
+        "min_overlap_months": 24,
+        "split_month": "2019-01",
+        "status": "fitted",
+        "train_months": 84,
+        "test_months": 36,
+        "train_period": "2012-01 to 2018-12",
+        "test_period": "2019-01 to 2021-12",
+        "slope": 0.2855,
+        "intercept": -0.54,
+        "bootstrap_slope_95_ci": [
+          0.2262,
+          0.3208
+        ],
+        "bootstrap_intercept_95_ci": [
+          -1.36,
+          1.22
+        ],
+        "bootstrap_method": "500 resamples of contiguous 12-month blocks (seed 42)",
+        "scalar_ratio": 0.2775,
+        "held_out": {
+          "bias": 1.86,
+          "mae": 2.7,
+          "rmse": 8.18,
+          "r2": 0.9759,
+          "spearman_corr": 0.8666
+        },
+        "held_out_scalar": {
+          "bias": 1.46,
+          "mae": 2.39,
+          "rmse": 7.16,
+          "r2": 0.9815,
+          "spearman_corr": 0.8729
+        },
+        "held_out_rmse": 8.18,
+        "held_out_bias": 1.86,
+        "held_out_mae": 2.7,
+        "held_out_r2": 0.9759,
+        "held_out_spearman": 0.8666,
+        "held_out_scalar_rmse": 7.16,
+        "fit_quality": "strong"
+      },
+      "Rangamati": {
+        "clean_detections": {
+          "modis": 18105,
+          "viirs": 31584
+        },
+        "overlap_months": 120,
+        "min_overlap_months": 24,
+        "split_month": "2019-01",
+        "status": "fitted",
+        "train_months": 84,
+        "test_months": 36,
+        "train_period": "2012-01 to 2018-12",
+        "test_period": "2019-01 to 2021-12",
+        "slope": 0.2574,
+        "intercept": -0.68,
+        "bootstrap_slope_95_ci": [
+          0.2046,
+          0.2877
+        ],
+        "bootstrap_intercept_95_ci": [
+          -3.59,
+          4.2
+        ],
+        "bootstrap_method": "500 resamples of contiguous 12-month blocks (seed 42)",
+        "scalar_ratio": 0.2547,
+        "held_out": {
+          "bias": -3.32,
+          "mae": 11.91,
+          "rmse": 34.74,
+          "r2": 0.9657,
+          "spearman_corr": 0.9197
+        },
+        "held_out_scalar": {
+          "bias": -3.6,
+          "mae": 12.25,
+          "rmse": 35.38,
+          "r2": 0.9644,
+          "spearman_corr": 0.8996
+        },
+        "held_out_rmse": 34.74,
+        "held_out_bias": -3.32,
+        "held_out_mae": 11.91,
+        "held_out_r2": 0.9657,
+        "held_out_spearman": 0.9197,
+        "held_out_scalar_rmse": 35.38,
+        "fit_quality": "strong"
+      }
+    },
+    "fitted_districts": 3,
+    "note": "Independent district fits on the identical split; each carries its own bootstrap interval and scalar baseline."
+  },
+  "noaa20_model": {
+    "source": "VIIRS_NOAA20_SP",
+    "direction": "NOAA-20 VIIRS -> S-NPP-equivalent counts (then the published S-NPP -> MODIS line)",
+    "min_overlap_months": 24,
+    "status": "insufficient_overlap",
+    "reason": "only 0 overlapping months; at least 24 are required",
+    "caveat": "Until this leg is fitted on at least 24 S-NPP / NOAA-20 overlap months, the forward VIIRS-equivalent mapping remains an algebraic inversion and must not be used operationally.",
+    "overlap_months": 0,
+    "split_month": "2021-01"
+  },
+  "sensor_custody": {
+    "legs": [
+      {
+        "key": "modis",
+        "sensor": "Aqua MODIS",
+        "resolution": "1 km",
+        "start": "2002-07",
+        "end": "2011-12",
+        "role": "reference observations",
+        "label": "Aqua MODIS (2002\u20132011)",
+        "css": "seg-modis",
+        "dot": "dot-modis"
+      },
+      {
+        "key": "snpp_train",
+        "sensor": "S-NPP VIIRS",
+        "resolution": "375 m",
+        "start": "2012-01",
+        "end": "2018-12",
+        "role": "calibration & training",
+        "label": "S-NPP VIIRS Train",
+        "css": "seg-viirs-train",
+        "dot": "dot-viirs-train"
+      },
+      {
+        "key": "snpp_test",
+        "sensor": "S-NPP VIIRS",
+        "resolution": "375 m",
+        "start": "2019-01",
+        "end": "2021-12",
+        "role": "held-out validation",
+        "label": "S-NPP VIIRS Test",
+        "css": "seg-viirs-test",
+        "dot": "dot-viirs-test"
+      },
+      {
+        "key": "gap",
+        "sensor": "No archive downloaded",
+        "resolution": "\u2014",
+        "start": "2022-01",
+        "end": "2026-10",
+        "role": "delivery gap",
+        "label": "Archive gap (2022-01\u20132026-10)",
+        "css": "seg-gap",
+        "dot": "dot-gap"
+      },
+      {
+        "key": "noaa20",
+        "sensor": "NOAA-20 / 21 VIIRS",
+        "resolution": "375 m",
+        "start": "2026-11",
+        "end": null,
+        "role": "forward continuity leg",
+        "label": "NOAA-20 / 21 (post-Nov 2026)",
+        "css": "seg-noaa20",
+        "dot": "dot-noaa20",
+        "status": "insufficient_overlap"
+      }
+    ],
+    "note": "Each record month belongs to exactly one leg. Months after the last downloaded archive (2021-12) are shown as a delivery gap, not as NOAA-20 observations. The NOAA-20/21 leg starts on 2026-11.",
+    "noaa20_status": "insufficient_overlap"
+  },
   "training_period": "2012-01 to 2018-12 (84 months)",
   "held_out_test_period": "2019-01 to 2021-12 (36 months)",
+  "record_period": "2002-07 to 2021-12 (234 months)",
   "observed_sensor_shift_ratio": 2.85,
   "observed_sensor_shift_ratio_definition": "mean raw VIIRS (2012+) / mean MODIS (2002-2011), zero months counted on both sides \u2014 the discontinuity drawn in Chart A",
   "overlap_viirs_to_modis_ratio": 3.71,
-  "overlap_viirs_to_modis_ratio_definition": "mean raw VIIRS / mean MODIS over the same 2012-2021 months (the sensor sensitivity difference)",
+  "overlap_viirs_to_modis_ratio_definition": "mean raw VIIRS / mean MODIS over the same overlap months (the sensor sensitivity difference)",
+  "modis_only_continuity": {
+    "pre_2012_modis_mean_per_month": 207.1,
+    "post_2012_modis_mean_per_month": 159.2,
+    "modis_only_change_percent": -23.1,
+    "spliced_apparent_change_percent": 185.0,
+    "interpretation": "Same instrument, same region, no instrument change: the MODIS record does not rise across the 2012 boundary, so the step seen in the spliced series is a sensor artefact, not a fire trend."
+  },
   "zero_month_handling": {
     "overlap_months": 120,
     "zero_modis_months": 57,
@@ -73,6 +313,14 @@
     "bootstrap_method": "500 resamples of contiguous 12-month blocks (moving-block bootstrap, seed 42); coefficient interval, not a prediction interval",
     "interpretation": "fitted regional empirical relationship (monthly counts), not a universal MODIS-VIIRS conversion"
   },
+  "forward_mapping_modis_to_viirs": {
+    "equation": "VIIRS_eq = 3.7126 * MODIS + (4.37)",
+    "slope": 3.7126,
+    "intercept": 4.37,
+    "direction": "MODIS 1 km counts -> S-NPP VIIRS 375 m equivalent counts",
+    "purpose": "Carries the pre-2012 MODIS record forward onto a 375 m footing so the series can continue on NOAA-20/21 after Suomi-NPP delivery ends.",
+    "caveat": "Algebraic inversion of the fitted line, not a separately fitted model: it inherits the same uncertainty and is not validated against NOAA-20 detections. A NOAA-20 leg (VIIRS_NOAA20_SP) must be fitted on the S-NPP / NOAA-20 overlap before the forward series is used operationally."
+  },
   "fitted_log1p_model": {
     "equation": "ln(MODIS_eq + 1) = 0.8328 * ln(VIIRS + 1) + (-0.67)",
     "slope": 0.8328,
@@ -84,6 +332,13 @@
       "mae": 468.92,
       "rmse": 1130.64,
       "r2": -6.8012,
+      "spearman_corr": 0.928
+    },
+    "scalar_ratio_baseline_vs_modis": {
+      "bias": -4.63,
+      "mae": 21.95,
+      "rmse": 56.63,
+      "r2": 0.9804,
       "spearman_corr": 0.928
     },
     "harmonized_linear_vs_modis": {
@@ -101,15 +356,50 @@
       "spearman_corr": 0.934
     }
   },
+  "baseline_definitions": {
+    "naive_raw_viirs_vs_modis": "raw unscaled VIIRS counts spliced onto the MODIS record \u2014 the error being illustrated, not a method any analyst would use",
+    "scalar_ratio_baseline_vs_modis": "one scalar, sum(train MODIS) / sum(train VIIRS) = 0.2673 \u2014 the honest competing baseline the fitted model must beat"
+  },
   "performance_improvement": {
     "rmse_reduction_percent": 95.1,
-    "bias_reduction_percent": 99.1
+    "bias_reduction_percent": 99.1,
+    "rmse_reduction_percent_vs_scalar_baseline": 1.7,
+    "honest_reading": "Most of the correction comes from simple scaling. Against the scalar baseline the fitted model gains only a few per cent, so the contribution of this work is the regional calibration, the bootstrap uncertainty, the sensitivity runs and the held-out test, not the size of the error reduction."
   },
+  "held_out_seasonal_breakdown": {
+    "fire_season_mar_apr": {
+      "bias": -32.07,
+      "mae": 119.5,
+      "rmse": 136.14,
+      "r2": 0.727,
+      "spearman_corr": 0.8857,
+      "months": 6,
+      "mean_observed_modis": 1050.67,
+      "label": "March-April jhum burning peak"
+    },
+    "quiet_season_other_months": {
+      "bias": 1.5,
+      "mae": 1.98,
+      "rmse": 3.43,
+      "r2": 0.4641,
+      "spearman_corr": 0.9073,
+      "months": 30,
+      "mean_observed_modis": 2.7,
+      "label": "all other months"
+    },
+    "note": "A single held-out RMSE is dominated by the burning peak. Reported separately so the fit is not judged on six months of the year."
+  },
+  "held_out_median_absolute_error": 1.3,
   "limitations": [
     "Region-specific held-out-tested prototype: not a universal MODIS-VIIRS conversion, not a fire-cause classifier, not proof of fire absence.",
     "Regional monthly counts, not paired fire-level detections.",
     "No overpass-time, scan-angle, exact administrative boundary, land-cover or FRP modeling.",
     "FIRMS reports positive detections; non-detection does not prove absence of fire (cloud cover, orbital gaps).",
+    "A single scalar ratio already removes most of the sensor step; the fitted line improves on it only marginally, so the error-reduction headline is reported against both baselines.",
+    "Held-out accuracy is concentrated in the March-April burning peak; most months carry near-zero detections, so R2 is reported with the seasonal breakdown and with Spearman rank correlation.",
+    "The forward MODIS-to-VIIRS mapping is an algebraic inversion, not a model fitted on NOAA-20 data.",
+    "NOAA-20 leg status: insufficient_overlap \u2014 only 0 overlapping months; at least 24 are required. The record is not extended past the downloaded archive until that leg is fitted.",
+    "Per-district fits test spatial consistency but are not independent datasets; the three districts share the same sensors and processing chain.",
     "Suomi-NPP VIIRS delivery permanently ceases November 1, 2026; future operations require NOAA-20/21 refitting."
   ]
 }

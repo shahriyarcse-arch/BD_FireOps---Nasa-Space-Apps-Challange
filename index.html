@@ -17,9 +17,9 @@
   <link rel="apple-touch-icon" href="vendor/nasa-logo.svg">
 
   <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono with system fallbacks -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- No webfont request: the venue network may be slow or absent on judging day.
+       style.css falls back to the system sans/mono stack, which renders identically
+       offline. Add a self-hosted font under vendor/ if a specific face is wanted. -->
 
   <!-- Leaflet CSS & JS (vendored: the map works without third-party CDNs) -->
   <link rel="stylesheet" href="vendor/leaflet.css" />
@@ -53,6 +53,7 @@
         <a href="#map-section">Map</a>
         <a href="#try">Try it</a>
         <a href="#matrix">Seasonality</a>
+        <a href="#noaa20">Sunset</a>
         <a href="#limits">Limits</a>
         <a href="#method">Method</a>
       </nav>
@@ -82,36 +83,39 @@
         <span class="kicker">EARTH OBSERVATION · CROSS-SENSOR HARMONIZATION</span>
         <h1>One Continuous Fire Record for 20 Years of NASA Satellite Data</h1>
         <p class="hero-lead">
-          Two NASA satellite instruments have monitored forest and agricultural burning in the Chittagong Hill Tracts: 
+          Two NASA satellite instruments have monitored forest and agricultural burning in the Chittagong Hill Tracts:
           <strong>Aqua MODIS</strong> (2002–2021, 1 km pixels) and <strong>S-NPP VIIRS</strong> (2012–2021, 375 m pixels).
-          Because VIIRS sees small fires that MODIS missed, joining the two cameras directly makes it look like fires 
+          Because VIIRS sees small fires that MODIS missed, joining the two cameras directly makes it look like fires
           <span class="hero-highlight">almost tripled overnight (+185%)</span>.
-          <strong>BD-FireOps</strong> provides one simple correction formula that removes this satellite trick, 
-          giving scientists and forest managers one continuous 20-year baseline.
+          <strong>BD-FireOps</strong> rebuilds the record on one footing and, just as importantly, says plainly how much of
+          that repair is simple scaling and how much is ours. It is a calibration for these three districts with a measured
+          confidence range and a real held-out test, not a universal MODIS-to-VIIRS conversion.
         </p>
 
         <!-- KPI Telemetry Ribbon -->
         <div class="kpi-ribbon">
+          <!-- BEGIN:HERO_KPI -->
           <div class="kpi-tile">
             <span class="kpi-val blue">20 Yrs</span>
             <span class="kpi-label">Continuous Coverage</span>
-            <span class="kpi-sub">2002–2021 · 234 monthly records</span>
+            <span class="kpi-sub">2002-07 – 2021-12 · 234 monthly records</span>
           </div>
           <div class="kpi-tile">
-            <span class="kpi-val green">-95.1%</span>
-            <span class="kpi-label">RMSE Reduction</span>
-            <span class="kpi-sub">Tested on unseen 2019–2021</span>
+            <span class="kpi-val green">55.67</span>
+            <span class="kpi-label">Monthly Error, Held-Out Test</span>
+            <span class="kpi-sub">Scaling baseline 56.63 · we gain 1.7%</span>
           </div>
           <div class="kpi-tile">
-            <span class="kpi-val amber">-99.1%</span>
-            <span class="kpi-label">Bias Reduced (Test Set)</span>
-            <span class="kpi-sub">+468.92 down to -4.09 fires</span>
+            <span class="kpi-val amber">-23.1%</span>
+            <span class="kpi-label">MODIS-Only Change Across 2012</span>
+            <span class="kpi-sub">The unchanged camera sees no rise</span>
           </div>
           <div class="kpi-tile">
-            <span class="kpi-val green">0.9811</span>
-            <span class="kpi-label">Test-Set R²</span>
-            <span class="kpi-sub">Tracks real ups & downs</span>
+            <span class="kpi-val green">0.9488</span>
+            <span class="kpi-label">Rank Agreement (Spearman)</span>
+            <span class="kpi-sub">Tracks real ups &amp; downs</span>
           </div>
+<!-- END:HERO_KPI -->
         </div>
       </div>
     </section>
@@ -180,8 +184,87 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
           <p class="small muted">
             Parameter 95% Confidence Interval from 500 moving-block bootstrap resamples: Slope [0.2198, 0.2970], Intercept [-6.79, +6.52]. Validated against an unseen 3-year test horizon (2019–2021).
           </p>
+          <p class="small muted">
+            Reverse direction, for carrying the record forward after Suomi-NPP delivery ends on 1 November 2026:
+            <span class="font-mono text-blue">VIIRS-Equivalent = 3.7126 × MODIS + 4.37</span>.
+            This is an algebraic inversion of the same line, not a model fitted on NOAA-20 detections, so a NOAA-20 leg must be
+            fitted on the S-NPP / NOAA-20 overlap before the forward series is used operationally.
+          </p>
         </div>
       </details>
+    </section>
+
+    <!-- CONTROL TEST: THE SENSOR THAT NEVER CHANGED -->
+    <section class="card" id="continuity">
+      <div class="card-header-row">
+        <div>
+          <span class="kicker">CONTROL TEST · THE CAMERA THAT NEVER CHANGED</span>
+          <h2>Did Fires Really Rise in 2012?</h2>
+          <p class="muted">
+            Aqua MODIS watched the same three districts before and after 2012 and never changed. Its own record is therefore
+            the control that decides whether the step is real.
+          </p>
+        </div>
+      </div>
+      <!-- BEGIN:CONTINUITY_PANEL -->
+      <div class="proof-grid">
+        <div class="proof-card">
+          <p class="proof-num">207.1</p>
+          <p class="proof-label">MODIS fires per month before 2012</p>
+          <p class="proof-hint">Same camera, same three districts.</p>
+        </div>
+        <div class="proof-card">
+          <p class="proof-num">159.2</p>
+          <p class="proof-label">MODIS fires per month from 2012</p>
+          <p class="proof-hint">The one camera that never changed reads -23.1%.</p>
+        </div>
+        <div class="proof-card">
+          <p class="proof-num text-amber">+185.0%</p>
+          <p class="proof-label">What the wrong join claims instead</p>
+          <p class="proof-hint">Two cameras joined raw. Nothing in the forest changed this much.</p>
+        </div>
+      </div>
+      <p class="proof-note"><strong>This is the control test.</strong> Aqua MODIS flew across the whole period without changing.
+      If burning had really tripled in 2012, MODIS would have seen it rise too. MODIS reads -23.1% instead, so the step belongs to the sensor, not to the fires.</p>
+<!-- END:CONTINUITY_PANEL -->
+    </section>
+
+    <!-- NOAA-20 / 21 CONTINUITY LEG (F2/P2) -->
+    <section class="card" id="noaa20">
+      <div class="card-header-row">
+        <div>
+          <span class="kicker">SENSOR SUNSET · THE NEXT LEG</span>
+          <h2>Built to Outlive Suomi-NPP (1 November 2026)</h2>
+          <p class="muted">
+            MODIS is already gone; S-NPP VIIRS is next. The pipeline carries a NOAA-20 / 21
+            calibration leg so the record can continue after the sunset, but only after the
+            overlap exists. This page shows the leg's real status, not a promised equation.
+          </p>
+        </div>
+      </div>
+<!-- BEGIN:NOAA20_PANEL -->
+      <div class="proof-grid">
+        <div class="proof-card">
+          <p class="proof-num text-amber" style="font-size: 1.35rem;">Not fitted</p>
+          <p class="proof-label">NOAA-20 calibration leg</p>
+          <p class="proof-hint">Status: insufficient_overlap</p>
+        </div>
+        <div class="proof-card">
+          <p class="proof-num">0 / 24</p>
+          <p class="proof-label">S-NPP / NOAA-20 overlap months downloaded</p>
+          <p class="proof-hint">The code refuses to publish a slope below 24.</p>
+        </div>
+        <div class="proof-card">
+          <p class="proof-num">0</p>
+          <p class="proof-label">Months of record extended past the archive</p>
+          <p class="proof-hint">No NOAA-20 fit is claimed on the page.</p>
+        </div>
+      </div>
+      <p class="proof-note"><strong>Honest status:</strong> the NOAA-20 leg is not fitted — only 0 overlapping months; at least 24 are required.
+      The forward mapping above is still an algebraic inversion, not a validated NOAA-20 model.
+      Fetch the archive (<code>VIIRS_NOAA20_SP</code>) and re-run the pipeline;
+      the leg fits automatically once at least 24 overlap months exist.</p>
+<!-- END:NOAA20_PANEL -->
     </section>
 
     <!-- STEP 2: PROOF & VALIDATION -->
@@ -201,22 +284,26 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       <div id="proof-cards" class="proof-grid" aria-live="polite">
         <div class="proof-card">
           <p class="proof-num">55.67</p>
-          <p class="proof-label">Wrong guesses per month (lower is better)</p>
-          <p class="proof-hint">Wrong join was 1130.64 → we cut it by 95.1%.</p>
+          <p class="proof-label">Typical monthly error, fitted model (lower is better)</p>
+          <p class="proof-hint">Simple scaling (×0.2673) already gets 56.63. Our fit improves on that by 1.7%.</p>
         </div>
         <div class="proof-card">
           <p class="proof-num">-4.09</p>
-          <p class="proof-label">Always-too-high problem (0 is fair)</p>
-          <p class="proof-hint">Wrong join was +468.92 → cut by 99.1%.</p>
+          <p class="proof-label">Running too high or too low (0 is fair)</p>
+          <p class="proof-hint">Scaling baseline: -4.63. Unscaled splice: +468.92.</p>
         </div>
         <div class="proof-card">
-          <p class="proof-num">0.9811</p>
-          <p class="proof-label">How well it follows real ups and downs (1.0 = perfect)</p>
-          <p class="proof-hint">Scored 98.1 out of 100 against the real record. Wrong join: -6.8012.</p>
+          <p class="proof-num">0.9488</p>
+          <p class="proof-label">Rank agreement with the real record (Spearman, 1.0 = perfect)</p>
+          <p class="proof-hint">R² is 0.9811, but it is set mostly by the burning peak, so rank agreement is the fairer single number.</p>
         </div>
       </div>
+      <p class="proof-note"><strong>Read this honestly:</strong> most of the correction comes from simple scaling, not from our equation.
+      An unscaled splice scores RMSE 1130.64, bias +468.92 and R² -6.8012, so measured against it the error falls 95.1% and the bias falls 99.1%.
+      That is the wrong yardstick. Measured against a one-number scaling baseline, the error falls only 1.7%.
+      What this project adds is the regional calibration for the CHT, the bootstrap confidence range, the confidence-threshold and day-only sensitivity runs, and a genuine held-out test.</p>
       <p class="proof-note"><strong>Data source: NASA FIRMS Area API</strong> (MODIS_SP, VIIRS_SNPP_SP) over the CHT window — recorded in <code>data/processed/data_source.json</code>. Detections restricted to <strong>CHT districts (Bandarban, Khagrachhari, Rangamati)</strong> polygons (geoBoundaries BGD-ADM2); 54,300 MODIS and 85,857 VIIRS rows outside the CHT dropped.
-      Learned on 2012–2018, tested on 2019–2021. Full formula &amp; confidence intervals: see the “Wrong Join” section above.</p>
+      Learned on 2012-01 to 2018-12 (84 months), tested on 2019-01 to 2021-12 (36 months). Full formula &amp; confidence intervals: see the “Wrong Join” section above.<br>Confidence-threshold sensitivity: keeping low-confidence detections moves the slope by <strong>-8.54%</strong> and <strong>increases</strong> held-out RMSE by <strong>4.96%</strong> — baseline thresholds are reported.</p>
 <!-- END:VALIDATION_METRICS -->
 
       <!-- PER-YEAR BREAKDOWN TABLE -->
@@ -227,7 +314,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
               <th scope="col">Test Year</th>
               <th scope="col">Harmonized RMSE</th>
               <th scope="col">Harmonized Bias</th>
-              <th scope="col">Error Reduction</th>
+              <th scope="col">Error Reduction vs Unscaled Splice</th>
               <th scope="col">Status</th>
             </tr>
           </thead>
@@ -256,6 +343,71 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
           </tbody>
         </table>
       </div>
+
+      <div class="heldout-table-wrapper">
+        <!-- BEGIN:SEASONAL_BREAKDOWN -->
+      <table class="heldout-table" aria-label="Held-out error by season">
+        <thead>
+          <tr><th>Season</th><th>Months tested</th><th>Average real fires / month</th><th>Typical error (RMSE)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>March–April burning peak</td><td>6</td><td>1050.67</td><td>136.14</td></tr>
+          <tr><td>All other months</td><td>30</td><td>2.7</td><td>3.43</td></tr>
+        </tbody>
+      </table>
+      <p class="proof-note">The burning peak carries nearly all of the error and nearly all of the R². Across the whole held-out set the median monthly error is 1.3 detections, because most months are almost fire-free. Both regimes are published so the fit is not judged on six months of the year.</p>
+<!-- END:SEASONAL_BREAKDOWN -->
+      </div>
+
+      <!-- PER-DISTRICT SPATIAL VALIDATION (BANDARBAN, KHAGRACHHARI, RANGAMATI) -->
+<!-- BEGIN:DISTRICT_PANEL -->
+      <div class="district-panel-wrapper">
+        <div class="district-panel-header">
+          <span class="chart-title">Spatial Validation · Per-District Calibration Fits</span>
+          <span class="chart-badge good">3-DISTRICT INDEPENDENT FIT</span>
+        </div>
+        <p class="small muted" style="margin-bottom: 12px;">
+          To verify that the regional calibration is not driven by an outlier district, each
+          administrative district is fitted and tested independently on the same split.
+        </p>
+        <div class="district-grid">
+          <div class="district-card">
+            <div class="district-card-header">
+              <strong>Bandarban</strong>
+              <span class="font-mono text-blue small">Slope: 0.2692</span>
+            </div>
+            <p class="district-stat font-mono">Held-out R²: 0.9685</p>
+            <p class="district-sub">RMSE: 33.85 · Bias: -2.60 · Detections: 49,670</p>
+            <p class="district-sub">Slope 95% CI: [0.2205, 0.2985]</p>
+            <p class="district-sub text-amber">Simple scaling is as good or better: 32.93 vs 33.85 (0.92 lower RMSE)</p>
+            <p class="district-status text-green small">✓ Spearman 0.8583 · consistent vs regional slope 0.2694</p>
+          </div>
+          <div class="district-card">
+            <div class="district-card-header">
+              <strong>Khagrachhari</strong>
+              <span class="font-mono text-blue small">Slope: 0.2855</span>
+            </div>
+            <p class="district-stat font-mono">Held-out R²: 0.9759</p>
+            <p class="district-sub">RMSE: 8.18 · Bias: +1.86 · Detections: 14,214</p>
+            <p class="district-sub">Slope 95% CI: [0.2262, 0.3208]</p>
+            <p class="district-sub text-amber">Simple scaling is as good or better: 7.16 vs 8.18 (1.02 lower RMSE)</p>
+            <p class="district-status text-green small">✓ Spearman 0.8666 · consistent vs regional slope 0.2694</p>
+          </div>
+          <div class="district-card">
+            <div class="district-card-header">
+              <strong>Rangamati</strong>
+              <span class="font-mono text-blue small">Slope: 0.2574</span>
+            </div>
+            <p class="district-stat font-mono">Held-out R²: 0.9657</p>
+            <p class="district-sub">RMSE: 34.74 · Bias: -3.32 · Detections: 49,689</p>
+            <p class="district-sub">Slope 95% CI: [0.2046, 0.2877]</p>
+            <p class="district-sub text-green">Fit beats simple scaling: 34.74 vs 35.38</p>
+            <p class="district-status text-green small">✓ Spearman 0.9197 · consistent vs regional slope 0.2694</p>
+          </div>
+        </div>
+        <p class="small muted" style="margin-top: 12px;">Each district repeats the identical 2012–2018 train / 2019–2021 held-out test split and carries its own scalar-ratio baseline. Where simple scaling matches or beats the fitted line, the card says so rather than implying a uniform win.</p>
+      </div>
+<!-- END:DISTRICT_PANEL -->
 
       <p class="small muted" style="margin-top: 10px;">
         <em>Sensitivity check:</em> Re-evaluating with afternoon day-only observations (<code>daynight=D</code>) yields RMSE 49.69 (-10.74% shift). The reported baseline includes both day and night passes; the alternative is published here rather than folded in.
@@ -324,6 +476,43 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
             <button class="year-pill active" data-year="2014" type="button">2014 (Naive Join Peak)</button>
             <button class="year-pill" data-year="2019" type="button">2019 (Test Start)</button>
             <button class="year-pill" data-year="2021" type="button">2021 (Held-out End)</button>
+          </div>
+
+          <!-- SENSOR PROVENANCE STRIP (2002–2026+) -->
+          <div class="provenance-strip-wrapper" aria-label="Sensor satellite observation custody chain">
+            <div class="provenance-strip-header">
+              <span class="muted small">OBSERVATION PLATFORM CUSTODY:</span>
+              <span id="active-sensor-name" class="font-mono text-green small">S-NPP VIIRS (375 m) · calibration &amp; training</span>
+            </div>
+            <div class="provenance-strip" role="img" aria-label="Timeline colored by satellite sensor custody">
+<!-- BEGIN:SENSOR_CUSTODY -->
+              <div class="provenance-segment seg-modis" data-start="2002-07" data-end="2011-12" data-label="Aqua MODIS (1 km) · reference observations" style="flex: 114;" title="2002-07–2011-12: Aqua MODIS (1 km) · reference observations">
+                <span class="seg-label">Aqua MODIS (2002–2011)</span>
+              </div>
+              <div class="provenance-segment seg-viirs-train active" data-start="2012-01" data-end="2018-12" data-label="S-NPP VIIRS (375 m) · calibration &amp; training" style="flex: 84;" title="2012-01–2018-12: S-NPP VIIRS (375 m) · calibration &amp; training">
+                <span class="seg-label">S-NPP VIIRS Train</span>
+              </div>
+              <div class="provenance-segment seg-viirs-test" data-start="2019-01" data-end="2021-12" data-label="S-NPP VIIRS (375 m) · held-out validation" style="flex: 36;" title="2019-01–2021-12: S-NPP VIIRS (375 m) · held-out validation">
+                <span class="seg-label">S-NPP VIIRS Test</span>
+              </div>
+              <div class="provenance-segment seg-gap" data-start="2022-01" data-end="2026-10" data-label="No archive downloaded (—) · delivery gap" style="flex: 58;" title="2022-01–2026-10: No archive downloaded (—) · delivery gap">
+                <span class="seg-label">Archive gap (2022-01–2026-10)</span>
+              </div>
+              <div class="provenance-segment seg-noaa20" data-start="2026-11" data-end="2099-12" data-label="NOAA-20 / 21 VIIRS (375 m) · forward continuity leg" style="flex: 60;" title="2026-11–present: NOAA-20 / 21 VIIRS (375 m) · forward continuity leg">
+                <span class="seg-label">NOAA-20 / 21 (post-Nov 2026)</span>
+              </div>
+<!-- END:SENSOR_CUSTODY -->
+            </div>
+            <div class="provenance-strip-legend">
+<!-- BEGIN:SENSOR_CUSTODY_LEGEND -->
+              <span><i class="dot dot-modis"></i> Aqua MODIS (1 km)</span>
+              <span><i class="dot dot-viirs-train"></i> S-NPP VIIRS Train</span>
+              <span><i class="dot dot-viirs-test"></i> S-NPP VIIRS Test</span>
+              <span><i class="dot dot-gap"></i> No archive downloaded</span>
+              <span><i class="dot dot-noaa20"></i> NOAA-20 / 21 (next leg) — not fitted</span>
+              <span class="small text-amber" style="margin-left: auto;">⚡ S-NPP Science Sunset: 1 Nov 2026</span>
+<!-- END:SENSOR_CUSTODY_LEGEND -->
+            </div>
           </div>
         </div>
       </div>

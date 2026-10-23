@@ -1,0 +1,143 @@
+{
+  "Bandarban": {
+    "clean_detections": {
+      "modis": 19131,
+      "viirs": 30539
+    },
+    "overlap_months": 120,
+    "min_overlap_months": 24,
+    "split_month": "2019-01",
+    "status": "fitted",
+    "train_months": 84,
+    "test_months": 36,
+    "train_period": "2012-01 to 2018-12",
+    "test_period": "2019-01 to 2021-12",
+    "slope": 0.2692,
+    "intercept": 2.03,
+    "bootstrap_slope_95_ci": [
+      0.2205,
+      0.2985
+    ],
+    "bootstrap_intercept_95_ci": [
+      -1.87,
+      4.75
+    ],
+    "bootstrap_method": "500 resamples of contiguous 12-month blocks (seed 42)",
+    "scalar_ratio": 0.2775,
+    "held_out": {
+      "bias": -2.6,
+      "mae": 14.71,
+      "rmse": 33.85,
+      "r2": 0.9685,
+      "spearman_corr": 0.8583
+    },
+    "held_out_scalar": {
+      "bias": -2.34,
+      "mae": 13.05,
+      "rmse": 32.93,
+      "r2": 0.9702,
+      "spearman_corr": 0.8583
+    },
+    "held_out_rmse": 33.85,
+    "held_out_bias": -2.6,
+    "held_out_mae": 14.71,
+    "held_out_r2": 0.9685,
+    "held_out_spearman": 0.8583,
+    "held_out_scalar_rmse": 32.93,
+    "fit_quality": "strong"
+  },
+  "Khagrachhari": {
+    "clean_detections": {
+      "modis": 5480,
+      "viirs": 8734
+    },
+    "overlap_months": 120,
+    "min_overlap_months": 24,
+    "split_month": "2019-01",
+    "status": "fitted",
+    "train_months": 84,
+    "test_months": 36,
+    "train_period": "2012-01 to 2018-12",
+    "test_period": "2019-01 to 2021-12",
+    "slope": 0.2855,
+    "intercept": -0.54,
+    "bootstrap_slope_95_ci": [
+      0.2262,
+      0.3208
+    ],
+    "bootstrap_intercept_95_ci": [
+      -1.36,
+      1.22
+    ],
+    "bootstrap_method": "500 resamples of contiguous 12-month blocks (seed 42)",
+    "scalar_ratio": 0.2775,
+    "held_out": {
+      "bias": 1.86,
+      "mae": 2.7,
+      "rmse": 8.18,
+      "r2": 0.9759,
+      "spearman_corr": 0.8666
+    },
+    "held_out_scalar": {
+      "bias": 1.46,
+      "mae": 2.39,
+      "rmse": 7.16,
+      "r2": 0.9815,
+      "spearman_corr": 0.8729
+    },
+    "held_out_rmse": 8.18,
+    "held_out_bias": 1.86,
+    "held_out_mae": 2.7,
+    "held_out_r2": 0.9759,
+    "held_out_spearman": 0.8666,
+    "held_out_scalar_rmse": 7.16,
+    "fit_quality": "strong"
+  },
+  "Rangamati": {
+    "clean_detections": {
+      "modis": 18105,
+      "viirs": 31584
+    },
+    "overlap_months": 120,
+    "min_overlap_months": 24,
+    "split_month": "2019-01",
+    "status": "fitted",
+    "train_months": 84,
+    "test_months": 36,
+    "train_period": "2012-01 to 2018-12",
+    "test_period": "2019-01 to 2021-12",
+    "slope": 0.2574,
+    "intercept": -0.68,
+    "bootstrap_slope_95_ci": [
+      0.2046,
+      0.2877
+    ],
+    "bootstrap_intercept_95_ci": [
+      -3.59,
+      4.2
+    ],
+    "bootstrap_method": "500 resamples of contiguous 12-month blocks (seed 42)",
+    "scalar_ratio": 0.2547,
+    "held_out": {
+      "bias": -3.32,
+      "mae": 11.91,
+      "rmse": 34.74,
+      "r2": 0.9657,
+      "spearman_corr": 0.9197
+    },
+    "held_out_scalar": {
+      "bias": -3.6,
+      "mae": 12.25,
+      "rmse": 35.38,
+      "r2": 0.9644,
+      "spearman_corr": 0.8996
+    },
+    "held_out_rmse": 34.74,
+    "held_out_bias": -3.32,
+    "held_out_mae": 11.91,
+    "held_out_r2": 0.9657,
+    "held_out_spearman": 0.9197,
+    "held_out_scalar_rmse": 35.38,
+    "fit_quality": "strong"
+  }
+}

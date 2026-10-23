@@ -51,13 +51,25 @@ SOURCES = {
     "viirs": "VIIRS_SNPP_SP",
 }
 
-# Standard-processing coverage used by this study (plan v3 §2 scope lock)
-WINDOWS = {
-    # Aqua MODIS starts July 2002; end of the study period is 2021-12
-    "modis": ("2002-07-01", "2021-12-31"),
-    # S-NPP VIIRS 375 m starts 2012-01-20; we take 2012-01-01 for a clean year grid
-    "viirs": ("2012-01-01", "2021-12-31"),
+EXTENDED_SOURCES = {
+    "viirs_noaa20": "VIIRS_NOAA20_SP",
 }
+
+# Everything the downloader can fetch. SOURCES stays the two required sensors
+# (the harmonisation needs both); the NOAA-20 leg is optional until its archive
+# chunks exist, so aggregate.py must never fail because it was not pulled yet.
+DOWNLOAD_SOURCES = {**SOURCES, **EXTENDED_SOURCES}
+
+# Standard-processing coverage used by this study.
+# The end date is no longer frozen at 2021-12: analysis/window.py computes the
+# last complete month, so a re-run pulls every month up to the present. Set
+# BDFIREOPS_STUDY_END=YYYY-MM-DD to freeze it for a citable run.
+try:
+    from analysis.window import study_windows
+except ImportError:  # running as `python analysis/download.py`
+    from window import study_windows
+
+WINDOWS = study_windows()
 
 
 def get_map_key(explicit: str | None = None) -> str:
@@ -158,7 +170,7 @@ def download_source(
     Chunk files are written even when a window has zero detections, so a re-run
     resumes instead of re-downloading (idempotent).
     """
-    source = SOURCES[sensor]
+    source = DOWNLOAD_SOURCES[sensor]
     out_dir = RAW_DIR / sensor
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -291,7 +303,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description="BD-FireOps FIRMS downloader")
     parser.add_argument("--test", action="store_true", help="1-day API probe: status code + columns")
     parser.add_argument("--demo", action="store_true", help="Write explicitly-labelled DEMO monthly series (no NASA data)")
-    parser.add_argument("--sensor", choices=[*SOURCES, "all"], default="all")
+    parser.add_argument("--sensor", choices=[*DOWNLOAD_SOURCES, "all"], default="all")
     parser.add_argument("--since", type=dt.date.fromisoformat,
                         help="Override window start (YYYY-MM-DD); default is the plan scope")
     parser.add_argument("--until", type=dt.date.fromisoformat,
@@ -318,7 +330,7 @@ def main(argv: list[str] | None = None) -> int:
         probe_one_day(key)
         return 0
 
-    sensors = list(SOURCES) if args.sensor == "all" else [args.sensor]
+    sensors = list(DOWNLOAD_SOURCES) if args.sensor == "all" else [args.sensor]
     if args.since and args.until and args.since > args.until:
         parser.error("--since must be on or before --until")
     for sensor in sensors:

@@ -1,8 +1,15 @@
 {
   "kind": "nasa_firms_api",
   "sources": [
-    "MODIS_SP (reference)",
+    "MODIS_SP (Aqua reference)",
     "VIIRS_SNPP_SP (375 m)"
+  ],
+  "active_sensors": [
+    "modis",
+    "viirs"
+  ],
+  "absent_sensors": [
+    "viirs_noaa20"
   ],
   "bbox": "91.9,21.4,92.9,23.8",
   "windows": {
@@ -23,6 +30,21 @@
     "modis": 0,
     "viirs": 114
   },
+  "coverage_gaps": {
+    "modis": [],
+    "viirs": [
+      [
+        "2002-07",
+        "2011-12"
+      ]
+    ]
+  },
+  "districts": [
+    "Bandarban",
+    "Khagrachhari",
+    "Rangamati"
+  ],
+  "district_aggregation": "per-district monthly detection counts (monthly_districts.csv); districts sum to the regional series",
   "clean_detections": {
     "modis": 42716,
     "viirs": 70857

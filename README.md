@@ -30,14 +30,81 @@ Transitioning directly to VIIRS (375 m) introduces severe spatial and energetic 
 A strict chronological split (no train/test month overlap) was used to limit temporal leakage: the harmonization model was trained on **2012-01 to 2018-12 (84 months)**
 and evaluated on an independent **held-out test set from 2019-01 to 2021-12 (36 months)**.
 
-| Metric | Naive Sensor Splice (Raw VIIRS) | BD-FireOps (Harmonized Linear) | Performance Improvement |
-| :--- | :--- | :--- | :--- |
-| **RMSE (Hotspots/month)** | **1,130.64** | **55.67** | **-95.1% Error Reduction** |
-| **Bias (Mean Prediction Error)** | **+468.92** | **-4.09** | **-99.1% Bias Reduction** |
-| **MAE (Mean Absolute Error)** | **468.92** | **21.56** | **-95.4% Error Reduction** |
-| **R-Squared ($R^2$) Score** | **-6.8012** | **0.9811** | **Strong held-out fit** |
-| **Spearman Rank Correlation ($\rho$)** | **0.928** | **0.9488** | **Preserves Seasonality** |
-| **Log1p variant RMSE (zero-robust check)** | **1,130.64** | **243.95** | **-** |
+| Metric | Naive Splice (Raw VIIRS) | Scalar-Ratio Baseline | BD-FireOps (Harmonized Linear) | Gain vs Scalar Baseline |
+| :--- | :--- | :--- | :--- | :--- |
+| **RMSE (Hotspots/month)** | 1,130.64 | 56.63 | **55.67** | -1.7% Error Reduction |
+| **Bias (Mean Prediction Error)** | +468.92 | -4.63 | **-4.09** | -99.1% Bias Reduction vs raw splice |
+| **MAE (Mean Absolute Error)** | 468.92 | 21.95 | **21.56** | -95.4% Error Reduction vs raw splice |
+| **R-Squared ($R^2$) Score** | -6.8012 | 0.9804 | **0.9811** | Strong held-out fit |
+| **Spearman Rank Correlation ($\rho$)** | 0.928 | 0.928 | **0.9488** | Preserves Seasonality |
+| **Log1p variant RMSE (zero-robust check)** | 1,130.64 | - | **243.95** | - |
+
+### How to read these numbers
+
+The raw-splice column is the error being illustrated, not a method anyone would use, so an
+improvement measured against it overstates what the fitted model contributes. The column that
+matters is the scalar baseline: one number, `sum(train MODIS) / sum(train VIIRS)`, applied to
+every month. Against that baseline the fitted model reduces held-out RMSE by
+**1.7%**, not by
+95.1%. Most of the correction is simple scaling. What this work adds is the regional calibration for the CHT, the
+bootstrap coefficient interval, the confidence-threshold and day-only sensitivity runs, and a
+genuine held-out test.
+
+Held-out accuracy is also concentrated in the burning season. Scored separately:
+
+| Season | Months tested | Mean observed MODIS / month | RMSE |
+| :--- | ---: | ---: | ---: |
+| March–April burning peak | 6 | 1050.67 | 136.14 |
+| All other months | 30 | 2.7 | 3.43 |
+
+Across the whole held-out set the **median** absolute error is
+1.3 detections, because most months are nearly
+fire-free. $R^2$ is therefore reported together with Spearman rank correlation and this split,
+rather than on its own.
+
+### Control test: the sensor that never changed
+
+Aqua MODIS observed the same three districts before and after January 2012 without any
+instrument change, so its own record is the control. MODIS averages
+**207.1** detections per month before 2012 and
+**159.2** afterwards, a change of
+**-23.1%**, while the spliced series appears to change by
+**+185.0%**. The unchanged instrument does not show
+the step, which is the clearest evidence that the step is a sensor artefact.
+
+### Forward mapping for the post-Suomi era
+
+`VIIRS_eq = 3.7126 * MODIS + (4.37)` carries the record forward onto a 375 m footing so it can continue on
+NOAA-20/21 after Suomi-NPP delivery ends on 1 November 2026. This is an algebraic inversion of the
+fitted line, not a model fitted on NOAA-20 detections. The NOAA-20 leg is implemented and refuses
+to publish a slope below 24 overlap months; its current status is stated below.
+
+
+### NOAA-20 continuity leg (implemented, not fitted)
+
+`analysis/download.py`, `analysis/clean.py`, `analysis/aggregate.py` and `analysis/model.py` carry a
+`viirs_noaa20` sensor (`VIIRS_NOAA20_SP`, 2018-01 onward). `fit_noaa20_leg` refuses to publish a
+slope below 24 overlap months. Current status: **insufficient_overlap —
+0 / 24 overlap months**, because no
+raw NOAA-20 archive is in this checkout. The website and `metrics.json` say so explicitly; nothing
+is labelled NOAA-20 that was not downloaded. Fetch it with
+`python analysis/download.py --sensor viirs_noaa20` and re-run the pipeline to fit the leg.
+
+
+### Per-district validation (same split)
+
+Each district repeats the identical 2012–2018 train / 2019–2021 held-out test split and carries its
+own scalar-ratio baseline:
+
+| District | Slope | Held-out R² | Fit RMSE | Scalar RMSE | Spearman | Lower RMSE |
+| :--- | ---: | ---: | ---: | ---: | ---: | :--- |
+| Bandarban | 0.2692 | 0.9685 | 33.85 | 32.93 | 0.8583 | scaling |
+| Khagrachhari | 0.2855 | 0.9759 | 8.18 | 7.16 | 0.8666 | scaling |
+| Rangamati | 0.2574 | 0.9657 | 34.74 | 35.38 | 0.9197 | fit |
+
+The slopes are consistent with the regional fit, but simple scaling is as good or better in some
+districts. The site prints that comparison on every card instead of implying a uniform win.
+
 
 ### Fitted Empirical Calibration Model
 $$\text{MODIS}_{\text{equivalent}} = 0.2694 \times \text{VIIRS}_{375\text{m}} + (-1.18)$$
@@ -176,7 +243,7 @@ python tools/verify_bootstrap.py      # recomputes the published CI and compares
 python tools/sync_readme.py --check   # README numbers still match metrics.json
 python tools/sync_web.py --check      # website numbers still match metrics.json
 python tests/test_pipeline.py         # clean/aggregate fixture checks
-python tools/e2e_audit.py             # 35-point end-to-end frontend audit vs metrics.json
+python tools/e2e_audit.py             # 88-point end-to-end frontend audit vs metrics.json
 ```
 `verify_bootstrap.py` re-derives the moving-block bootstrap interval from
 `monthly.csv` (same split, same 12-month blocks, same seed) and exits non-zero if
@@ -213,6 +280,7 @@ district polygons** (geoBoundaries BGD-ADM2, BBS/OCHA, CC BY 3.0 — `data/refer
 | :--- | :--- | :--- | :--- |
 | Reference | `MODIS_SP` | MODIS 1 km, filtered to **Aqua** (afternoon crossing) | 2002-07 → 2021-12 |
 | Target | `VIIRS_SNPP_SP` | VIIRS 375 m, Suomi-NPP | 2012-01 → 2021-12 |
+| Continuity (optional) | `VIIRS_NOAA20_SP` | VIIRS 375 m, NOAA-20 | 2018-01 → present, fetched on demand |
 
 *Data citation:* NASA FIRMS. MODIS/VIIRS Active Fire and Thermal Anomalies, NASA Earthdata.
 Accessed 2026 via the FIRMS Area API. Detection algorithms: Giglio et al. (2016) for MODIS;
@@ -262,18 +330,26 @@ In accordance with NASA Open Science principles, BD-FireOps explicitly documents
 5. **Detection Caveat (data limitation):**  
    FIRMS reports positive detections. A missing detection may reflect cloud, viewing geometry, algorithm sensitivity or no observation. BD-FireOps does **not** classify fire cause (agricultural, forest, or otherwise) — it only estimates a harmonized detection count.
 6. **Sensor Transition Roadmap:**  
-   Suomi-NPP VIIRS delivery permanently ceases on **1 November 2026** — the record therefore needs a refit against **NOAA-20 (VJ114) / NOAA-21 (VJ214)** before it can be extended past 2021. NASA projects Terra/Aqua MODIS end-of-science for Feb/Sep 2027.
+   Suomi-NPP VIIRS delivery permanently ceases on **1 November 2026** — the record therefore needs a refit against **NOAA-20 (VJ114) / NOAA-21 (VJ214)** before it can be extended beyond the S-NPP era. The downloader, cleaner, aggregator and model now include that leg (`--sensor viirs_noaa20`), and it refuses to publish a slope below 24 S-NPP / NOAA-20 overlap months. In this checkout the archive has not been downloaded, so the leg is reported as **not fitted (0 / 24)** and the forward mapping in §2 remains an algebraic inversion, not a NOAA-20 model. NASA projects Terra/Aqua MODIS end-of-science for Feb/Sep 2027.
+
+7. **Marginal gain over simple scaling (stated plainly):**  
+   A single scalar ratio removes most of the sensor step on its own. Measured against that baseline rather than against an unscaled splice, the fitted line improves held-out RMSE by only a few per cent. The contribution of this work is the regional calibration, the uncertainty quantification, the sensitivity runs and the held-out test — not the size of the error reduction. Both baselines are published in §2 so the comparison cannot be read selectively.
+8. **Seasonal concentration of the fit:**  
+   Most overlap months carry near-zero detections and the March–April jhum burning peak supplies nearly all of the variance, so a single $R^2$ flatters the model. §2 reports peak and quiet seasons separately along with the median monthly error and Spearman rank correlation.
+9. **Study window:**  
+   The window end is no longer frozen: `analysis/window.py` computes the last complete month, so re-running the pipeline extends the record to the present. Set `BDFIREOPS_STUDY_END=YYYY-MM-DD` to reproduce a frozen, citable run. The figures published here come from the window recorded in `data/processed/data_source.json`.
 
 ---
 
 ## 8. Future Work
 
-1. **NOAA-20 / NOAA-21 refit** — repeat the overlap fit across VIIRS generations once S-NPP ends, so the record continues past 2021.
-2. **Daytime-only configuration** — the §2 day-only run already fits better (RMSE −10.74%); promote it from sensitivity to the reported baseline in a future, fully re-tested release.
-3. **Grid matching** — compare on a common spatial grid instead of region-level counts.
-4. **Overpass timing & scan-angle correction** — model the ~13:30 vs ~13:45 equator crossing and swath geometry explicitly.
-5. **FRP-based harmonization** — calibrate on radiative power rather than detection counts.
-6. **Burned-area validation** — cross-check harmonized counts against an independent burned-area product.
+1. **Download and fit the NOAA-20 archive** — the leg is implemented and refuses to publish under 24 overlap months; it is currently unfitted because `data/raw/viirs_noaa20/` is absent. Fetching `VIIRS_NOAA20_SP` is the remaining step, not a code change.
+2. **NOAA-21** — validate the NOAA-21 product after NOAA-20; the custody model is leg-based so a third VIIRS leg can be added without touching the UI.
+3. **Daytime-only configuration** — the §2 day-only run already fits better (RMSE −10.74%); promote it from sensitivity to the reported baseline in a future, fully re-tested release.
+4. **Grid matching** — compare on a common spatial grid instead of region-level and district-level counts.
+5. **Overpass timing & scan-angle correction** — model the ~13:30 vs ~13:45 equator crossing and swath geometry explicitly.
+6. **FRP-based harmonization** — calibrate on radiative power rather than detection counts.
+7. **Burned-area validation** — cross-check harmonized counts against an independent burned-area product.
 7. **Polygon-precise districts** — tighten the ADM2 district gate (simplified geoBoundaries rings can shave ~1% near borders).
 
 ---

@@ -77,21 +77,134 @@ def build_block(m: dict) -> str:
     else:
         r2_label = "Weak held-out fit"
 
+    # The scalar-ratio baseline sits between the raw splice and the fitted model
+    # on purpose. Reporting only against the raw splice overstates the gain, so
+    # the column the fitted model actually has to beat is published alongside it.
+    scalar = m["held_out_test_comparison"].get("scalar_ratio_baseline_vs_modis") or {}
+    scalar_gain = imp.get("rmse_reduction_percent_vs_scalar_baseline")
+
     rows = [
-        ("RMSE (Hotspots/month)", fmt(naive["rmse"]), fmt(lin["rmse"]), pct(imp["rmse_reduction_percent"])),
-        ("Bias (Mean Prediction Error)", signed(naive["bias"]), signed(lin["bias"]),
-         pct(imp["bias_reduction_percent"], "Bias")),
-        ("MAE (Mean Absolute Error)", fmt(naive["mae"]), fmt(lin["mae"]), pct(round(100 * (1 - lin["mae"] / naive["mae"]), 1) if naive["mae"] else None)),
-        ("R-Squared ($R^2$) Score", fmt(naive["r2"]), fmt(lin["r2"]), r2_label),
-        ("Spearman Rank Correlation ($\\rho$)", fmt(naive["spearman_corr"]), fmt(lin["spearman_corr"]),
-         "Preserves Seasonality"),
-        ("Log1p variant RMSE (zero-robust check)", fmt(naive["rmse"]), fmt(log["rmse"]), "-"),
+        ("RMSE (Hotspots/month)", fmt(naive["rmse"]), fmt(scalar.get("rmse")), fmt(lin["rmse"]),
+         pct(scalar_gain)),
+        ("Bias (Mean Prediction Error)", signed(naive["bias"]), signed(scalar.get("bias")), signed(lin["bias"]),
+         pct(imp["bias_reduction_percent"], "Bias") + " vs raw splice"),
+        ("MAE (Mean Absolute Error)", fmt(naive["mae"]), fmt(scalar.get("mae")), fmt(lin["mae"]),
+         pct(round(100 * (1 - lin["mae"] / naive["mae"]), 1) if naive["mae"] else None) + " vs raw splice"),
+        ("R-Squared ($R^2$) Score", fmt(naive["r2"]), fmt(scalar.get("r2")), fmt(lin["r2"]), r2_label),
+        ("Spearman Rank Correlation ($\\rho$)", fmt(naive["spearman_corr"]), fmt(scalar.get("spearman_corr")),
+         fmt(lin["spearman_corr"]), "Preserves Seasonality"),
+        ("Log1p variant RMSE (zero-robust check)", fmt(naive["rmse"]), "-", fmt(log["rmse"]), "-"),
     ]
 
 
     table = "\n".join(
-        f"| **{label}** | **{nv}** | **{lv}** | **{iv}** |" for label, nv, lv, iv in rows
+        f"| **{label}** | {nv} | {sv} | **{lv}** | {iv} |" for label, nv, sv, lv, iv in rows
     )
+
+    # Honest reading, seasonal breakdown and the MODIS-only control.
+    cont = m.get("modis_only_continuity") or {}
+    seas = m.get("held_out_seasonal_breakdown") or {}
+    peak = seas.get("fire_season_mar_apr") or {}
+    quiet = seas.get("quiet_season_other_months") or {}
+    fwd = m.get("forward_mapping_modis_to_viirs") or {}
+
+    def spct(v):
+        return "n/a" if v is None else f"{'+' if v >= 0 else ''}{v}%"
+
+    n20 = m.get("noaa20_model") or {}
+    if n20.get("status") == "fitted":
+        n_ho = n20.get("held_out") or {}
+        n_scalar = n20.get("held_out_scalar") or {}
+        noaa_block = f"""
+### NOAA-20 continuity leg (fitted)
+
+Fitted on {n20.get('overlap_months', 'n/a')} S-NPP / NOAA-20 overlap months:
+`{n20.get('equation', 'n/a')}`. Held-out RMSE {n_ho.get('rmse', 'n/a')} vs scalar baseline
+{n_scalar.get('rmse', 'n/a')}; Spearman {n_ho.get('spearman_corr', 'n/a')}.
+"""
+    else:
+        noaa_block = f"""
+### NOAA-20 continuity leg (implemented, not fitted)
+
+`analysis/download.py`, `analysis/clean.py`, `analysis/aggregate.py` and `analysis/model.py` carry a
+`viirs_noaa20` sensor (`VIIRS_NOAA20_SP`, 2018-01 onward). `fit_noaa20_leg` refuses to publish a
+slope below 24 overlap months. Current status: **{n20.get('status', 'not_available')} —
+{n20.get('overlap_months', 0)} / {n20.get('min_overlap_months', 24)} overlap months**, because no
+raw NOAA-20 archive is in this checkout. The website and `metrics.json` say so explicitly; nothing
+is labelled NOAA-20 that was not downloaded. Fetch it with
+`python analysis/download.py --sensor viirs_noaa20` and re-run the pipeline to fit the leg.
+"""
+
+    per = (m.get("per_district") or {}).get("districts") or {}
+    district_rows = []
+    for name in ("Bandarban", "Khagrachhari", "Rangamati"):
+        e = per.get(name) or {}
+        if e.get("status") != "fitted":
+            district_rows.append(f"| {name} | not fitted | — | — | — | — |")
+            continue
+        scalar_rmse = e.get("held_out_scalar_rmse")
+        winner = "fit" if scalar_rmse is not None and e["held_out_rmse"] < scalar_rmse else "scaling"
+        district_rows.append(
+            f"| {name} | {e['slope']:.4f} | {e['held_out_r2']:.4f} | {e['held_out_rmse']:.2f} | "
+            f"{scalar_rmse:.2f} | {e['held_out_spearman']:.4f} | {winner} |"
+        )
+    district_block = f"""
+### Per-district validation (same split)
+
+Each district repeats the identical 2012–2018 train / 2019–2021 held-out test split and carries its
+own scalar-ratio baseline:
+
+| District | Slope | Held-out R² | Fit RMSE | Scalar RMSE | Spearman | Lower RMSE |
+| :--- | ---: | ---: | ---: | ---: | ---: | :--- |
+{chr(10).join(district_rows)}
+
+The slopes are consistent with the regional fit, but simple scaling is as good or better in some
+districts. The site prints that comparison on every card instead of implying a uniform win.
+"""
+
+    honest_note = f"""
+### How to read these numbers
+
+The raw-splice column is the error being illustrated, not a method anyone would use, so an
+improvement measured against it overstates what the fitted model contributes. The column that
+matters is the scalar baseline: one number, `sum(train MODIS) / sum(train VIIRS)`, applied to
+every month. Against that baseline the fitted model reduces held-out RMSE by
+**{scalar_gain if scalar_gain is not None else 'n/a'}%**, not by
+{imp.get('rmse_reduction_percent', 'n/a')}%. Most of the correction is simple scaling. What this work adds is the regional calibration for the CHT, the
+bootstrap coefficient interval, the confidence-threshold and day-only sensitivity runs, and a
+genuine held-out test.
+
+Held-out accuracy is also concentrated in the burning season. Scored separately:
+
+| Season | Months tested | Mean observed MODIS / month | RMSE |
+| :--- | ---: | ---: | ---: |
+| March–April burning peak | {peak.get('months', 'n/a')} | {peak.get('mean_observed_modis', 'n/a')} | {peak.get('rmse', 'n/a')} |
+| All other months | {quiet.get('months', 'n/a')} | {quiet.get('mean_observed_modis', 'n/a')} | {quiet.get('rmse', 'n/a')} |
+
+Across the whole held-out set the **median** absolute error is
+{m.get('held_out_median_absolute_error', 'n/a')} detections, because most months are nearly
+fire-free. $R^2$ is therefore reported together with Spearman rank correlation and this split,
+rather than on its own.
+
+### Control test: the sensor that never changed
+
+Aqua MODIS observed the same three districts before and after January 2012 without any
+instrument change, so its own record is the control. MODIS averages
+**{cont.get('pre_2012_modis_mean_per_month', 'n/a')}** detections per month before 2012 and
+**{cont.get('post_2012_modis_mean_per_month', 'n/a')}** afterwards, a change of
+**{spct(cont.get('modis_only_change_percent'))}**, while the spliced series appears to change by
+**{spct(cont.get('spliced_apparent_change_percent'))}**. The unchanged instrument does not show
+the step, which is the clearest evidence that the step is a sensor artefact.
+
+### Forward mapping for the post-Suomi era
+
+`{fwd.get('equation', 'n/a')}` carries the record forward onto a 375 m footing so it can continue on
+NOAA-20/21 after Suomi-NPP delivery ends on 1 November 2026. This is an algebraic inversion of the
+fitted line, not a model fitted on NOAA-20 detections. The NOAA-20 leg is implemented and refuses
+to publish a slope below 24 overlap months; its current status is stated below.
+
+{noaa_block}
+{district_block}"""
 
     shift = m.get("observed_sensor_shift_ratio")
     shift_s = "n/a" if shift is None or shift != shift else f"{shift}x"
@@ -228,9 +341,10 @@ def build_block(m: dict) -> str:
 A strict chronological split (no train/test month overlap) was used to limit temporal leakage: the harmonization model was trained on **{m.get('training_period', '2012-01 to 2018-12')}**
 and evaluated on an independent **held-out test set from {m.get('held_out_test_period', '2019-01 to 2021-12')}**.
 
-| Metric | Naive Sensor Splice (Raw VIIRS) | BD-FireOps (Harmonized Linear) | Performance Improvement |
-| :--- | :--- | :--- | :--- |
+| Metric | Naive Splice (Raw VIIRS) | Scalar-Ratio Baseline | BD-FireOps (Harmonized Linear) | Gain vs Scalar Baseline |
+| :--- | :--- | :--- | :--- | :--- |
 {table}
+{honest_note}
 
 ### Fitted Empirical Calibration Model
 $$\\text{{MODIS}}_{{\\text{{equivalent}}}} = {flm['slope']} \\times \\text{{VIIRS}}_{{375\\text{{m}}}} + ({flm['intercept']})$$

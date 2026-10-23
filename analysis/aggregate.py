@@ -26,18 +26,26 @@ from pathlib import Path
 import pandas as pd
 
 try:
-    from analysis.download import RAW_DIR, SOURCES
+    from analysis.download import RAW_DIR, SOURCES, EXTENDED_SOURCES
 except ImportError:  # running as `python analysis/aggregate.py`
-    from download import RAW_DIR, SOURCES
+    from download import RAW_DIR, SOURCES, EXTENDED_SOURCES
+
+try:
+    from analysis.clean import REGION_DISTRICTS, assign_districts
+except ImportError:  # running as `python analysis/aggregate.py`
+    from clean import REGION_DISTRICTS, assign_districts
 
 ROOT = Path(__file__).resolve().parents[1]
 PROCESSED = ROOT / "data" / "processed"
 
-# Fallback coverage when no raw chunks exist (plan v3 §2 scope)
-DEFAULT_WINDOWS = {
-    "modis": ("2002-07-01", "2021-12-31"),
-    "viirs": ("2012-01-01", "2021-12-31"),
-}
+# Fallback coverage when no raw chunks exist. The real grid is still derived from
+# the raw chunk filenames, so widening the window never invents empty months.
+try:
+    from analysis.window import study_windows
+except ImportError:  # running as `python analysis/aggregate.py`
+    from window import study_windows
+
+DEFAULT_WINDOWS = study_windows()
 
 
 def covered_months(sensor: str) -> set[pd.Period] | None:
@@ -68,6 +76,32 @@ def covered_months(sensor: str) -> set[pd.Period] | None:
 
 def default_months(window: tuple[str, str]) -> set[pd.Period]:
     return set(pd.period_range(pd.Period(window[0], freq="M"), pd.Period(window[1], freq="M"), freq="M"))
+
+
+def _audit_window(sensor: str) -> tuple[str, str] | None:
+    """The study window that actually produced clean_<sensor>.csv.
+
+    With no raw chunks left on disk (a fresh clone ships processed artefacts
+    only), falling back to the *current* dynamic window would invent months
+    between the last download and today and fill them with zeros. The clean
+    audit recorded the real window, so reuse it instead.
+    """
+    path = PROCESSED / "clean_audit_baseline.json"
+    if not path.exists():
+        return None
+    try:
+        audit = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return None
+    entry = audit.get(sensor) if isinstance(audit, dict) else None
+    window = (entry or {}).get("study_window", "")
+    try:
+        start, end = [part.strip() for part in window.split("..")]
+        dt.date.fromisoformat(start)
+        dt.date.fromisoformat(end)
+    except ValueError:
+        return None
+    return start, end
 
 
 def _monthly_counts(clean: pd.DataFrame) -> pd.Series:
@@ -107,18 +141,94 @@ def _sensor_column(counts: pd.Series, grid: pd.PeriodIndex, covered: set[pd.Peri
     return pd.Series(values, index=grid)
 
 
+def _sensor_month_counts(clean: pd.DataFrame) -> pd.Series:
+    """Monthly detection counts, unchanged from the regional aggregation."""
+    return _monthly_counts(clean)
+
+
+def _district_monthly(cleans: dict, active: list[str], grid: pd.PeriodIndex,
+                      coverage: dict[str, set[pd.Period]]) -> pd.DataFrame:
+    """One row per (month, district) with one count column per active sensor.
+
+    Uses the same zero-inside-coverage / NaN-outside rule as the regional grid,
+    so the per-district series sum back to monthly.csv exactly.
+    """
+    per_sensor: dict[str, dict] = {}
+    for sensor in active:
+        clean = cleans[sensor]
+        keyed: dict = {}
+        if not clean.empty:
+            labelled = clean.copy()
+            labelled["district"] = assign_districts(labelled)
+            labelled = labelled[labelled["district"] != ""]
+            dates = pd.to_datetime(labelled["acq_date"], errors="coerce", utc=True).dt.tz_localize(None)
+            labelled = labelled[dates.notna()].copy()
+            labelled["period"] = dates[dates.notna()].dt.to_period("M")
+            for (district, period), n in labelled.groupby(["district", "period"]).size().items():
+                keyed[(district, period)] = int(n)
+            assigned = int(len(labelled))
+            if assigned != int(len(clean)):
+                raise SystemExit(
+                    f"[AGGREGATE] {sensor.upper()}: district assignment kept {assigned} of "
+                    f"{len(clean)} clean rows. Every clean row must fall inside exactly one "
+                    "district polygon; per-district series would not sum to the regional total."
+                )
+        per_sensor[sensor] = keyed
+
+    rows = []
+    for period in grid:
+        for district in REGION_DISTRICTS:
+            row = {"month": str(period), "district": district}
+            for sensor in active:
+                if (district, period) in per_sensor[sensor]:
+                    row[sensor] = per_sensor[sensor][(district, period)]
+                elif period in coverage[sensor]:
+                    row[sensor] = 0
+                else:
+                    row[sensor] = float("nan")
+            rows.append(row)
+    return pd.DataFrame(rows)
+
+
+def _gap_ranges(grid: pd.PeriodIndex, covered: set[pd.Period]) -> list[list[str]]:
+    """Contiguous uncovered month ranges inside the grid (a delivery gap, not a quiet month)."""
+    ranges: list[list[str]] = []
+    start = None
+    prev = None
+    for p in grid:
+        if p not in covered:
+            if start is None:
+                start = p
+            prev = p
+        elif start is not None:
+            ranges.append([str(start), str(prev)])
+            start = None
+            prev = None
+    if start is not None:
+        ranges.append([str(start), str(prev)])
+    return ranges
+
 
 def run_aggregate() -> pd.DataFrame:
     PROCESSED.mkdir(parents=True, exist_ok=True)
 
-    clean_paths = {s: PROCESSED / f"clean_{s}.csv" for s in SOURCES}
+    # Required sensors define the record. The NOAA-20 leg joins only when its
+    # cleaned series exists, so a not-yet-downloaded archive is reported as
+    # unavailable rather than failing the whole pipeline.
+    active = list(SOURCES)
     cleans = {}
-    for s, p in clean_paths.items():
+    for s in list(SOURCES) + list(EXTENDED_SOURCES):
+        p = PROCESSED / f"clean_{s}.csv"
         try:
-            cleans[s] = pd.read_csv(p) if p.exists() else pd.DataFrame()
+            frame = pd.read_csv(p) if p.exists() else pd.DataFrame()
         except pd.errors.EmptyDataError:
-            cleans[s] = pd.DataFrame()
-
+            frame = pd.DataFrame()
+        if s in EXTENDED_SOURCES and frame.empty:
+            continue
+        cleans[s] = frame
+    for s in EXTENDED_SOURCES:
+        if s in cleans:
+            active.append(s)
 
     if all(c.empty for c in cleans.values()):
         raw_present = any(
@@ -155,12 +265,15 @@ def run_aggregate() -> pd.DataFrame:
 
     coverage: dict[str, set[pd.Period]] = {}
     windows: dict[str, tuple[str, str]] = {}
-    for sensor in SOURCES:
+    for sensor in active:
         months = covered_months(sensor)
         if months is None:
-            months = default_months(DEFAULT_WINDOWS[sensor])
-            print(f"[AGGREGATE] {sensor}: no raw chunks — assuming default window "
-                  f"{DEFAULT_WINDOWS[sensor][0]} .. {DEFAULT_WINDOWS[sensor][1]}")
+            audited = _audit_window(sensor)
+            fallback = audited or DEFAULT_WINDOWS[sensor]
+            months = default_months(fallback)
+            note = "from clean_audit_baseline.json" if audited else "assumed default"
+            print(f"[AGGREGATE] {sensor}: no raw chunks — coverage {note} "
+                  f"{fallback[0]} .. {fallback[1]}")
         else:
             print(f"[AGGREGATE] {sensor}: {len(months)} months covered by raw chunks "
                   f"({min(months)} .. {max(months)})")
@@ -172,7 +285,7 @@ def run_aggregate() -> pd.DataFrame:
     # Defence-in-depth: clean.py clamps to the study window, but if a clean row
     # ever falls outside the monthly grid it would vanish silently here.
     # Fail loudly (or count loudly) instead of publishing a censored series.
-    for s in SOURCES:
+    for s in active:
         counts = _monthly_counts(cleans[s])
         outside = [str(p) for p in counts.index if p not in grid]
         if outside:
@@ -185,20 +298,39 @@ def run_aggregate() -> pd.DataFrame:
     out = pd.DataFrame({"month": grid.astype(str)})
     out["year"] = grid.year
     out["month_num"] = grid.month
-    out["modis"] = _sensor_column(_monthly_counts(cleans["modis"]), grid, coverage["modis"]).values
-    out["viirs"] = _sensor_column(_monthly_counts(cleans["viirs"]), grid, coverage["viirs"]).values
+    for sensor in list(SOURCES) + list(EXTENDED_SOURCES):
+        if sensor in active:
+            out[sensor] = _sensor_column(_monthly_counts(cleans[sensor]), grid, coverage[sensor]).values
+        else:
+            # Present but empty: the leg was not downloaded, not "zero fires".
+            out[sensor] = float("nan")
 
     out.to_csv(PROCESSED / "monthly.csv", index=False)
 
+    districts = _district_monthly(cleans, active, grid, coverage)
+    districts.to_csv(PROCESSED / "monthly_districts.csv", index=False)
+
+    gap_ranges = {s: _gap_ranges(grid, coverage[s]) for s in active}
+    source_labels = {
+        "modis": "MODIS_SP (Aqua reference)",
+        "viirs": "VIIRS_SNPP_SP (375 m)",
+        "viirs_noaa20": "VIIRS_NOAA20_SP (375 m forward leg)",
+    }
     prov = {
         "kind": "nasa_firms_api",
-        "sources": ["MODIS_SP (reference)", "VIIRS_SNPP_SP (375 m)"],
+        "sources": [source_labels[s] for s in active],
+        "active_sensors": active,
+        "absent_sensors": [s for s in EXTENDED_SOURCES if s not in active],
         "bbox": "91.9,21.4,92.9,23.8",
         "windows": {s: list(w) for s, w in windows.items()},
         "covered_months": {s: len(m) for s, m in coverage.items()},
         "gap_months": {
-            s: int(len([p for p in grid if p not in coverage[s]])) for s in SOURCES
+            s: int(len([p for p in grid if p not in coverage[s]])) for s in active
         },
+        "coverage_gaps": gap_ranges,
+        "districts": list(REGION_DISTRICTS),
+        "district_aggregation":
+            "per-district monthly detection counts (monthly_districts.csv); districts sum to the regional series",
         "clean_detections": {s: int(len(c)) for s, c in cleans.items()},
         "rows": int(len(out)),
         "zero_months_kept": True,

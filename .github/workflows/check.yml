@@ -36,5 +36,5 @@ jobs:
       - name: Shipped bootstrap interval is reproducible
         run: python tools/verify_bootstrap.py
 
-      - name: End-to-end frontend audit (35 consistency checks)
+      - name: End-to-end frontend audit (numbers, districts, custody, NOAA-20)
         run: python tools/e2e_audit.py

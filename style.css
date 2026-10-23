@@ -766,6 +766,68 @@ h3 { font-size: clamp(1.1rem, 2vw, 1.35rem); font-weight: 700; }
   background: rgba(56, 189, 248, 0.05);
 }
 
+/* District Spatial Validation Panel */
+.district-panel-wrapper {
+  margin-top: var(--sp-16);
+  background: var(--bg-card-solid);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-16);
+}
+
+.district-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.district-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: var(--sp-12);
+}
+
+.district-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: grid;
+  gap: 4px;
+  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.district-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--blue);
+}
+
+.district-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.district-stat {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 2px 0;
+}
+
+.district-sub {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.district-status {
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+
 /* ==========================================================================
    STEP 3 · GIS SATELLITE MAP & ANIMATED TIMELINE
    ========================================================================== */
@@ -966,6 +1028,111 @@ h3 { font-size: clamp(1.1rem, 2vw, 1.35rem); font-weight: 700; }
   color: var(--ink);
   background: var(--blue-soft);
 }
+
+/* Sensor Provenance Strip */
+.provenance-strip-wrapper {
+  margin-top: var(--sp-12);
+  display: grid;
+  gap: 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+}
+
+.provenance-strip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.provenance-strip {
+  display: flex;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--bg-deep);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.provenance-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  padding: 0 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  position: relative;
+  transition: all var(--dur) var(--ease);
+  opacity: 0.85;
+}
+
+.provenance-segment:hover {
+  opacity: 1;
+  filter: brightness(1.15);
+}
+
+.provenance-segment.active {
+  opacity: 1;
+  filter: brightness(1.25);
+  box-shadow: inset 0 0 12px rgba(255, 255, 255, 0.4);
+}
+
+.seg-modis {
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+  color: #ffffff;
+}
+
+.seg-viirs-train {
+  background: linear-gradient(90deg, #d97706, #f59e0b);
+  color: #ffffff;
+}
+
+.seg-viirs-test {
+  background: linear-gradient(90deg, #7c3aed, #a855f7);
+  color: #ffffff;
+}
+
+.seg-noaa20 {
+  background: linear-gradient(90deg, #059669, #10b981);
+  color: #ffffff;
+}
+
+.seg-gap {
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(148, 163, 184, 0.18) 0 8px,
+    rgba(148, 163, 184, 0.06) 8px 16px
+  );
+  color: var(--muted);
+  border-left: 1px dashed var(--line);
+  border-right: 1px dashed var(--line);
+}
+
+.provenance-strip-legend {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: var(--muted);
+  align-items: center;
+  padding-top: 4px;
+}
+.dot-viirs-train { background: var(--amber); box-shadow: 0 0 6px var(--amber); }
+.dot-viirs-test { background: var(--purple); box-shadow: 0 0 6px var(--purple); }
+.dot-noaa20 { background: var(--green); box-shadow: 0 0 6px var(--green); }
+.dot-gap { background: var(--line); box-shadow: none; }
+
 
 /* ==========================================================================
    STEP 4 · LIVE CALIBRATION SIMULATOR
@@ -1250,3 +1417,34 @@ h3 { font-size: clamp(1.1rem, 2vw, 1.35rem); font-weight: 700; }
   .topnav { order: 3; }
 }
 
+
+/* ---------------------------------------------------------------------------
+   OFFLINE BASEMAP FALLBACK
+   Applied by app.js when Esri tiles cannot be reached (venue network down).
+   The district polygons and detection cells are local, so the map stays
+   readable on a flat background instead of showing empty grey tiles.
+--------------------------------------------------------------------------- */
+.leaflet-container.map-offline {
+  background: #0b1220;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 48px 48px, 48px 48px;
+}
+
+.map-offline-note {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  z-index: 500;
+  padding: 8px 12px;
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  border-radius: 8px;
+  background: rgba(15, 23, 42, 0.88);
+  color: #fcd34d;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  pointer-events: none;
+}

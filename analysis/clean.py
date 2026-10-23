@@ -42,12 +42,15 @@ VIIRS_DROP_CONF = {"l"}
 # Study-period clamp (plan v3 §2 scope lock, matches download.py WINDOWS).
 # FIRMS can return a straggler day past the window edge (e.g. 2022-01-01 inside
 # a 2021-12-29_2021-12-31 chunk). Without this gate that row sits in clean_*.csv
-# while the monthly grid ends at 2021-12, so aggregate drops it SILENTLY and the
-# audit last_date disagrees with data_source.json windows. Clamp loudly instead.
-STUDY_WINDOWS = {
-    "modis": ("2002-07-01", "2021-12-31"),
-    "viirs": ("2012-01-01", "2021-12-31"),
-}
+# while the monthly grid ends at the window edge, so aggregate drops it SILENTLY
+# and the audit last_date disagrees with data_source.json windows. Clamp loudly.
+# The edge itself comes from analysis/window.py, shared with download.py.
+try:
+    from analysis.window import study_windows
+except ImportError:  # running as `python analysis/clean.py`
+    from window import study_windows
+
+STUDY_WINDOWS = study_windows()
 
 # True-study-area gate: the download bbox is a rectangle that also covers parts of
 # India (Mizoram) and Myanmar (Rakhine). We keep only detections inside the three
@@ -58,13 +61,19 @@ REGION_DISTRICTS = ("Bandarban", "Khagrachhari", "Rangamati")
 REGION_SOURCE = ("geoBoundaries BGD-ADM2 (BBS / OCHA ROAP), CC BY 3.0, "
                  "data/reference/geoBoundaries-BGD-ADM2_simplified.geojson")
 _region_cache: list | None = None
+_district_cache: dict | None = None
 
 
-def region_paths() -> list:
-    """Cached matplotlib Paths of the three CHT district outer rings."""
-    global _region_cache
-    if _region_cache is not None:
-        return _region_cache
+def district_paths() -> dict:
+    """Cached {district name: [matplotlib Path, ...]} for the three CHT districts.
+
+    The regional gate only needs the union of these paths, but the per-district
+    fits (F6) need to know which polygon kept each detection, so the mapping is
+    built once here and reused by both gates.
+    """
+    global _district_cache
+    if _district_cache is not None:
+        return _district_cache
     if not REGION_GEOJSON.exists():
         raise FileNotFoundError(
             f"Region boundary file missing: {REGION_GEOJSON} — the CHT district "
@@ -73,13 +82,11 @@ def region_paths() -> list:
     from matplotlib.path import Path as MplPath  # matplotlib already required for charts
 
     gj = json.loads(REGION_GEOJSON.read_text(encoding="utf-8"))
-    paths: list = []
-    found: set = set()
+    paths: dict = {}
     for feat in gj.get("features", []):
         name = feat.get("properties", {}).get("shapeName")
         if name not in REGION_DISTRICTS:
             continue
-        found.add(name)
         geom = feat.get("geometry") or {}
         gtype, coords = geom.get("type"), geom.get("coordinates")
         if gtype == "Polygon":
@@ -95,12 +102,12 @@ def region_paths() -> list:
                 # inside a hole as inside the district.
                 raise NotImplementedError(
                     f"{name}: polygon has {len(poly)} rings (holes unsupported) - "
-                    "update region_paths() before re-running."
+                    "update district_paths() before re-running."
                 )
-            paths.append(MplPath(np.asarray(poly[0], dtype=float)))
+            paths.setdefault(name, []).append(MplPath(np.asarray(poly[0], dtype=float)))
     if not paths:
         raise RuntimeError(f"No CHT district polygons found in {REGION_GEOJSON.name}")
-    missing = set(REGION_DISTRICTS) - found
+    missing = set(REGION_DISTRICTS) - set(paths)
     if missing:
         # A renamed/renamed-away district would otherwise silently drop its
         # detections as "outside region" forever.
@@ -108,8 +115,42 @@ def region_paths() -> list:
             f"District(s) {sorted(missing)} not found in {REGION_GEOJSON.name} - "
             "refusing to treat their detections as outside the study area."
         )
-    _region_cache = paths
-    return paths
+    # Ordered by REGION_DISTRICTS so output files and fits are deterministic.
+    _district_cache = {name: paths[name] for name in REGION_DISTRICTS}
+    return _district_cache
+
+
+def region_paths() -> list:
+    """Cached matplotlib Paths of the three CHT district outer rings (union gate)."""
+    global _region_cache
+    if _region_cache is None:
+        _region_cache = [p for paths in district_paths().values() for p in paths]
+    return _region_cache
+
+
+def assign_districts(df: pd.DataFrame) -> pd.Series:
+    """Label every detection with the CHT district that contains it ("" if none).
+
+    A point on a shared border can fall inside two simplified rings; first match
+    wins, so the labels always sum to the regional count instead of double
+    counting a boundary detection.
+    """
+    labels = np.full(len(df), "", dtype=object)
+    if df.empty or not {"latitude", "longitude"}.issubset(df.columns):
+        return pd.Series(labels, index=df.index, dtype=object)
+    pts = np.column_stack([
+        pd.to_numeric(df["longitude"], errors="coerce").to_numpy(dtype=float),
+        pd.to_numeric(df["latitude"], errors="coerce").to_numpy(dtype=float),
+    ])
+    taken = np.zeros(len(df), dtype=bool)
+    for name, paths in district_paths().items():
+        hit = np.zeros(len(df), dtype=bool)
+        for p in paths:
+            hit |= p.contains_points(pts)
+        hit &= ~taken
+        labels[hit] = name
+        taken |= hit
+    return pd.Series(labels, index=df.index, dtype=object)
 
 
 def _drop_outside_region(df: pd.DataFrame, audit: dict) -> pd.DataFrame:
@@ -269,14 +310,24 @@ def clean_modis(df: pd.DataFrame, keep_low_conf: bool = False) -> tuple[pd.DataF
 
 
 
-def clean_viirs(df: pd.DataFrame, keep_low_conf: bool = False) -> tuple[pd.DataFrame, dict]:
-    audit: dict = {"sensor": "viirs", "raw_rows": int(len(df)), "aqua_filter_applied": False}
+def clean_viirs(
+    df: pd.DataFrame,
+    keep_low_conf: bool = False,
+    sensor_key: str = "viirs",
+    window_key: str = "viirs",
+) -> tuple[pd.DataFrame, dict]:
+    """VIIRS cleaner, reused for both the S-NPP and the NOAA-20 source.
+
+    NOAA-20 shares the 375 m I-band product and confidence coding, so it needs
+    the same gate. Only the audit label and the study window key differ.
+    """
+    audit: dict = {"sensor": sensor_key, "raw_rows": int(len(df)), "aqua_filter_applied": False}
     if df.empty:
         audit["error"] = "empty raw frame"
         return df, audit
 
     df = df.copy()
-    # Source is VIIRS_SNPP_SP; FIRMS codes Suomi-NPP as "N" and NOAA-20 as "N20".
+    # S-NPP FIRMS codes the platform as "N"; NOAA-20 ships "N20".
     if "satellite" in df.columns:
         audit["satellites"] = {str(k): int(v) for k, v in df["satellite"].value_counts().items()}
 
@@ -334,7 +385,7 @@ def clean_viirs(df: pd.DataFrame, keep_low_conf: bool = False) -> tuple[pd.DataF
     df = df[df["acq_date"].notna()]
     audit["dropped_bad_dates"] = before - int(len(df))
 
-    df = _clamp_study_window(df, audit, "viirs")
+    df = _clamp_study_window(df, audit, window_key)
 
     audit["clean_rows"] = int(len(df))
     return df.reset_index(drop=True), audit
@@ -344,22 +395,31 @@ def run_clean(keep_low_conf: bool = False) -> dict:
     PROCESSED.mkdir(parents=True, exist_ok=True)
     audits = {}
 
-    for sensor, cleaner in (("modis", clean_modis), ("viirs", clean_viirs)):
+    # (sensor key, cleaner, kwargs). The NOAA-20 leg is optional: with no raw
+    # chunks it is skipped and its stale clean file removed, so downstream
+    # reports "not downloaded" instead of reusing an old series.
+    cleaners = (
+        ("modis", clean_modis, {}),
+        ("viirs", clean_viirs, {}),
+        ("viirs_noaa20", clean_viirs, {"sensor_key": "viirs_noaa20", "window_key": "viirs_noaa20"}),
+    )
+
+    for sensor, cleaner, extra in cleaners:
         raw = load_raw(sensor)
         if raw.empty:
             audits[sensor] = {"sensor": sensor, "raw_rows": 0, "error": "no raw chunks in data/raw/"}
             # A stale clean file from an earlier run must not be re-aggregated
             # as if it were fresh - delete it so downstream sees "no data".
-            stale = [PROCESSED / "clean_modis.csv", PROCESSED / "clean_viirs.csv",
-                     PROCESSED / "clean_modis_lowconf.csv", PROCESSED / "clean_viirs_lowconf.csv"]
-            removed = [p.name for p in stale if p.name.startswith(f"clean_{sensor}") and p.exists()]
-            for name in removed:
-                (PROCESSED / name).unlink()
+            stale = [PROCESSED / f"clean_{sensor}.csv", PROCESSED / f"clean_{sensor}_lowconf.csv"]
+            removed = [p.name for p in stale if p.exists()]
+            for p in stale:
+                if p.exists():
+                    p.unlink()
             if removed:
                 print(f"[CLEAN] {sensor}: removed stale {', '.join(removed)} (raw input is gone)")
             print(f"[CLEAN] {sensor}: no raw data (run analysis/download.py first)")
             continue
-        clean, audit = cleaner(raw, keep_low_conf=keep_low_conf)
+        clean, audit = cleaner(raw, keep_low_conf=keep_low_conf, **extra)
         if audit["clean_rows"]:
             audit["first_date"] = str(clean["acq_date"].min().date())
             audit["last_date"] = str(clean["acq_date"].max().date())

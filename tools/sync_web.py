@@ -7,6 +7,9 @@ Regenerate the browser dashboard's numbers from the pipeline outputs.
   * app.js      -> CHT_BOUNDARY block from data/reference/ geoBoundaries ADM2
   * index.html  -> held-out validation section from data/processed/metrics.json
   * index.html  -> naive-spike callout from the measured sensor-shift ratio
+  * index.html  -> per-district cards from metrics.per_district
+  * index.html  -> sensor custody strip from metrics.sensor_custody
+  * index.html  -> NOAA-20 status panel from metrics.noaa20_model
 
 Same idea as tools/sync_readme.py: the HTML/JS never carries a metric that was
 typed by hand, so the UI cannot drift from metrics.json (enforced by --check in CI).
@@ -43,6 +46,7 @@ CLEAN_VIIRS = ROOT / "data" / "processed" / "clean_viirs.csv"
 
 sys.path.insert(0, str(ROOT))
 from analysis.clean import REGION_DISTRICTS, REGION_GEOJSON  # noqa: E402
+from analysis.window import study_years  # noqa: E402
 
 
 def _round_nested(node, nd: int = 4):
@@ -89,7 +93,10 @@ def build_map_cells() -> str:
             continue
         d = pd.read_csv(path, usecols=["latitude", "longitude", "acq_date"])
         d["year"] = d["acq_date"].astype(str).str.slice(0, 4).astype(int)
-        d = d[(d["year"] >= 2002) & (d["year"] <= 2021)]   # study window; drop download-boundary rows
+        # Study window from analysis/window.py; drops download-boundary rows
+        # without freezing the map at a hardcoded final year.
+        year_lo, year_hi = study_years()
+        d = d[(d["year"] >= year_lo) & (d["year"] <= year_hi)]
         d["clat"] = (d["latitude"] / CELL_DEG).round() * CELL_DEG
         d["clon"] = (d["longitude"] / CELL_DEG).round() * CELL_DEG
         g = d.groupby(["year", "clat", "clon"]).size().reset_index(name="n")
@@ -111,6 +118,238 @@ def build_map_cells() -> str:
         lines.append("  ],")
     lines.append("};")
     return "\n".join(line for line in lines if line != "")
+
+
+def _fmt_int(v) -> str:
+    try:
+        return f"{int(v):,}"
+    except (TypeError, ValueError):
+        return "n/a"
+
+
+def build_district_panel(m: dict) -> str:
+    """Per-district fits (F6/P4) generated from metrics.json.
+
+    Each card repeats the identical split and carries its own scalar-ratio
+    baseline, because simple scaling beats the fitted line in some districts and
+    hiding that would repeat the original headline mistake one level down.
+    """
+    block = m.get("per_district") or {}
+    districts = block.get("districts") or {}
+    regional_slope = _finite((m.get("fitted_linear_model") or {}).get("slope"))
+    if not districts:
+        return '<p class="muted">Per-district fits unavailable for this run.</p>'
+
+    cards = []
+    for name in REGION_DISTRICTS:
+        e = districts.get(name) or {}
+        status = e.get("status", "unavailable")
+        det = e.get("clean_detections") or {}
+        det_total = (det.get("modis") or 0) + (det.get("viirs") or 0)
+        if status != "fitted":
+            cards.append(f"""          <div class="district-card">
+            <div class="district-card-header">
+              <strong>{name}</strong>
+              <span class="font-mono text-amber small">Not fitted</span>
+            </div>
+            <p class="district-stat font-mono">Indicative only</p>
+            <p class="district-sub">Detections: {_fmt_int(det_total)}</p>
+            <p class="district-status text-amber small">{e.get("reason", e.get("note", "insufficient overlap"))}</p>
+          </div>""")
+            continue
+
+        slope = e.get("slope")
+        r2 = e.get("held_out_r2")
+        rmse = e.get("held_out_rmse")
+        bias = e.get("held_out_bias")
+        rho = e.get("held_out_spearman")
+        scalar_rmse = e.get("held_out_scalar_rmse")
+        ci = e.get("bootstrap_slope_95_ci") or []
+        ci_s = f"[{ci[0]}, {ci[1]}]" if len(ci) == 2 else "n/a"
+        consistent = (
+            regional_slope is not None and slope is not None
+            and abs(slope - regional_slope) <= 0.15 * abs(regional_slope)
+        )
+        beat_scalar = (
+            rmse is not None and scalar_rmse is not None and rmse < scalar_rmse
+        )
+        if beat_scalar:
+            scalar_line = (
+                f'<p class="district-sub text-green">Fit beats simple scaling: {rmse:.2f} vs {scalar_rmse:.2f}</p>'
+            )
+        else:
+            delta = None if (rmse is None or scalar_rmse is None) else abs(scalar_rmse - rmse)
+            scalar_line = (
+                f'<p class="district-sub text-amber">Simple scaling is as good or better: '
+                f'{scalar_rmse:.2f} vs {rmse:.2f}' + (f" ({delta:.2f} lower RMSE)" if delta is not None else "") + '</p>'
+            )
+        cards.append(f"""          <div class="district-card">
+            <div class="district-card-header">
+              <strong>{name}</strong>
+              <span class="font-mono text-blue small">Slope: {slope:.4f}</span>
+            </div>
+            <p class="district-stat font-mono">Held-out R²: {r2:.4f}</p>
+            <p class="district-sub">RMSE: {rmse:.2f} · Bias: {bias:+.2f} · Detections: {_fmt_int(det_total)}</p>
+            <p class="district-sub">Slope 95% CI: {ci_s}</p>
+            {scalar_line}
+            <p class="district-status text-green small">✓ Spearman {rho:.4f} · {'consistent' if consistent else 'distinct'} vs regional slope {regional_slope:.4f}</p>
+          </div>""")
+
+    note = ('Each district repeats the identical 2012–2018 train / 2019–2021 held-out test split and '
+            'carries its own scalar-ratio baseline. Where simple scaling matches or beats the fitted '
+            'line, the card says so rather than implying a uniform win.')
+    return f"""      <div class="district-panel-wrapper">
+        <div class="district-panel-header">
+          <span class="chart-title">Spatial Validation · Per-District Calibration Fits</span>
+          <span class="chart-badge good">3-DISTRICT INDEPENDENT FIT</span>
+        </div>
+        <p class="small muted" style="margin-bottom: 12px;">
+          To verify that the regional calibration is not driven by an outlier district, each
+          administrative district is fitted and tested independently on the same split.
+        </p>
+        <div class="district-grid">
+{chr(10).join(cards)}
+        </div>
+        <p class="small muted" style="margin-top: 12px;">{note}</p>
+      </div>"""
+
+
+def _month_index(month: str) -> int:
+    year, mon = (int(p) for p in month.split("-")[:2])
+    return year * 12 + mon
+
+
+def _attr(value) -> str:
+    return str(value).replace("&", "&amp;").replace('"', "&quot;")
+
+
+def build_custody_strip(m: dict) -> str:
+    """The sensor-provenance strip, generated from metrics.sensor_custody.
+
+    Every record month must belong to exactly one leg. The undownloaded archive
+    after the record edge is shown as a gap, never as NOAA-20 observations.
+    """
+    custody = m.get("sensor_custody") or {}
+    legs = custody.get("legs") or []
+    if not legs:
+        return '<p class="muted">Sensor custody unavailable for this run.</p>'
+
+    active_key = None
+    for leg in legs:
+        if leg.get("start", "") <= "2014-07" and (leg.get("end") or "9999-12") >= "2014-07":
+            active_key = leg.get("key")
+            break
+
+    segments = []
+    for leg in legs:
+        start = leg.get("start", "")
+        end = leg.get("end") or "2030-12"
+        months = max(1, _month_index(end) - _month_index(start) + 1)
+        flex = months if leg.get("end") else 60
+        label = leg.get("label") or leg.get("sensor", "")
+        title = (f"{start}–{leg.get('end') or 'present'}: {leg.get('sensor')} "
+                 f"({leg.get('resolution')}) · {leg.get('role')}")
+        active = " active" if leg.get("key") == active_key else ""
+        sensor_label = f"{leg.get('sensor')} ({leg.get('resolution')}) · {leg.get('role')}"
+        segments.append(
+            f'              <div class="provenance-segment {leg.get("css", "")}{active}" '
+            f'data-start="{start}" data-end="{leg.get("end") or "2099-12"}" '
+            f'data-label="{_attr(sensor_label)}" style="flex: {flex};" title="{_attr(title)}">\n'
+            f'                <span class="seg-label">{label}</span>\n'
+            f'              </div>'
+        )
+    return "\n".join(segments)
+
+
+def build_custody_legend(m: dict) -> str:
+    """Legend for the custody strip, with the NOAA leg's real status."""
+    legs = (m.get("sensor_custody") or {}).get("legs") or []
+    if not legs:
+        return ""
+    seen = set()
+    legend = []
+    short = {
+        "modis": "Aqua MODIS (1 km)",
+        "snpp_train": "S-NPP VIIRS Train",
+        "snpp_test": "S-NPP VIIRS Test",
+        "gap": "No archive downloaded",
+        "noaa20": "NOAA-20 / 21 (next leg)",
+    }
+    for leg in legs:
+        key = leg.get("key")
+        if key in seen:
+            continue
+        seen.add(key)
+        name = short.get(key, f'{leg.get("sensor")} ({leg.get("resolution")})')
+        if key == "noaa20" and (m.get("noaa20_model") or {}).get("status") != "fitted":
+            name += " — not fitted"
+        legend.append(f'              <span><i class="dot {leg.get("dot", "")}"></i> {name}</span>')
+    legend.append('              <span class="small text-amber" style="margin-left: auto;">'
+                  '⚡ S-NPP Science Sunset: 1 Nov 2026</span>')
+    return "\n".join(legend)
+
+
+def build_noaa20_panel(m: dict) -> str:
+    """The NOAA-20 continuity leg (F2/P2): fitted numbers or an honest refusal."""
+    n = m.get("noaa20_model") or {}
+    status = n.get("status", "not_available")
+    months = n.get("overlap_months", 0)
+    need = n.get("min_overlap_months", 24)
+
+    if status == "fitted":
+        ho = n.get("held_out") or {}
+        scalar = n.get("held_out_scalar") or {}
+        ci = n.get("bootstrap_slope_95_ci") or []
+        ci_s = f"[{ci[0]}, {ci[1]}]" if len(ci) == 2 else "n/a"
+        scalar_note = ""
+        if scalar.get("rmse") is not None and ho.get("rmse") is not None:
+            if ho["rmse"] < scalar["rmse"]:
+                scalar_note = f"Fit beats simple scaling ({ho['rmse']} vs {scalar['rmse']})."
+            else:
+                scalar_note = (f"Simple scaling is as good or better "
+                               f"({scalar['rmse']} vs {ho['rmse']}).")
+        return f"""      <div class="proof-grid">
+        <div class="proof-card">
+          <p class="proof-num font-mono">{n.get("equation")}</p>
+          <p class="proof-label">NOAA-20 → S-NPP-equivalent (fitted on the overlap)</p>
+          <p class="proof-hint">Slope 95% CI: {ci_s} · {months} overlap months</p>
+        </div>
+        <div class="proof-card">
+          <p class="proof-num">{ho.get("rmse")}</p>
+          <p class="proof-label">Held-out monthly error (NOAA-20 → S-NPP)</p>
+          <p class="proof-hint">Spearman {ho.get("spearman_corr")}</p>
+        </div>
+        <div class="proof-card">
+          <p class="proof-num">{scalar.get("rmse")}</p>
+          <p class="proof-label">Scalar-ratio baseline</p>
+          <p class="proof-hint">{scalar_note}</p>
+        </div>
+      </div>
+      <p class="proof-note">Learned on {n.get("train_period", "n/a")}, tested on {n.get("test_period", "n/a")}.
+      The leg converts NOAA-20 counts into S-NPP-equivalent counts; the published
+      S-NPP → MODIS line then carries them into the record's units. {n.get("caveat", "")}</p>"""
+
+    return f"""      <div class="proof-grid">
+        <div class="proof-card">
+          <p class="proof-num text-amber" style="font-size: 1.35rem;">Not fitted</p>
+          <p class="proof-label">NOAA-20 calibration leg</p>
+          <p class="proof-hint">Status: {status}</p>
+        </div>
+        <div class="proof-card">
+          <p class="proof-num">{months} / {need}</p>
+          <p class="proof-label">S-NPP / NOAA-20 overlap months downloaded</p>
+          <p class="proof-hint">The code refuses to publish a slope below {need}.</p>
+        </div>
+        <div class="proof-card">
+          <p class="proof-num">0</p>
+          <p class="proof-label">Months of record extended past the archive</p>
+          <p class="proof-hint">No NOAA-20 fit is claimed on the page.</p>
+        </div>
+      </div>
+      <p class="proof-note"><strong>Honest status:</strong> the NOAA-20 leg is not fitted — {n.get("reason", "NOAA-20 archive not downloaded")}.
+      The forward mapping above is still an algebraic inversion, not a validated NOAA-20 model.
+      Fetch the archive (<code>VIIRS_NOAA20_SP</code>) and re-run the pipeline;
+      the leg fits automatically once at least {need} overlap months exist.</p>"""
 
 
 def build_series() -> str:
@@ -263,25 +502,139 @@ def build_validation(m: dict) -> str:
 
 
 
+    # The scalar-ratio baseline is shown beside the raw splice on purpose: the
+    # raw splice alone would flatter the fitted model (see metrics.json
+    # performance_improvement.honest_reading).
+    scalar = (m["held_out_test_comparison"].get("scalar_ratio_baseline_vs_modis") or {})
+    scalar_gain = imp.get("rmse_reduction_percent_vs_scalar_baseline")
+    scalar_defs = (m.get("baseline_definitions") or {}).get("scalar_ratio_baseline_vs_modis", "")
+    scalar_factor = re.search(r"=\s*([0-9.]+)", scalar_defs)
+    scalar_factor = scalar_factor.group(1) if scalar_factor else "n/a"
+    train_period = m.get("training_period", "")
+    test_period = m.get("held_out_test_period", "")
+    rho_s = "n/a" if rho is None else str(rho)
+
     return f"""      <div id="proof-cards" class="proof-grid" aria-live="polite">
         <div class="proof-card">
           <p class="proof-num">{lin.get("rmse", "n/a")}</p>
-          <p class="proof-label">Wrong guesses per month (lower is better)</p>
-          <p class="proof-hint">Wrong join was {naive.get("rmse", "n/a")} → we cut it by {imp.get("rmse_reduction_percent", "n/a")}%.</p>
+          <p class="proof-label">Typical monthly error, fitted model (lower is better)</p>
+          <p class="proof-hint">Simple scaling (×{scalar_factor}) already gets {scalar.get("rmse", "n/a")}. Our fit improves on that by {scalar_gain if scalar_gain is not None else "n/a"}%.</p>
         </div>
         <div class="proof-card">
           <p class="proof-num">{signed(lin.get("bias"))}</p>
-          <p class="proof-label">Always-too-high problem (0 is fair)</p>
-          <p class="proof-hint">Wrong join was {signed(naive.get("bias"))} → cut by {imp.get("bias_reduction_percent", "n/a")}%.</p>
+          <p class="proof-label">Running too high or too low (0 is fair)</p>
+          <p class="proof-hint">Scaling baseline: {signed(scalar.get("bias"))}. Unscaled splice: {signed(naive.get("bias"))}.</p>
         </div>
         <div class="proof-card">
-          <p class="proof-num">{r2 if r2 is not None else "n/a"}</p>
-          <p class="proof-label">How well it follows real ups and downs (1.0 = perfect)</p>
-          <p class="proof-hint">{("Scored " + str(r2_pct) + " out of 100 against the real record." if r2_pct is not None else "")} Wrong join: {naive_r2}.</p>
+          <p class="proof-num">{rho_s}</p>
+          <p class="proof-label">Rank agreement with the real record (Spearman, 1.0 = perfect)</p>
+          <p class="proof-hint">R² is {r2 if r2 is not None else "n/a"}, but it is set mostly by the burning peak, so rank agreement is the fairer single number.</p>
         </div>
       </div>
+      <p class="proof-note"><strong>Read this honestly:</strong> most of the correction comes from simple scaling, not from our equation.
+      An unscaled splice scores RMSE {naive.get("rmse", "n/a")}, bias {signed(naive.get("bias"))} and R² {naive_r2}, so measured against it the error falls {imp.get("rmse_reduction_percent", "n/a")}% and the bias falls {imp.get("bias_reduction_percent", "n/a")}%.
+      That is the wrong yardstick. Measured against a one-number scaling baseline, the error falls only {scalar_gain if scalar_gain is not None else "n/a"}%.
+      What this project adds is the regional calibration for the CHT, the bootstrap confidence range, the confidence-threshold and day-only sensitivity runs, and a genuine held-out test.</p>
       <p class="proof-note">{prov}
-      Learned on 2012–2018, tested on 2019–2021. Full formula &amp; confidence intervals: see the “Wrong Join” section above.</p>"""
+      Learned on {train_period}, tested on {test_period}. Full formula &amp; confidence intervals: see the “Wrong Join” section above.{sens_line}</p>"""
+
+
+def build_continuity_panel(m: dict) -> str:
+    """The MODIS-only control: the unchanged sensor does not show the step.
+
+    This is the strongest single piece of evidence that the apparent rise is an
+    instrument artefact, so it belongs on the page rather than only in
+    metrics.json.
+    """
+    c = m.get("modis_only_continuity") or {}
+    pre = c.get("pre_2012_modis_mean_per_month")
+    post = c.get("post_2012_modis_mean_per_month")
+    change = c.get("modis_only_change_percent")
+    apparent = c.get("spliced_apparent_change_percent")
+    if pre is None or post is None:
+        return '<p class="muted">MODIS-only continuity check unavailable for this run.</p>'
+
+    def signed_pct(v):
+        return "n/a" if v is None else f"{'+' if v >= 0 else ''}{v}%"
+
+    return f"""      <div class="proof-grid">
+        <div class="proof-card">
+          <p class="proof-num">{pre}</p>
+          <p class="proof-label">MODIS fires per month before 2012</p>
+          <p class="proof-hint">Same camera, same three districts.</p>
+        </div>
+        <div class="proof-card">
+          <p class="proof-num">{post}</p>
+          <p class="proof-label">MODIS fires per month from 2012</p>
+          <p class="proof-hint">The one camera that never changed reads {signed_pct(change)}.</p>
+        </div>
+        <div class="proof-card">
+          <p class="proof-num text-amber">{signed_pct(apparent)}</p>
+          <p class="proof-label">What the wrong join claims instead</p>
+          <p class="proof-hint">Two cameras joined raw. Nothing in the forest changed this much.</p>
+        </div>
+      </div>
+      <p class="proof-note"><strong>This is the control test.</strong> Aqua MODIS flew across the whole period without changing.
+      If burning had really tripled in 2012, MODIS would have seen it rise too. MODIS reads {signed_pct(change)} instead, so the step belongs to the sensor, not to the fires.</p>"""
+
+
+def build_seasonal_breakdown(m: dict) -> str:
+    """Peak-season vs quiet-season error, so one RMSE cannot carry the claim."""
+    s = m.get("held_out_seasonal_breakdown") or {}
+    peak = s.get("fire_season_mar_apr") or {}
+    quiet = s.get("quiet_season_other_months") or {}
+    med = m.get("held_out_median_absolute_error")
+    if not peak or not quiet:
+        return '<p class="muted">Seasonal breakdown unavailable for this run.</p>'
+    return f"""      <table class="heldout-table" aria-label="Held-out error by season">
+        <thead>
+          <tr><th>Season</th><th>Months tested</th><th>Average real fires / month</th><th>Typical error (RMSE)</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>March–April burning peak</td><td>{peak.get("months")}</td><td>{peak.get("mean_observed_modis")}</td><td>{peak.get("rmse")}</td></tr>
+          <tr><td>All other months</td><td>{quiet.get("months")}</td><td>{quiet.get("mean_observed_modis")}</td><td>{quiet.get("rmse")}</td></tr>
+        </tbody>
+      </table>
+      <p class="proof-note">The burning peak carries nearly all of the error and nearly all of the R². Across the whole held-out set the median monthly error is {med if med is not None else "n/a"} detections, because most months are almost fire-free. Both regimes are published so the fit is not judged on six months of the year.</p>"""
+
+
+def build_hero_kpi(m: dict) -> str:
+    """Hero tiles, generated so they cannot drift from metrics.json."""
+    lin = m["held_out_test_comparison"]["harmonized_linear_vs_modis"]
+    scalar = m["held_out_test_comparison"].get("scalar_ratio_baseline_vs_modis") or {}
+    imp = m.get("performance_improvement", {})
+    c = m.get("modis_only_continuity") or {}
+    record = m.get("record_period", "")
+    months = re.search(r"\((\d+) months\)", record)
+    months = months.group(1) if months else "n/a"
+    span = record.split(" (")[0] if record else "n/a"
+    years = "n/a"
+    if span and "to" in span:
+        a, b = [p.strip()[:4] for p in span.split("to")]
+        years = f"{int(b) - int(a) + 1} Yrs"
+    change = c.get("modis_only_change_percent")
+    gain = imp.get("rmse_reduction_percent_vs_scalar_baseline")
+    rho = lin.get("spearman_corr")
+    return f"""          <div class="kpi-tile">
+            <span class="kpi-val blue">{years}</span>
+            <span class="kpi-label">Continuous Coverage</span>
+            <span class="kpi-sub">{span.replace("to", "–")} · {months} monthly records</span>
+          </div>
+          <div class="kpi-tile">
+            <span class="kpi-val green">{lin.get("rmse")}</span>
+            <span class="kpi-label">Monthly Error, Held-Out Test</span>
+            <span class="kpi-sub">Scaling baseline {scalar.get("rmse")} · we gain {gain if gain is not None else "n/a"}%</span>
+          </div>
+          <div class="kpi-tile">
+            <span class="kpi-val amber">{"n/a" if change is None else f"{'+' if change >= 0 else ''}{change}%"}</span>
+            <span class="kpi-label">MODIS-Only Change Across 2012</span>
+            <span class="kpi-sub">The unchanged camera sees no rise</span>
+          </div>
+          <div class="kpi-tile">
+            <span class="kpi-val green">{rho if rho is not None else "n/a"}</span>
+            <span class="kpi-label">Rank Agreement (Spearman)</span>
+            <span class="kpi-sub">Tracks real ups &amp; downs</span>
+          </div>"""
 
 
 def build_naive_callout(m: dict) -> str:
@@ -374,6 +727,20 @@ def main(argv: list[str] | None = None) -> int:
                              build_naive_callout(metrics))
     new_html = replace_block(new_html, "<!-- BEGIN:NAIVE_COPY -->", "<!-- END:NAIVE_COPY -->",
                              build_naive_copy(metrics))
+    new_html = replace_block(new_html, "<!-- BEGIN:CONTINUITY_PANEL -->", "<!-- END:CONTINUITY_PANEL -->",
+                             build_continuity_panel(metrics))
+    new_html = replace_block(new_html, "<!-- BEGIN:SEASONAL_BREAKDOWN -->", "<!-- END:SEASONAL_BREAKDOWN -->",
+                             build_seasonal_breakdown(metrics))
+    new_html = replace_block(new_html, "<!-- BEGIN:HERO_KPI -->", "<!-- END:HERO_KPI -->",
+                             build_hero_kpi(metrics))
+    new_html = replace_block(new_html, "<!-- BEGIN:DISTRICT_PANEL -->", "<!-- END:DISTRICT_PANEL -->",
+                             build_district_panel(metrics))
+    new_html = replace_block(new_html, "<!-- BEGIN:SENSOR_CUSTODY -->", "<!-- END:SENSOR_CUSTODY -->",
+                             build_custody_strip(metrics))
+    new_html = replace_block(new_html, "<!-- BEGIN:SENSOR_CUSTODY_LEGEND -->", "<!-- END:SENSOR_CUSTODY_LEGEND -->",
+                             build_custody_legend(metrics))
+    new_html = replace_block(new_html, "<!-- BEGIN:NOAA20_PANEL -->", "<!-- END:NOAA20_PANEL -->",
+                             build_noaa20_panel(metrics))
     for key, body in build_sim_defaults(metrics).items():
         new_html = replace_block(new_html, f"<!-- BEGIN:{key} -->", f"<!-- END:{key} -->", body)
 
@@ -393,7 +760,7 @@ def main(argv: list[str] | None = None) -> int:
     APPJS.write_text(new_js, encoding="utf-8")
     INDEX.write_text(new_html, encoding="utf-8")
     print("[SYNC-WEB] app.js CHT_SERIES + MODEL_PARAMS + MAP_CELLS + CHT_BOUNDARY regenerated from pipeline outputs")
-    print("[SYNC-WEB] index.html validation section + spike callout regenerated from metrics.json")
+    print("[SYNC-WEB] index.html validation + districts + custody + NOAA-20 panels regenerated from metrics.json")
     return 0
 
 

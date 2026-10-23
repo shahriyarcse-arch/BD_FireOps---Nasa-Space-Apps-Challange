@@ -1,4 +1,4 @@
-"""E2E audit: frontend numbers vs pipeline outputs (35 checks).
+"""E2E audit: frontend numbers vs pipeline outputs (see TOTAL at the end).
 
 Runs in CI via .github/workflows/check.yml; run locally with:
     python tools/e2e_audit.py
@@ -43,10 +43,34 @@ chk("metrics data_source.is_nasa_firms is True", ds.get("is_nasa_firms") is True
 # --- numbers displayed on the frontend must equal metrics.json ---
 lin = m["held_out_test_comparison"]["harmonized_linear_vs_modis"]
 naive = m["held_out_test_comparison"]["naive_raw_viirs_vs_modis"]
+scalar = m["held_out_test_comparison"]["scalar_ratio_baseline_vs_modis"]
 imp = m["performance_improvement"]
 flm = m["fitted_linear_model"]
+cont = m["modis_only_continuity"]
+seas = m["held_out_seasonal_breakdown"]
+fwd = m["forward_mapping_modis_to_viirs"]
 
 checks = [
+    # --- honest-baseline reporting (reviewer fixes 2, 3, 4, 6) ---
+    ("scalar baseline RMSE on the page", str(scalar["rmse"]) in html),
+    ("scalar baseline bias on the page", ("+" + str(scalar["bias"])) in html or str(scalar["bias"]) in html),
+    ("gain over scalar baseline on the page",
+     str(imp["rmse_reduction_percent_vs_scalar_baseline"]) in html),
+    ("gain over scalar baseline is modest (<25%), so the claim stays honest",
+     imp["rmse_reduction_percent_vs_scalar_baseline"] < 25),
+    ("spearman shown beside R2", str(lin["spearman_corr"]) in html),
+    ("MODIS-only change on the page", str(cont["modis_only_change_percent"]) in html),
+    ("MODIS-only pre/post means on the page",
+     str(cont["pre_2012_modis_mean_per_month"]) in html
+     and str(cont["post_2012_modis_mean_per_month"]) in html),
+    ("MODIS-only control does not show the spliced step",
+     cont["modis_only_change_percent"] < 50),
+    ("fire-season RMSE on the page", str(seas["fire_season_mar_apr"]["rmse"]) in html),
+    ("quiet-season RMSE on the page", str(seas["quiet_season_other_months"]["rmse"]) in html),
+    ("median absolute error on the page", str(m["held_out_median_absolute_error"]) in html),
+    ("forward mapping slope on the page", str(fwd["slope"]) in html),
+    ("forward mapping caveat present", "NOAA-20" in html),
+    ("honest_reading recorded in metrics", bool(imp.get("honest_reading"))),
     ("frontend RMSE 55.67", str(lin["rmse"]) in html and lin["rmse"] == 55.67),
     ("frontend bias -4.09", str(lin["bias"]) in html and lin["bias"] == -4.09),
     ("frontend naive RMSE 1130.64", str(naive["rmse"]) in html and naive["rmse"] == 1130.64),
@@ -88,6 +112,80 @@ chk("region_filter.name present (for provenance)", bool(rf.get("name")), str(rf.
 dr = rf.get("dropped_outside_region") or {}
 chk("dropped_outside_region counts present", "modis" in dr and "viirs" in dr,
     f"MODIS={dr.get('modis')} VIIRS={dr.get('viirs')}")
+
+# --- per-district fits: every number on the page comes from district_metrics.json ---
+import csv
+
+dm_path = ROOT / "data" / "processed" / "district_metrics.json"
+dm = json.load(open(dm_path, encoding="utf-8"))
+per = m.get("per_district") or {}
+pd_block = per.get("districts") or {}
+chk("district_metrics.json matches metrics.per_district", dm == pd_block)
+chk("three districts fitted", len(dm) == 3 and all(v.get("status") == "fitted" for v in dm.values()))
+
+for name, e in dm.items():
+    chk(f"district {name} slope on page", f"Slope: {e['slope']:.4f}" in html)
+    chk(f"district {name} held-out R2 on page", f"Held-out R²: {e['held_out_r2']:.4f}" in html)
+    det_total = int((e.get("clean_detections") or {}).get("modis", 0)) + int((e.get("clean_detections") or {}).get("viirs", 0))
+    chk(f"district {name} detections total on page", f"{det_total:,}" in html)
+    fit_better = e["held_out_rmse"] < e["held_out_scalar_rmse"]
+    claim = "Fit beats simple scaling" if fit_better else "Simple scaling is as good or better"
+    chk(f"district {name} scalar comparison is honest", claim in html,
+        f"fit={e['held_out_rmse']} scalar={e['held_out_scalar_rmse']}")
+
+# --- sensor custody: every record month gets exactly one label ---
+legs = (m.get("sensor_custody") or {}).get("legs") or []
+chk("sensor_custody has legs", bool(legs), f"({len(legs)} legs)")
+
+
+def month_idx(value):
+    year, mon = (int(p) for p in value.split("-")[:2])
+    return year * 12 + mon
+
+
+labels = {}
+for leg in legs:
+    last = leg.get("end") or "2099-12"
+    for idx in range(month_idx(leg["start"]), month_idx(last) + 1):
+        labels.setdefault(idx, []).append(leg["key"])
+chk("each month has exactly one custody label", all(len(v) == 1 for v in labels.values()))
+chk("custody legs are contiguous", sorted(labels) == list(range(min(labels), max(labels) + 1)))
+chk("record edge is S-NPP test", labels.get(month_idx("2021-12")) == ["snpp_test"])
+chk("post-archive months are gap, not NOAA-20", labels.get(month_idx("2022-01")) == ["gap"])
+chk("NOAA-20 leg starts post-sunset", labels.get(month_idx("2026-11")) == ["noaa20"])
+chk("no segment labeled NOAA-20 before sunset",
+    all(k != "noaa20" for idx, v in labels.items() if idx < month_idx("2026-11") for k in v))
+
+chk("custody segment count matches metrics",
+    len(re.findall(r'class="provenance-segment ', html)) == len(legs), f"({len(legs)} legs)")
+chk("gap strip labels the undownloaded archive", 'provenance-segment seg-gap" data-start="2022-01"' in html)
+for leg in legs:
+    chk(f"custody {leg['key']} start wired to page", f'data-start="{leg["start"]}"' in html)
+
+# --- NOAA-20 leg: claim only what is fitted ---
+n20 = m.get("noaa20_model") or {}
+chk("NOAA-20 status on page", n20.get("status", "") in html, str(n20.get("status")))
+if n20.get("status") != "fitted":
+    chk("NOAA-20 refusal is explicit", "Not fitted" in html and "not fitted" in html)
+    chk("NOAA-20 overlap counted honestly", f"{n20.get('overlap_months', 0)} / {n20.get('min_overlap_months', 24)}" in html)
+    chk("no NOAA-20 equation is claimed", not n20.get("equation") or n20["equation"] not in html)
+else:
+    chk("NOAA-20 equation is shown", n20.get("equation", "") in html)
+
+# --- generated CSVs stop at the real archive edge (no fabricated zero months) ---
+monthly_rows = list(csv.DictReader(open(ROOT / "data" / "processed" / "monthly.csv", encoding="utf-8")))
+chk("monthly.csv ends at the archive edge", monthly_rows[-1]["month"] == "2021-12",
+    monthly_rows[-1]["month"])
+chk("monthly.csv has no post-2021 rows",
+    all(r["month"] <= "2021-12" for r in monthly_rows))
+chk("monthly.csv has the NOAA-20 column", "viirs_noaa20" in monthly_rows[0])
+
+dist_rows = list(csv.DictReader(open(ROOT / "data" / "processed" / "monthly_districts.csv", encoding="utf-8")))
+chk("district grid rows = months x 3", len(dist_rows) == 3 * len(monthly_rows), f"({len(dist_rows)})")
+for name, e in dm.items():
+    got = sum(float(r[k]) for r in dist_rows if r["district"] == name for k in ("modis", "viirs") if r[k] not in ("", "nan"))
+    want = sum(int(e["clean_detections"][k]) for k in ("modis", "viirs"))
+    chk(f"district {name} rows sum to clean detections", round(got) == want, f"{round(got)} vs {want}")
 
 # --- sync markers ---
 for src, text in (("index.html", html), ("app.js", js)):
