@@ -1755,3 +1755,16 @@ section[hidden] { display: none !important; }
 }
 @media (max-width: 1500px) and (min-width: 1025px) { .status-pill { display: none; } }
 h1 { max-width: 19ch; }
+/* Guided audience paths */
+.path-progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; pointer-events: none; }
+.path-progress span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--fire), var(--accent)); transition: width .35s ease; }
+.topbar { position: sticky; }
+body[data-path] .topnav a { display: inline-flex; align-items: center; gap: 7px; }
+.step-n { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font-size: 0.72rem; font-weight: 700; background: var(--seg-bg); color: var(--ink-secondary); }
+.topnav a.active .step-n { background: var(--ink); color: var(--bg-card); }
+.step-next { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: clamp(22px, 3vw, 32px); padding-top: 18px; border-top: 1px solid var(--line); }
+#path-start { justify-self: start; width: max-content; }
+.season-controls select, .priority-controls select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%238e8e93' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center;
+}

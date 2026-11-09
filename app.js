@@ -1979,29 +1979,25 @@ function initMobileNav() {
 }
 
 function initScrollSpy() {
-  const links = Array.from(document.querySelectorAll('.topnav a[href^="#"]'));
-  if (!links.length || typeof IntersectionObserver === 'undefined') return;
-
-  const sections = links
-    .map((a) => document.getElementById(a.getAttribute('href').slice(1)))
-    .filter(Boolean);
-  if (!sections.length) return;
-
+  if (typeof IntersectionObserver === 'undefined') return;
+  const sections = Array.from(document.querySelectorAll('main section[id]'));
   const visible = new Set();
   let activeId = null;
-
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) visible.add(entry.target.id);
       else visible.delete(entry.target.id);
     });
-    const hit = sections.find((s) => visible.has(s.id));
+    // Links are re-queried each time: the nav is rebuilt when the audience path changes.
+    const links = Array.from(document.querySelectorAll('.topnav a[href^="#"]'));
+    const ordered = Array.from(document.querySelectorAll('main section[id]')).filter((s) => !s.hidden);
+    const hit = ordered.find((s) => visible.has(s.id) && links.some((a) => a.getAttribute('href') === '#' + s.id));
     const nextId = hit ? hit.id : null;
     if (nextId === activeId) return;
     activeId = nextId;
     links.forEach((a) => a.classList.toggle('active', a.getAttribute('href') === '#' + nextId));
+    updatePathProgress(nextId);
   }, { rootMargin: '-35% 0px -55% 0px', threshold: 0 });
-
   sections.forEach((s) => observer.observe(s));
 }
 
@@ -2116,32 +2112,103 @@ function initSeasonCheck() {
 }
 
 // =============================================================================
-// 7c. AUDIENCE VIEWS — one page, three ways in (community / officer / researcher).
-//     Sections declare data-views; switching only shows/hides, never changes data.
+// 7c. AUDIENCE PATHS — a guided, numbered workflow per audience.
+//     Choosing a role reorders the page into that role's steps, swaps the top
+//     nav for the numbered path (stable for the whole role), and adds a
+//     "Next step" button to each step. "Everyone" restores the full page.
 // =============================================================================
-const VIEW_HINTS = {
-  all: 'All sections are shown.',
-  public: 'Plain answers: is this season unusual, when do the Hills burn, and where.',
-  officer: 'Field planning: which district is furthest above its normal, on the map and over time.',
-  research: 'Method and evidence: raw vs harmonized, held-out validation, uncertainty, data export.'
+const SECTION_LABELS = {
+  season: 'Check a season', priority: 'Priorities', calendar: 'Burn calendar',
+  problem: 'The 2012 jump', continuity: 'Control test', proof: 'Validation',
+  'map-section': 'Map', try: 'Playground', matrix: 'Seasonality', noaa20: 'Sunset',
+  glossary: 'Glossary', limits: 'Limits', method: 'Method', team: 'Team'
 };
+const PATHS = {
+  public:   { name: 'Community', steps: ['season', 'calendar', 'problem', 'map-section', 'glossary', 'limits'],
+              hint: 'Plain answers, in order: is this season unusual, when do the Hills burn, why the 2012 jump is not real, and where.' },
+  officer:  { name: 'Forest officer', steps: ['priority', 'season', 'map-section', 'matrix', 'noaa20', 'limits'],
+              hint: 'Field planning, in order: which district first, how unusual the month is, where on the map, and the seasonal pattern.' },
+  research: { name: 'Researcher', steps: ['problem', 'continuity', 'proof', 'try', 'matrix', 'method', 'noaa20', 'limits'],
+              hint: 'Evidence, in order: the artefact, the control test, held-out validation, uncertainty, method and limits. CSV export is in Check a season.' }
+};
+let ORIGINAL_ORDER = null, ORIGINAL_NAV = null, CURRENT_VIEW = 'all';
+
+function scrollToSection(el) {
+  if (!el) return;
+  const bar = document.querySelector('.topbar');
+  const offset = (bar ? bar.getBoundingClientRect().height : 0) + 12;
+  window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - offset, behavior: 'smooth' });
+}
+
+function updatePathProgress(activeId) {
+  const fill = document.getElementById('path-progress-fill');
+  const path = PATHS[CURRENT_VIEW];
+  if (!fill) return;
+  if (!path) { fill.style.width = '0'; return; }
+  const idx = path.steps.indexOf(activeId);
+  fill.style.width = idx < 0 ? '0' : Math.round(100 * (idx + 1) / path.steps.length) + '%';
+}
 
 function applyView(view) {
-  const v = VIEW_HINTS[view] ? view : 'all';
-  document.querySelectorAll('section[data-views]').forEach((sec) => {
-    const list = sec.getAttribute('data-views').split(/\s+/);
-    sec.hidden = !(v === 'all' || list.includes('all') || list.includes(v));
-  });
+  const v = PATHS[view] ? view : 'all';
+  CURRENT_VIEW = v;
+  const main = document.getElementById('main-content');
+  const nav = document.getElementById('topnav');
+  if (!main || !nav) return;
+  if (!ORIGINAL_ORDER) ORIGINAL_ORDER = Array.from(main.querySelectorAll(':scope > section'));
+  if (ORIGINAL_NAV === null) ORIGINAL_NAV = nav.innerHTML;
+  main.querySelectorAll('.step-next').forEach((n) => n.remove());
+
+  if (v === 'all') {
+    ORIGINAL_ORDER.forEach((s) => { s.hidden = false; main.appendChild(s); });
+    nav.innerHTML = ORIGINAL_NAV;
+    document.body.removeAttribute('data-path');
+  } else {
+    const steps = PATHS[v].steps;
+    ORIGINAL_ORDER.forEach((s) => { s.hidden = s.id !== 'hero' && !steps.includes(s.id); });
+    steps.forEach((id) => { const s = document.getElementById(id); if (s) main.appendChild(s); });
+    // Team and data credits close every path (Participants Guide: always visible).
+    const team = document.getElementById('team');
+    if (team) { team.hidden = false; main.appendChild(team); }
+    nav.innerHTML = steps.map((id, i) =>
+      '<a href="#' + id + '"><span class="step-n">' + (i + 1) + '</span>' + SECTION_LABELS[id] + '</a>').join('');
+    steps.forEach((id, i) => {
+      const s = document.getElementById(id);
+      if (!s) return;
+      const next = steps[i + 1];
+      const div = document.createElement('div');
+      div.className = 'step-next';
+      div.innerHTML = '<span class="small muted">Step ' + (i + 1) + ' of ' + steps.length + ' · ' + PATHS[v].name + '</span>' +
+        (next ? '<a class="cta-btn" href="#' + next + '">Next: ' + SECTION_LABELS[next] + ' →</a>'
+              : '<a class="cta-btn" href="#hero">Done · choose another role ↑</a>');
+      s.appendChild(div);
+    });
+    document.body.setAttribute('data-path', v);
+  }
   document.querySelectorAll('#persona-switch button').forEach((b) =>
     b.setAttribute('aria-pressed', String(b.dataset.view === v)));
-  document.querySelectorAll('#topnav a').forEach((a) => {
-    const target = document.querySelector(a.getAttribute('href'));
-    a.hidden = !!(target && target.hidden);
-  });
   const hint = document.getElementById('persona-hint');
-  if (hint) hint.textContent = VIEW_HINTS[v];
+  if (hint) hint.textContent = v === 'all' ? 'All sections are shown, in the full order.' :
+    PATHS[v].steps.length + ' steps. ' + PATHS[v].hint;
+  const start = document.getElementById('path-start');
+  if (start) {
+    start.hidden = v === 'all';
+    if (v !== 'all') { start.href = '#' + PATHS[v].steps[0]; start.textContent = 'Start the ' + PATHS[v].name.toLowerCase() + ' path →'; }
+  }
+  // "See the proof" stays inside the current path when the path has evidence in it.
+  const proofBtn = document.getElementById('see-proof');
+  if (proofBtn) {
+    const inPath = v === 'all' ? ['continuity'] : ['continuity', 'problem', 'proof'].filter((id) => PATHS[v].steps.includes(id));
+    proofBtn.href = '#' + (inPath[0] || 'continuity');
+  }
+  updatePathProgress(null);
   try { localStorage.setItem('bd_fireops_view', v); } catch (e) { /* storage blocked */ }
-  if (typeof map !== 'undefined' && map && map.invalidateSize) setTimeout(() => map.invalidateSize(), 50);
+  try {
+    const u = new URL(location.href);
+    if (v === 'all') u.searchParams.delete('view'); else u.searchParams.set('view', v);
+    history.replaceState(null, '', u.pathname + u.search + u.hash);
+  } catch (e) { /* file:// or sandbox */ }
+  if (typeof map !== 'undefined' && map && map.invalidateSize) setTimeout(() => map.invalidateSize(), 60);
 }
 
 function initViews() {
@@ -2150,6 +2217,25 @@ function initViews() {
   sw.addEventListener('click', (e) => {
     const b = e.target.closest('button[data-view]');
     if (b) applyView(b.dataset.view);
+  });
+  // One handler for every in-page link: if the target is outside the current
+  // path, open the full page first instead of failing silently.
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+    const id = a.getAttribute('href').slice(1);
+    const el = id && document.getElementById(id);
+    if (!el) return;
+    e.preventDefault();
+    const nav = document.getElementById('topnav'), tgl = document.getElementById('nav-toggle');
+    if (nav && nav.classList.contains('open')) { nav.classList.remove('open'); if (tgl) tgl.setAttribute('aria-expanded', 'false'); }
+    if (el.hidden) {
+      applyView('all');
+      const hint = document.getElementById('persona-hint');
+      if (hint) hint.textContent = 'Opened the full page to show “' + (SECTION_LABELS[id] || id) + '”. Pick a role to return to a guided path.';
+    }
+    scrollToSection(el);
+    try { history.replaceState(null, '', location.pathname + location.search + '#' + id); } catch (err) { /* ignore */ }
   });
   let saved = 'all';
   const fromUrl = new URLSearchParams(location.search).get('view');

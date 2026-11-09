@@ -35,6 +35,7 @@
 
   <!-- STICKY TELEMETRY TOPBAR -->
   <header class="topbar">
+    <div class="path-progress" aria-hidden="true"><span id="path-progress-fill"></span></div>
     <div class="topbar-inner">
       <a href="#hero" class="brand" aria-label="BD-FireOps Home">
         <img class="brand-logo" src="vendor/nasa-logo.svg" alt="NASA Insignia" width="44" height="37">
@@ -78,7 +79,7 @@
   <main id="main-content" class="page">
 
     <!-- HERO SECTION · MISSION STATEMENT & TELEMETRY HUD -->
-    <section class="card hero" id="hero" data-views="all">
+    <section class="card hero" id="hero">
       <div class="hero-content">
         <span class="kicker">EARTH OBSERVATION · CROSS-SENSOR HARMONIZATION</span>
         <h1>Hill-Tracts fires did not triple in 2012. The satellite camera changed.</h1>
@@ -96,7 +97,7 @@
         <p class="hero-bn" lang="bn">সহজ কথায়: ২০১২ সালে পাহাড়ে আগুন তিনগুণ হয়নি — স্যাটেলাইটের ক্যামেরা বদলেছিল। BD-FireOps দুই ক্যামেরাকে এক মাপে এনে ২০ বছরের সঠিক রেকর্ড দেখায়।</p>
         <div class="hero-cta">
           <a class="cta-btn primary" href="#season">Check a burning season</a>
-          <a class="cta-btn" href="#problem">See the proof</a>
+          <a class="cta-btn" id="see-proof" href="#continuity">See the proof</a>
         </div>
 
         <div class="persona" role="group" aria-labelledby="persona-label">
@@ -107,7 +108,8 @@
             <button type="button" data-view="officer" aria-pressed="false">Forest officer</button>
             <button type="button" data-view="research" aria-pressed="false">Researcher</button>
           </div>
-          <p class="persona-hint small muted" id="persona-hint" aria-live="polite">All sections are shown.</p>
+          <p class="persona-hint small muted" id="persona-hint" aria-live="polite">All sections are shown, in the full order.</p>
+          <a class="cta-btn primary" id="path-start" href="#season" hidden>Start</a>
         </div>
 
         <!-- KPI Telemetry Ribbon -->
@@ -139,7 +141,7 @@
     </section>
 
     <!-- USER TASK: IS THIS SEASON UNUSUAL? (computed in-browser from CHT_SERIES) -->
-    <section class="card" id="season" data-views="public officer research">
+    <section class="card" id="season">
       <div class="card-header-row">
         <div>
           <span class="kicker">FOR FOREST OFFICERS &amp; PLANNERS</span>
@@ -178,7 +180,7 @@
     </section>
 
     <!-- OFFICER TASK: WHERE TO LOOK FIRST (per-district, own-normal comparison) -->
-    <section class="card" id="priority" data-views="officer research">
+    <section class="card" id="priority">
       <div class="card-header-row">
         <div>
           <span class="kicker">FOR FOREST OFFICERS</span>
@@ -198,7 +200,7 @@
     </section>
 
     <!-- COMMUNITY TASK: WHEN DO THE HILLS BURN? -->
-    <section class="card" id="calendar" data-views="public">
+    <section class="card" id="calendar">
       <div class="card-header-row">
         <div>
           <span class="kicker">FOR PEOPLE WHO LIVE IN THE HILLS</span>
@@ -216,7 +218,7 @@
     </section>
 
     <!-- STEP 1: PROBLEM & FIX (INTERACTIVE DUAL-VIEW LINE CHARTS) -->
-    <section class="card" id="problem" data-views="public research">
+    <section class="card" id="problem">
       <div class="card-header-row">
         <div>
           <span class="kicker">STEP 01 · WHY THE JOIN LOOKS WRONG</span>
@@ -290,7 +292,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- CONTROL TEST: THE SENSOR THAT NEVER CHANGED -->
-    <section class="card" id="continuity" data-views="public research">
+    <section class="card" id="continuity">
       <div class="card-header-row">
         <div>
           <span class="kicker">CONTROL TEST · THE CAMERA THAT NEVER CHANGED</span>
@@ -325,7 +327,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- NOAA-20 / 21 CONTINUITY LEG (F2/P2) -->
-    <section class="card" id="noaa20" data-views="officer research">
+    <section class="card" id="noaa20">
       <div class="card-header-row">
         <div>
           <span class="kicker">SENSOR SUNSET · THE NEXT LEG</span>
@@ -363,7 +365,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- STEP 2: PROOF & VALIDATION -->
-    <section class="card" id="proof" data-views="research">
+    <section class="card" id="proof">
       <div class="card-header-row">
         <div>
           <span class="kicker">STEP 02 · THE PROOF</span>
@@ -510,7 +512,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- STEP 3: INTERACTIVE GIS SATELLITE MAP -->
-    <section class="card" id="map-section" data-views="public officer research">
+    <section class="card" id="map-section">
       <div class="card-header-row">
         <div>
           <span class="kicker">STEP 03 · THE FIRE MAP</span>
@@ -614,7 +616,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- STEP 4: LIVE CALIBRATION PLAYGROUND -->
-    <section class="card" id="try" data-views="research">
+    <section class="card" id="try">
       <div class="card-header-row">
         <div>
           <span class="kicker">STEP 04 · INTERACTIVE SENSOR SIMULATOR</span>
@@ -673,7 +675,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- STEP 5: 20-YEAR BURNING SEASONALITY MATRIX (HEATMAP) -->
-    <section class="card" id="matrix" data-views="public officer research">
+    <section class="card" id="matrix">
       <div class="card-header-row">
         <div>
           <span class="kicker">STEP 05 · WHICH MONTHS BURN?</span>
@@ -703,7 +705,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- PLAIN-LANGUAGE GLOSSARY -->
-    <section class="card" id="glossary" data-views="public officer">
+    <section class="card" id="glossary">
       <div class="card-header-row">
         <div>
           <span class="kicker">PLAIN WORDS</span>
@@ -723,7 +725,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- STEP 6: LIMITS -->
-    <section class="card limits" id="limits" data-views="public officer research">
+    <section class="card limits" id="limits">
       <div class="card-header-row">
         <div>
           <span class="kicker">HONEST SCIENTIFIC LIMITS</span>
@@ -742,7 +744,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- STEP 7: METHODOLOGY -->
-    <section class="card method" id="method" data-views="research">
+    <section class="card method" id="method">
       <div class="card-header-row">
         <div>
           <span class="kicker">OPEN SOURCE · STEP BY STEP</span>
@@ -771,7 +773,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- TEAM, AI USE & DATA SOURCES (Participants Guide: members with roles, AI disclosure, data list) -->
-    <section class="card" id="team" data-views="public officer research">
+    <section class="card" id="team">
       <div class="card-header-row">
         <div>
           <span class="kicker">WHO BUILT THIS &amp; HOW</span>
