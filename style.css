@@ -1768,3 +1768,88 @@ body[data-path] .topnav a { display: inline-flex; align-items: center; gap: 7px;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%238e8e93' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat; background-position: right 14px center;
 }
+
+/* ==========================================================================
+   v3 · STORY ORDER + GUIDED PATHS
+   One stable page (Use it → Trust it → Understand it). Paths are tours over
+   it: a floating dock, a spotlight on the current step, nothing reshuffles.
+   ========================================================================== */
+.card:not(.hero) { animation: none; }
+
+/* Chapter dividers */
+.chapter { display: flex; align-items: flex-start; gap: 18px; padding: clamp(28px, 5vw, 56px) 4px 4px; }
+.chapter-num { font-size: 0.85rem; font-weight: 700; color: var(--fire); border: 1px solid color-mix(in srgb, var(--fire) 40%, transparent); border-radius: 999px; padding: 4px 10px; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.chapter-title { font-size: clamp(2rem, 4.4vw, 3.2rem); line-height: 1.05; letter-spacing: -0.04em; margin: 0; }
+.chapter-sub { color: var(--muted); font-size: clamp(1rem, 1.5vw, 1.15rem); margin: 8px 0 0; max-width: 60ch; }
+
+/* Path launcher cards */
+.path-cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.path-card {
+  font: inherit; text-align: left; cursor: pointer; display: grid; gap: 6px; align-content: start;
+  padding: 18px 18px 16px; border-radius: 18px; border: 1px solid var(--line); background: var(--bg-card);
+  color: var(--ink); box-shadow: var(--shadow-sm);
+  transition: transform .25s cubic-bezier(.2,.7,.2,1), box-shadow .25s, border-color .25s;
+}
+.path-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--line-strong); }
+.path-card:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 2px; }
+.path-card[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink), var(--shadow); }
+.path-role { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fire); }
+.path-q { font-size: 1.04rem; font-weight: 600; letter-spacing: -0.015em; line-height: 1.3; }
+.path-meta { font-size: 0.82rem; color: var(--muted); }
+.path-meta::after { content: "  →"; color: var(--ink); }
+
+/* Reveal on scroll */
+.reveal-ready main > section:not(.hero),
+.reveal-ready main > .chapter { opacity: 0; transform: translateY(18px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
+.reveal-ready main > .in-view { opacity: 1; transform: none; }
+
+/* Spotlight while a path is active */
+body.touring main > section:not(.hero),
+body.touring main > .chapter { transition: opacity .45s ease, transform .7s cubic-bezier(.2,.7,.2,1), box-shadow .45s ease; }
+body.touring main > section.in-view:not(.tour-focus):not(.hero),
+body.touring main > .chapter.in-view { opacity: 0.38; }
+body.touring main > section.tour-focus { opacity: 1; box-shadow: 0 0 0 2px var(--ink), var(--shadow); }
+body.touring { padding-bottom: 96px; }
+
+/* Floating dock */
+.tour-dock {
+  position: fixed; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+  z-index: 1200; width: min(720px, calc(100% - 24px));
+  background: var(--bg-glass); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border: 1px solid var(--line-strong); border-radius: 20px; box-shadow: 0 20px 50px -18px rgba(0,0,0,.35);
+  overflow: hidden; animation: dockIn .45s cubic-bezier(.2,.7,.2,1);
+}
+.tour-dock[hidden] { display: none; }
+@keyframes dockIn { from { opacity: 0; transform: translate(-50%, 20px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.tour-progress { height: 3px; background: var(--seg-bg); }
+.tour-progress span { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--fire), var(--accent)); transition: width .45s cubic-bezier(.2,.7,.2,1); }
+.tour-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 10px 10px 18px; }
+.tour-info { display: grid; min-width: 0; }
+.tour-role { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--fire); }
+.tour-step { font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tour-actions { display: flex; gap: 6px; flex: none; }
+.tour-btn { font: inherit; font-size: 0.92rem; font-weight: 600; min-height: 42px; min-width: 42px; padding: 0 14px; border-radius: 12px; border: 1px solid var(--line-strong); background: var(--bg-card); color: var(--ink); cursor: pointer; transition: transform .15s, background .2s; }
+.tour-btn:active { transform: scale(.97); }
+.tour-btn:disabled { opacity: .35; cursor: default; }
+.tour-btn.primary { background: var(--ink); color: var(--bg-card); border-color: var(--ink); }
+.tour-btn.ghost { background: transparent; border-color: transparent; color: var(--muted); }
+
+@media (max-width: 760px) {
+  .path-cards { grid-template-columns: 1fr; }
+  .tour-row { padding-left: 14px; }
+  .tour-btn.primary { max-width: 46vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .chapter { gap: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal-ready main > section, .reveal-ready main > .chapter { opacity: 1 !important; transform: none !important; transition: none !important; }
+  .tour-dock, .path-card { animation: none; transition: none; }
+}
+.hero-bn { font-size: 1.1rem; line-height: 1.7; }
+@media (max-width: 760px) {
+  .tour-row { flex-wrap: wrap; gap: 8px; padding: 10px 12px 12px; }
+  .tour-info { flex: 1 1 100%; }
+  .tour-step { white-space: normal; }
+  .tour-actions { width: 100%; }
+  .tour-btn.primary { flex: 1; max-width: none; }
+  body.touring { padding-bottom: 150px; }
+}

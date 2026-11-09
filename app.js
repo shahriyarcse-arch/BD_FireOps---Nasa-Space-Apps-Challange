@@ -451,10 +451,12 @@ const map = L.map('map', {
   minZoom: 7,
   maxZoom: 17,
   zoomControl: false,
-  scrollWheelZoom: true,
+  scrollWheelZoom: false,   // page scroll is never hijacked; enabled after the reader clicks the map
   doubleClickZoom: true,
   keyboard: true
 });
+map.on('click focus', () => map.scrollWheelZoom.enable());
+map.getContainer().addEventListener('mouseleave', () => map.scrollWheelZoom.disable());
 
 L.control.zoom({ position: 'topright' }).addTo(map);
 
@@ -1991,12 +1993,13 @@ function initScrollSpy() {
     // Links are re-queried each time: the nav is rebuilt when the audience path changes.
     const links = Array.from(document.querySelectorAll('.topnav a[href^="#"]'));
     const ordered = Array.from(document.querySelectorAll('main section[id]')).filter((s) => !s.hidden);
+    const anyHit = ordered.find((s) => visible.has(s.id));
+    updatePathProgress(anyHit ? anyHit.id : null);   // the guided dock follows any section
     const hit = ordered.find((s) => visible.has(s.id) && links.some((a) => a.getAttribute('href') === '#' + s.id));
     const nextId = hit ? hit.id : null;
     if (nextId === activeId) return;
     activeId = nextId;
     links.forEach((a) => a.classList.toggle('active', a.getAttribute('href') === '#' + nextId));
-    updatePathProgress(nextId);
   }, { rootMargin: '-35% 0px -55% 0px', threshold: 0 });
   sections.forEach((s) => observer.observe(s));
 }
@@ -2097,6 +2100,21 @@ function downloadHarmonizedCsv() {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
+// One period the reader is looking at, shared by Priorities, Check a season and the map,
+// so a path feels like one investigation rather than separate widgets.
+function setFocusPeriod(year, month, source) {
+  const pairs = [['prio-year', 'prio-month'], ['season-year', 'season-month']];
+  pairs.forEach(([y, m]) => {
+    const ys = document.getElementById(y), ms = document.getElementById(m);
+    if (ys && ms) { ys.value = String(year); ms.value = String(month); }
+  });
+  if (source !== 'priority') renderPriority();
+  if (source !== 'season') renderSeason();
+  if (typeof slider !== 'undefined' && slider && typeof updateTimeline === 'function') {
+    slider.value = year; updateTimeline(year);
+  }
+}
+
 function initSeasonCheck() {
   const ySel = document.getElementById('season-year');
   const mSel = document.getElementById('season-month');
@@ -2104,122 +2122,123 @@ function initSeasonCheck() {
   const years = [...new Set(CHT_SERIES.map((r) => r.y))].sort((a, b) => b - a);
   ySel.innerHTML = years.map((y) => '<option value="' + y + '">' + y + '</option>').join('');
   ySel.value = String(years[0]);
-  ySel.addEventListener('change', renderSeason);
-  mSel.addEventListener('change', renderSeason);
+  const onSeason = () => { renderSeason(); setFocusPeriod(+ySel.value, +mSel.value, 'season'); };
+  ySel.addEventListener('change', onSeason);
+  mSel.addEventListener('change', onSeason);
   const dl = document.getElementById('download-csv');
   if (dl) dl.addEventListener('click', downloadHarmonizedCsv);
   renderSeason();
 }
 
 // =============================================================================
-// 7c. AUDIENCE PATHS — a guided, numbered workflow per audience.
-//     Choosing a role reorders the page into that role's steps, swaps the top
-//     nav for the numbered path (stable for the whole role), and adds a
-//     "Next step" button to each step. "Everyone" restores the full page.
+// 7c. GUIDED PATHS — one stable page, three guided tours over it.
+//     The page itself never changes shape: nav, order and content stay fixed.
+//     A path only (1) walks the reader through its steps in page order with a
+//     bottom dock (Prev / Next / Exit), (2) spotlights the current step, and
+//     (3) follows the reader if they scroll on their own.
 // =============================================================================
 const SECTION_LABELS = {
-  season: 'Check a season', priority: 'Priorities', calendar: 'Burn calendar',
-  problem: 'The 2012 jump', continuity: 'Control test', proof: 'Validation',
-  'map-section': 'Map', try: 'Playground', matrix: 'Seasonality', noaa20: 'Sunset',
-  glossary: 'Glossary', limits: 'Limits', method: 'Method', team: 'Team'
+  season: 'Check a season', priority: 'Where to look first', calendar: 'When the Hills burn',
+  problem: 'The 2012 jump', continuity: 'The control test', proof: 'Tested on unseen years',
+  'map-section': 'Fire map', try: 'Try the conversion', matrix: 'Burning by month', noaa20: 'After Suomi-NPP',
+  glossary: 'Plain words', limits: 'Honest limits', method: 'Open method', team: 'Team'
 };
+// Steps are listed in page order, so every path moves strictly downward.
 const PATHS = {
-  public:   { name: 'Community', steps: ['season', 'calendar', 'problem', 'map-section', 'glossary', 'limits'],
-              hint: 'Plain answers, in order: is this season unusual, when do the Hills burn, why the 2012 jump is not real, and where.' },
-  officer:  { name: 'Forest officer', steps: ['priority', 'season', 'map-section', 'matrix', 'noaa20', 'limits'],
-              hint: 'Field planning, in order: which district first, how unusual the month is, where on the map, and the seasonal pattern.' },
-  research: { name: 'Researcher', steps: ['problem', 'continuity', 'proof', 'try', 'matrix', 'method', 'noaa20', 'limits'],
-              hint: 'Evidence, in order: the artefact, the control test, held-out validation, uncertainty, method and limits. CSV export is in Check a season.' }
+  officer:  { name: 'Forest officer', steps: ['priority', 'season', 'map-section', 'matrix', 'noaa20', 'limits'] },
+  public:   { name: 'Community',      steps: ['season', 'calendar', 'map-section', 'continuity', 'glossary', 'limits'] },
+  research: { name: 'Researcher',     steps: ['problem', 'continuity', 'proof', 'try', 'noaa20', 'method', 'limits'] }
 };
-let ORIGINAL_ORDER = null, ORIGINAL_NAV = null, CURRENT_VIEW = 'all';
+const TOUR = { path: null, idx: 0, lock: 0 };
 
 function scrollToSection(el) {
   if (!el) return;
   const bar = document.querySelector('.topbar');
-  const offset = (bar ? bar.getBoundingClientRect().height : 0) + 12;
-  window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - offset, behavior: 'smooth' });
+  const offset = (bar ? bar.getBoundingClientRect().height : 0) + 16;
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - offset, behavior: reduce ? 'auto' : 'smooth' });
 }
 
+function renderTour() {
+  const dock = document.getElementById('tour-dock');
+  const p = PATHS[TOUR.path];
+  document.querySelectorAll('main section.tour-focus').forEach((s) => s.classList.remove('tour-focus'));
+  if (!dock) return;
+  if (!p) {
+    dock.hidden = true;
+    document.body.classList.remove('touring');
+    document.querySelectorAll('#persona-switch .path-card').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    return;
+  }
+  const id = p.steps[TOUR.idx];
+  const sec = document.getElementById(id);
+  if (sec) sec.classList.add('tour-focus');
+  document.body.classList.add('touring');
+  dock.hidden = false;
+  document.getElementById('tour-role').textContent = p.name + ' path';
+  document.getElementById('tour-step').textContent = 'Step ' + (TOUR.idx + 1) + ' of ' + p.steps.length + ' · ' + SECTION_LABELS[id];
+  const last = TOUR.idx === p.steps.length - 1;
+  const next = document.getElementById('tour-next');
+  next.textContent = last ? 'Finish' : 'Next: ' + SECTION_LABELS[p.steps[TOUR.idx + 1]];
+  document.getElementById('tour-prev').disabled = TOUR.idx === 0;
+  document.getElementById('tour-progress-fill').style.width = Math.round(100 * (TOUR.idx + 1) / p.steps.length) + '%';
+  document.querySelectorAll('#persona-switch .path-card').forEach((b) =>
+    b.setAttribute('aria-pressed', String(b.dataset.view === TOUR.path)));
+}
+
+function goToStep(i) {
+  const p = PATHS[TOUR.path];
+  if (!p) return;
+  TOUR.idx = Math.max(0, Math.min(p.steps.length - 1, i));
+  TOUR.lock = Date.now() + 900;          // ignore scroll-spy while the smooth scroll runs
+  renderTour();
+  scrollToSection(document.getElementById(p.steps[TOUR.idx]));
+}
+
+function startTour(view) {
+  if (!PATHS[view]) return;
+  TOUR.path = view;
+  try { localStorage.setItem('bd_fireops_view', view); } catch (e) { /* storage blocked */ }
+  try { const u = new URL(location.href); u.searchParams.set('view', view); history.replaceState(null, '', u.pathname + u.search); } catch (e) { /* file:// */ }
+  goToStep(0);
+}
+
+function endTour() {
+  TOUR.path = null;
+  try { localStorage.removeItem('bd_fireops_view'); } catch (e) { /* storage blocked */ }
+  try { const u = new URL(location.href); u.searchParams.delete('view'); history.replaceState(null, '', u.pathname + u.search); } catch (e) { /* file:// */ }
+  renderTour();
+}
+
+// Called by the scroll-spy: if the reader scrolls on their own, the dock follows.
 function updatePathProgress(activeId) {
-  const fill = document.getElementById('path-progress-fill');
-  const path = PATHS[CURRENT_VIEW];
-  if (!fill) return;
-  if (!path) { fill.style.width = '0'; return; }
-  const idx = path.steps.indexOf(activeId);
-  fill.style.width = idx < 0 ? '0' : Math.round(100 * (idx + 1) / path.steps.length) + '%';
-}
-
-function applyView(view) {
-  const v = PATHS[view] ? view : 'all';
-  CURRENT_VIEW = v;
-  const main = document.getElementById('main-content');
-  const nav = document.getElementById('topnav');
-  if (!main || !nav) return;
-  if (!ORIGINAL_ORDER) ORIGINAL_ORDER = Array.from(main.querySelectorAll(':scope > section'));
-  if (ORIGINAL_NAV === null) ORIGINAL_NAV = nav.innerHTML;
-  main.querySelectorAll('.step-next').forEach((n) => n.remove());
-
-  if (v === 'all') {
-    ORIGINAL_ORDER.forEach((s) => { s.hidden = false; main.appendChild(s); });
-    nav.innerHTML = ORIGINAL_NAV;
-    document.body.removeAttribute('data-path');
-  } else {
-    const steps = PATHS[v].steps;
-    ORIGINAL_ORDER.forEach((s) => { s.hidden = s.id !== 'hero' && !steps.includes(s.id); });
-    steps.forEach((id) => { const s = document.getElementById(id); if (s) main.appendChild(s); });
-    // Team and data credits close every path (Participants Guide: always visible).
-    const team = document.getElementById('team');
-    if (team) { team.hidden = false; main.appendChild(team); }
-    nav.innerHTML = steps.map((id, i) =>
-      '<a href="#' + id + '"><span class="step-n">' + (i + 1) + '</span>' + SECTION_LABELS[id] + '</a>').join('');
-    steps.forEach((id, i) => {
-      const s = document.getElementById(id);
-      if (!s) return;
-      const next = steps[i + 1];
-      const div = document.createElement('div');
-      div.className = 'step-next';
-      div.innerHTML = '<span class="small muted">Step ' + (i + 1) + ' of ' + steps.length + ' · ' + PATHS[v].name + '</span>' +
-        (next ? '<a class="cta-btn" href="#' + next + '">Next: ' + SECTION_LABELS[next] + ' →</a>'
-              : '<a class="cta-btn" href="#hero">Done · choose another role ↑</a>');
-      s.appendChild(div);
-    });
-    document.body.setAttribute('data-path', v);
-  }
-  document.querySelectorAll('#persona-switch button').forEach((b) =>
-    b.setAttribute('aria-pressed', String(b.dataset.view === v)));
-  const hint = document.getElementById('persona-hint');
-  if (hint) hint.textContent = v === 'all' ? 'All sections are shown, in the full order.' :
-    PATHS[v].steps.length + ' steps. ' + PATHS[v].hint;
-  const start = document.getElementById('path-start');
-  if (start) {
-    start.hidden = v === 'all';
-    if (v !== 'all') { start.href = '#' + PATHS[v].steps[0]; start.textContent = 'Start the ' + PATHS[v].name.toLowerCase() + ' path →'; }
-  }
-  // "See the proof" stays inside the current path when the path has evidence in it.
-  const proofBtn = document.getElementById('see-proof');
-  if (proofBtn) {
-    const inPath = v === 'all' ? ['continuity'] : ['continuity', 'problem', 'proof'].filter((id) => PATHS[v].steps.includes(id));
-    proofBtn.href = '#' + (inPath[0] || 'continuity');
-  }
-  updatePathProgress(null);
-  try { localStorage.setItem('bd_fireops_view', v); } catch (e) { /* storage blocked */ }
-  try {
-    const u = new URL(location.href);
-    if (v === 'all') u.searchParams.delete('view'); else u.searchParams.set('view', v);
-    history.replaceState(null, '', u.pathname + u.search + u.hash);
-  } catch (e) { /* file:// or sandbox */ }
-  if (typeof map !== 'undefined' && map && map.invalidateSize) setTimeout(() => map.invalidateSize(), 60);
+  const p = PATHS[TOUR.path];
+  if (!p || Date.now() < TOUR.lock || !activeId) return;
+  const i = p.steps.indexOf(activeId);
+  if (i >= 0 && i !== TOUR.idx) { TOUR.idx = i; renderTour(); }
 }
 
 function initViews() {
-  const sw = document.getElementById('persona-switch');
-  if (!sw) return;
-  sw.addEventListener('click', (e) => {
-    const b = e.target.closest('button[data-view]');
-    if (b) applyView(b.dataset.view);
+  const cards = document.getElementById('persona-switch');
+  if (cards) cards.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-view]');
+    if (b) startTour(b.dataset.view);
   });
-  // One handler for every in-page link: if the target is outside the current
-  // path, open the full page first instead of failing silently.
+  const nx = document.getElementById('tour-next'), pv = document.getElementById('tour-prev'), ex = document.getElementById('tour-exit');
+  if (nx) nx.addEventListener('click', () => {
+    const p = PATHS[TOUR.path];
+    if (p && TOUR.idx === p.steps.length - 1) { endTour(); scrollToSection(document.getElementById('team')); }
+    else goToStep(TOUR.idx + 1);
+  });
+  if (pv) pv.addEventListener('click', () => goToStep(TOUR.idx - 1));
+  if (ex) ex.addEventListener('click', endTour);
+  document.addEventListener('keydown', (e) => {
+    if (!TOUR.path || /INPUT|SELECT|TEXTAREA/.test((e.target.tagName || ''))) return;
+    if (e.key === 'ArrowRight') goToStep(TOUR.idx + 1);
+    else if (e.key === 'ArrowLeft') goToStep(TOUR.idx - 1);
+    else if (e.key === 'Escape') endTour();
+  });
+  // One smooth handler for every in-page link (accounts for the sticky header).
   document.addEventListener('click', (e) => {
     const a = e.target.closest('a[href^="#"]');
     if (!a) return;
@@ -2229,18 +2248,23 @@ function initViews() {
     e.preventDefault();
     const nav = document.getElementById('topnav'), tgl = document.getElementById('nav-toggle');
     if (nav && nav.classList.contains('open')) { nav.classList.remove('open'); if (tgl) tgl.setAttribute('aria-expanded', 'false'); }
-    if (el.hidden) {
-      applyView('all');
-      const hint = document.getElementById('persona-hint');
-      if (hint) hint.textContent = 'Opened the full page to show “' + (SECTION_LABELS[id] || id) + '”. Pick a role to return to a guided path.';
-    }
     scrollToSection(el);
     try { history.replaceState(null, '', location.pathname + location.search + '#' + id); } catch (err) { /* ignore */ }
   });
-  let saved = 'all';
+  // Resume a path from a shared link (?view=officer); never auto-start from storage.
   const fromUrl = new URLSearchParams(location.search).get('view');
-  try { saved = fromUrl || localStorage.getItem('bd_fireops_view') || 'all'; } catch (e) { saved = fromUrl || 'all'; }
-  applyView(saved);
+  if (PATHS[fromUrl]) setTimeout(() => startTour(fromUrl), 300);
+}
+
+// Sections ease in once as they enter the viewport.
+function initReveal() {
+  const secs = document.querySelectorAll('main > section:not(.hero), main > .chapter');
+  if (!('IntersectionObserver' in window)) return;
+  document.body.classList.add('reveal-ready');
+  const io = new IntersectionObserver((entries) => entries.forEach((en) => {
+    if (en.isIntersecting) { en.target.classList.add('in-view'); io.unobserve(en.target); }
+  }), { rootMargin: '0px 0px -8% 0px', threshold: 0.04 });
+  secs.forEach((s) => io.observe(s));
 }
 
 // =============================================================================
@@ -2323,8 +2347,9 @@ function initPriority() {
   const years = [...new Set(CHT_SERIES.map((r) => r.y))].sort((a, b) => b - a);
   ys.innerHTML = years.map((y) => '<option>' + y + '</option>').join('');
   ms.innerHTML = MONTH_NAMES.map((n, i) => '<option value="' + (i + 1) + '"' + (i === 2 ? ' selected' : '') + '>' + n + '</option>').join('');
-  ys.addEventListener('change', renderPriority);
-  ms.addEventListener('change', renderPriority);
+  const onPrio = () => { renderPriority(); setFocusPeriod(+ys.value, +ms.value, 'priority'); };
+  ys.addEventListener('change', onPrio);
+  ms.addEventListener('change', onPrio);
   renderPriority();
 }
 
@@ -2364,6 +2389,7 @@ function initCalendar() {
     try { initPriority(); } catch (e) { console.error('[BD-FireOps] priority failed:', e); }
     try { initCalendar(); } catch (e) { console.error('[BD-FireOps] calendar failed:', e); }
     try { initViews(); } catch (e) { console.error('[BD-FireOps] views failed:', e); }
+    try { initReveal(); } catch (e) { console.error('[BD-FireOps] reveal failed:', e); }
     if (slider) updateTimeline(slider.value || 2014);
     if (simSlider) updateSimulator(parseInt(simSlider.value, 10) || 300);
   } catch (err) {

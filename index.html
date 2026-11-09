@@ -35,7 +35,6 @@
 
   <!-- STICKY TELEMETRY TOPBAR -->
   <header class="topbar">
-    <div class="path-progress" aria-hidden="true"><span id="path-progress-fill"></span></div>
     <div class="topbar-inner">
       <a href="#hero" class="brand" aria-label="BD-FireOps Home">
         <img class="brand-logo" src="vendor/nasa-logo.svg" alt="NASA Insignia" width="44" height="37">
@@ -49,11 +48,11 @@
       </a>
 
       <nav id="topnav" class="topnav" aria-label="Jump to section">
-        <a href="#season">Check a season</a>
         <a href="#priority">Priorities</a>
-        <a href="#proof">Proof</a>
+        <a href="#season">Check a season</a>
         <a href="#map-section">Map</a>
         <a href="#matrix">Seasonality</a>
+        <a href="#problem">Proof</a>
         <a href="#noaa20">Sunset</a>
         <a href="#method">Method</a>
         <a href="#team">Team</a>
@@ -101,15 +100,25 @@
         </div>
 
         <div class="persona" role="group" aria-labelledby="persona-label">
-          <span id="persona-label" class="persona-label">Show me the page for</span>
-          <div class="segmented" id="persona-switch">
-            <button type="button" data-view="all" aria-pressed="true">Everyone</button>
-            <button type="button" data-view="public" aria-pressed="false">Community</button>
-            <button type="button" data-view="officer" aria-pressed="false">Forest officer</button>
-            <button type="button" data-view="research" aria-pressed="false">Researcher</button>
+          <span id="persona-label" class="persona-label">Take a guided path</span>
+          <div class="path-cards" id="persona-switch">
+            <button type="button" class="path-card" data-view="officer">
+              <span class="path-role">Forest officer</span>
+              <span class="path-q">Which district should we check first?</span>
+              <span class="path-meta">6 steps · about 3 min</span>
+            </button>
+            <button type="button" class="path-card" data-view="public">
+              <span class="path-role">Community</span>
+              <span class="path-q">Was this season unusual, and when do the Hills burn?</span>
+              <span class="path-meta">6 steps · about 3 min</span>
+            </button>
+            <button type="button" class="path-card" data-view="research">
+              <span class="path-role">Researcher</span>
+              <span class="path-q">How was the 2012 jump removed, and how sure are we?</span>
+              <span class="path-meta">7 steps · about 5 min</span>
+            </button>
           </div>
-          <p class="persona-hint small muted" id="persona-hint" aria-live="polite">All sections are shown, in the full order.</p>
-          <a class="cta-btn primary" id="path-start" href="#season" hidden>Start</a>
+          <p class="persona-hint small muted" id="persona-hint" aria-live="polite">Or scroll: the page reads top to bottom — use it, trust it, understand it.</p>
         </div>
 
         <!-- KPI Telemetry Ribbon -->
@@ -140,11 +149,36 @@
       </div>
     </section>
 
+    <div class="chapter" id="ch-use">
+      <span class="chapter-num">01</span>
+      <div><h2 class="chapter-title">Use it</h2><p class="chapter-sub">Plain answers for forest officers, planners and people who live in the Hills.</p></div>
+    </div>
+
+    <!-- OFFICER TASK: WHERE TO LOOK FIRST (per-district, own-normal comparison) -->
+    <section class="card" id="priority">
+      <div class="card-header-row">
+        <div>
+          <span class="kicker">USE IT · FOR FOREST OFFICERS</span>
+          <h2>Where should we look first?</h2>
+          <p class="muted">Each district is compared with <em>its own</em> normal for the same month, on one satellite scale. The district furthest above its normal comes first.</p>
+        </div>
+      </div>
+      <div class="priority-controls">
+        <label for="prio-year">Year</label>
+        <select id="prio-year" aria-label="Year"></select>
+        <label for="prio-month">Month</label>
+        <select id="prio-month" aria-label="Month"></select>
+      </div>
+      <p class="priority-headline" id="prio-headline" aria-live="polite"></p>
+      <div class="priority-grid" id="prio-cards"></div>
+      <p class="small muted">A hotspot is a satellite heat detection, not a confirmed fire. Use this to plan field checks, not as an alarm. Historical record 2002&ndash;2021.</p>
+    </section>
+
     <!-- USER TASK: IS THIS SEASON UNUSUAL? (computed in-browser from CHT_SERIES) -->
     <section class="card" id="season">
       <div class="card-header-row">
         <div>
-          <span class="kicker">FOR FOREST OFFICERS &amp; PLANNERS</span>
+          <span class="kicker">USE IT · FOR EVERYONE</span>
           <h2>Was this burning season unusual?</h2>
           <p class="muted">Pick a month. We compare it with the same month in every other year, on one consistent scale.</p>
         </div>
@@ -179,31 +213,11 @@
       </div>
     </section>
 
-    <!-- OFFICER TASK: WHERE TO LOOK FIRST (per-district, own-normal comparison) -->
-    <section class="card" id="priority">
-      <div class="card-header-row">
-        <div>
-          <span class="kicker">FOR FOREST OFFICERS</span>
-          <h2>Where should we look first?</h2>
-          <p class="muted">Each district is compared with <em>its own</em> normal for the same month, on one satellite scale. The district furthest above its normal comes first.</p>
-        </div>
-      </div>
-      <div class="priority-controls">
-        <label for="prio-year">Year</label>
-        <select id="prio-year" aria-label="Year"></select>
-        <label for="prio-month">Month</label>
-        <select id="prio-month" aria-label="Month"></select>
-      </div>
-      <p class="priority-headline" id="prio-headline" aria-live="polite"></p>
-      <div class="priority-grid" id="prio-cards"></div>
-      <p class="small muted">A hotspot is a satellite heat detection, not a confirmed fire. Use this to plan field checks, not as an alarm. Historical record 2002&ndash;2021.</p>
-    </section>
-
     <!-- COMMUNITY TASK: WHEN DO THE HILLS BURN? -->
     <section class="card" id="calendar">
       <div class="card-header-row">
         <div>
-          <span class="kicker">FOR PEOPLE WHO LIVE IN THE HILLS</span>
+          <span class="kicker">USE IT · FOR PEOPLE IN THE HILLS</span>
           <h2>When do the Hills burn?</h2>
           <p class="muted">The average year, built from 20 years of NASA satellite records on one scale.</p>
         </div>
@@ -217,11 +231,150 @@
       </ul>
     </section>
 
+    <!-- STEP 3: INTERACTIVE GIS SATELLITE MAP -->
+    <section class="card" id="map-section">
+      <div class="card-header-row">
+        <div>
+          <span class="kicker">USE IT · WHERE THE FIRES WERE</span>
+          <h2>Chittagong Hill Tracts Fire Distribution Map</h2>
+          <p class="muted">
+            Aggregated NASA FIRMS active fire detections plotted at 0.05° (~5 km) resolution over high-resolution satellite imagery.
+          </p>
+        </div>
+
+        <div class="map-layer-toggles">
+          <button id="toggle-sat-btn" class="layer-toggle-btn active" type="button">Satellite</button>
+          <button id="toggle-carto-btn" class="layer-toggle-btn" type="button">Dark gray</button>
+          <span id="map-cell-count" class="map-stats-counter font-mono">Loading cells...</span>
+        </div>
+      </div>
+
+      <div class="map-outer">
+        <div id="map" class="map" role="region" aria-label="Interactive map of fire detections in Chittagong Hill Tracts"></div>
+
+        <div class="map-legend">
+          <span><i class="dot dot-modis" aria-hidden="true"></i> Aqua MODIS (2002–2021)</span>
+          <span><i class="dot dot-viirs" aria-hidden="true"></i> S-NPP VIIRS (2012–2021)</span>
+          <span><i class="dot dot-line" aria-hidden="true"></i> CHT District Boundaries (BGD-ADM2)</span>
+          <span><i class="dot dot-window" aria-hidden="true"></i> FIRMS Search Bounding Box</span>
+          <span class="small muted" style="margin-left: auto;">Circle radius scales with detection density</span>
+        </div>
+
+        <!-- ANIMATED TIMELINE SLIDER CARD -->
+        <div class="timeline-card">
+          <div class="timeline-header">
+            <div class="timeline-year-group">
+              <span class="muted small">YEAR:</span>
+              <span id="slider-year-badge" class="year-big font-mono">2014</span>
+              <span id="era-regime-text" class="regime-badge font-mono text-blue">Training Years (2012–2018)</span>
+            </div>
+
+            <div class="timeline-playback">
+              <button id="play-btn" class="play-btn" type="button">Auto play 2002–2021</button>
+            </div>
+          </div>
+
+          <div class="slider-wrapper">
+            <input type="range" id="main-slider" min="2002" max="2021" value="2014" step="1" class="giant-slider"
+                   aria-label="Filter fire map by year">
+            <div class="slider-scale">
+              <span>2002 (Aqua Start)</span>
+              <span>2012 (VIIRS Shift)</span>
+              <span>2021 (Test Horizon)</span>
+            </div>
+          </div>
+
+          <!-- Quick Jump Preset Pills -->
+          <div class="year-pills" role="group" aria-label="Quick jump to milestone years">
+            <span class="muted small" style="display: flex; align-items: center;">Quick Jumps:</span>
+            <button class="year-pill" data-year="2002" type="button">2002 (Launch)</button>
+            <button class="year-pill" data-year="2007" type="button">2007 (Peak Fire Year)</button>
+            <button class="year-pill" data-year="2012" type="button">2012 (Sensor Shift)</button>
+            <button class="year-pill active" data-year="2014" type="button">2014 (Naive Join Peak)</button>
+            <button class="year-pill" data-year="2019" type="button">2019 (Test Start)</button>
+            <button class="year-pill" data-year="2021" type="button">2021 (Held-out End)</button>
+          </div>
+
+          <!-- SENSOR PROVENANCE STRIP (2002–2026+) -->
+          <div class="provenance-strip-wrapper" aria-label="Sensor satellite observation custody chain">
+            <div class="provenance-strip-header">
+              <span class="muted small">OBSERVATION PLATFORM CUSTODY:</span>
+              <span id="active-sensor-name" class="font-mono text-green small">S-NPP VIIRS (375 m) · calibration &amp; training</span>
+            </div>
+            <div class="provenance-strip" role="img" aria-label="Timeline colored by satellite sensor custody">
+<!-- BEGIN:SENSOR_CUSTODY -->
+              <div class="provenance-segment seg-modis" data-start="2002-07" data-end="2011-12" data-label="Aqua MODIS (1 km) · reference observations" style="flex: 114;" title="2002-07–2011-12: Aqua MODIS (1 km) · reference observations">
+                <span class="seg-label">Aqua MODIS (2002–2011)</span>
+              </div>
+              <div class="provenance-segment seg-viirs-train active" data-start="2012-01" data-end="2018-12" data-label="S-NPP VIIRS (375 m) · calibration &amp; training" style="flex: 84;" title="2012-01–2018-12: S-NPP VIIRS (375 m) · calibration &amp; training">
+                <span class="seg-label">S-NPP VIIRS Train</span>
+              </div>
+              <div class="provenance-segment seg-viirs-test" data-start="2019-01" data-end="2021-12" data-label="S-NPP VIIRS (375 m) · held-out validation" style="flex: 36;" title="2019-01–2021-12: S-NPP VIIRS (375 m) · held-out validation">
+                <span class="seg-label">S-NPP VIIRS Test</span>
+              </div>
+              <div class="provenance-segment seg-gap" data-start="2022-01" data-end="2026-10" data-label="No archive downloaded (—) · delivery gap" style="flex: 58;" title="2022-01–2026-10: No archive downloaded (—) · delivery gap">
+                <span class="seg-label">Archive gap (2022-01–2026-10)</span>
+              </div>
+              <div class="provenance-segment seg-noaa20" data-start="2026-11" data-end="2099-12" data-label="NOAA-20 / 21 VIIRS (375 m) · forward continuity leg" style="flex: 60;" title="2026-11–present: NOAA-20 / 21 VIIRS (375 m) · forward continuity leg">
+                <span class="seg-label">NOAA-20 / 21 (post-Nov 2026)</span>
+              </div>
+<!-- END:SENSOR_CUSTODY -->
+            </div>
+            <div class="provenance-strip-legend">
+<!-- BEGIN:SENSOR_CUSTODY_LEGEND -->
+              <span><i class="dot dot-modis"></i> Aqua MODIS (1 km)</span>
+              <span><i class="dot dot-viirs-train"></i> S-NPP VIIRS Train</span>
+              <span><i class="dot dot-viirs-test"></i> S-NPP VIIRS Test</span>
+              <span><i class="dot dot-gap"></i> No archive downloaded</span>
+              <span><i class="dot dot-noaa20"></i> NOAA-20 / 21 (next leg) — not fitted</span>
+              <span class="small text-amber" style="margin-left: auto;">⚡ S-NPP Science Sunset: 1 Nov 2026</span>
+<!-- END:SENSOR_CUSTODY_LEGEND -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 5: 20-YEAR BURNING SEASONALITY MATRIX (HEATMAP) -->
+    <section class="card" id="matrix">
+      <div class="card-header-row">
+        <div>
+          <span class="kicker">USE IT · WHICH MONTHS BURN</span>
+          <h2>20-Year Monthly Burning Activity Matrix (2002–2021)</h2>
+          <p class="muted">
+            Visualizing the strict seasonal calendar of the Chittagong Hill Tracts: slash-and-burn clearing is concentrated in 
+            <strong>March–April</strong> (tapering through February and May), followed by near-zero fire detections from June to October (the monsoon rains).
+          </p>
+        </div>
+      </div>
+
+      <div id="seasonality-matrix" class="matrix-container" role="group" aria-label="2002 to 2021 monthly fire activity heatmap matrix">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <div class="matrix-legend">
+        <span>Fire Intensity Scale:</span>
+        <span><i class="matrix-legend-swatch" style="background: var(--track); border: 1px solid var(--line);"></i> 0 (Dormant Monsoon)</span>
+        <span><i class="matrix-legend-swatch matrix-legend-na" aria-hidden="true"></i> No data (no coverage)</span>
+        <span><i class="matrix-legend-swatch" style="background: #1e3a5f;"></i> 1–20 (Low)</span>
+        <span><i class="matrix-legend-swatch" style="background: #2563eb;"></i> 21–100 (Moderate)</span>
+        <span><i class="matrix-legend-swatch" style="background: #f59e0b;"></i> 101–250 (High Jhum)</span>
+        <span><i class="matrix-legend-swatch" style="background: #ef4444;"></i> 251–600 (Peak Flare)</span>
+        <span><i class="matrix-legend-swatch" style="background: #ff0055;"></i> 600+ (Extreme Fire Season)</span>
+        <span class="small muted" style="margin-left: auto;">Click any year row to jump the satellite map to that year.</span>
+      </div>
+    </section>
+
+    <div class="chapter" id="ch-trust">
+      <span class="chapter-num">02</span>
+      <div><h2 class="chapter-title">Why you can trust it</h2><p class="chapter-sub">The 2012 jump is a sensor artefact — here is the evidence, tested on years the model never saw.</p></div>
+    </div>
+
     <!-- STEP 1: PROBLEM & FIX (INTERACTIVE DUAL-VIEW LINE CHARTS) -->
     <section class="card" id="problem">
       <div class="card-header-row">
         <div>
-          <span class="kicker">STEP 01 · WHY THE JOIN LOOKS WRONG</span>
+          <span class="kicker">TRUST IT · WHY THE JOIN LOOKS WRONG</span>
           <h2>Wrong Join vs BD-FireOps Harmonized Splice</h2>
           <p class="muted">
             <!-- BEGIN:NAIVE_COPY -->
@@ -295,7 +448,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     <section class="card" id="continuity">
       <div class="card-header-row">
         <div>
-          <span class="kicker">CONTROL TEST · THE CAMERA THAT NEVER CHANGED</span>
+          <span class="kicker">TRUST IT · THE CAMERA THAT NEVER CHANGED</span>
           <h2>Did Fires Really Rise in 2012?</h2>
           <p class="muted">
             Aqua MODIS watched the same three districts before and after 2012 and never changed. Its own record is therefore
@@ -326,49 +479,11 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
 <!-- END:CONTINUITY_PANEL -->
     </section>
 
-    <!-- NOAA-20 / 21 CONTINUITY LEG (F2/P2) -->
-    <section class="card" id="noaa20">
-      <div class="card-header-row">
-        <div>
-          <span class="kicker">SENSOR SUNSET · THE NEXT LEG</span>
-          <h2>Built to Outlive Suomi-NPP (1 November 2026)</h2>
-          <p class="muted">
-            MODIS is already gone; S-NPP VIIRS is next. The pipeline carries a NOAA-20 / 21
-            calibration leg so the record can continue after the sunset, but only after the
-            overlap exists. This page shows the leg's real status, not a promised equation.
-          </p>
-        </div>
-      </div>
-<!-- BEGIN:NOAA20_PANEL -->
-      <div class="proof-grid">
-        <div class="proof-card">
-          <p class="proof-num text-amber" style="font-size: 1.35rem;">Not fitted</p>
-          <p class="proof-label">NOAA-20 calibration leg</p>
-          <p class="proof-hint">Status: insufficient_overlap</p>
-        </div>
-        <div class="proof-card">
-          <p class="proof-num">0 / 24</p>
-          <p class="proof-label">S-NPP / NOAA-20 overlap months downloaded</p>
-          <p class="proof-hint">The code refuses to publish a slope below 24.</p>
-        </div>
-        <div class="proof-card">
-          <p class="proof-num">0</p>
-          <p class="proof-label">Months of record extended past the archive</p>
-          <p class="proof-hint">No NOAA-20 fit is claimed on the page.</p>
-        </div>
-      </div>
-      <p class="proof-note"><strong>Honest status:</strong> the NOAA-20 leg is not fitted — only 0 overlapping months; at least 24 are required.
-      The forward mapping above is still an algebraic inversion, not a validated NOAA-20 model.
-      Fetch the archive (<code>VIIRS_NOAA20_SP</code>) and re-run the pipeline;
-      the leg fits automatically once at least 24 overlap months exist.</p>
-<!-- END:NOAA20_PANEL -->
-    </section>
-
     <!-- STEP 2: PROOF & VALIDATION -->
     <section class="card" id="proof">
       <div class="card-header-row">
         <div>
-          <span class="kicker">STEP 02 · THE PROOF</span>
+          <span class="kicker">TRUST IT · TESTED ON UNSEEN YEARS</span>
           <h2>Blind Verification on Unseen Data (2019–2021)</h2>
           <p class="muted">
             The model was trained exclusively on 2012–2018. We hid the final 3 years (36 months) completely, 
@@ -511,115 +626,11 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       </p>
     </section>
 
-    <!-- STEP 3: INTERACTIVE GIS SATELLITE MAP -->
-    <section class="card" id="map-section">
-      <div class="card-header-row">
-        <div>
-          <span class="kicker">STEP 03 · THE FIRE MAP</span>
-          <h2>Chittagong Hill Tracts Fire Distribution Map</h2>
-          <p class="muted">
-            Aggregated NASA FIRMS active fire detections plotted at 0.05° (~5 km) resolution over high-resolution satellite imagery.
-          </p>
-        </div>
-
-        <div class="map-layer-toggles">
-          <button id="toggle-sat-btn" class="layer-toggle-btn active" type="button">Satellite</button>
-          <button id="toggle-carto-btn" class="layer-toggle-btn" type="button">Dark gray</button>
-          <span id="map-cell-count" class="map-stats-counter font-mono">Loading cells...</span>
-        </div>
-      </div>
-
-      <div class="map-outer">
-        <div id="map" class="map" role="region" aria-label="Interactive map of fire detections in Chittagong Hill Tracts"></div>
-
-        <div class="map-legend">
-          <span><i class="dot dot-modis" aria-hidden="true"></i> Aqua MODIS (2002–2021)</span>
-          <span><i class="dot dot-viirs" aria-hidden="true"></i> S-NPP VIIRS (2012–2021)</span>
-          <span><i class="dot dot-line" aria-hidden="true"></i> CHT District Boundaries (BGD-ADM2)</span>
-          <span><i class="dot dot-window" aria-hidden="true"></i> FIRMS Search Bounding Box</span>
-          <span class="small muted" style="margin-left: auto;">Circle radius scales with detection density</span>
-        </div>
-
-        <!-- ANIMATED TIMELINE SLIDER CARD -->
-        <div class="timeline-card">
-          <div class="timeline-header">
-            <div class="timeline-year-group">
-              <span class="muted small">YEAR:</span>
-              <span id="slider-year-badge" class="year-big font-mono">2014</span>
-              <span id="era-regime-text" class="regime-badge font-mono text-blue">Training Years (2012–2018)</span>
-            </div>
-
-            <div class="timeline-playback">
-              <button id="play-btn" class="play-btn" type="button">Auto play 2002–2021</button>
-            </div>
-          </div>
-
-          <div class="slider-wrapper">
-            <input type="range" id="main-slider" min="2002" max="2021" value="2014" step="1" class="giant-slider"
-                   aria-label="Filter fire map by year">
-            <div class="slider-scale">
-              <span>2002 (Aqua Start)</span>
-              <span>2012 (VIIRS Shift)</span>
-              <span>2021 (Test Horizon)</span>
-            </div>
-          </div>
-
-          <!-- Quick Jump Preset Pills -->
-          <div class="year-pills" role="group" aria-label="Quick jump to milestone years">
-            <span class="muted small" style="display: flex; align-items: center;">Quick Jumps:</span>
-            <button class="year-pill" data-year="2002" type="button">2002 (Launch)</button>
-            <button class="year-pill" data-year="2007" type="button">2007 (Peak Fire Year)</button>
-            <button class="year-pill" data-year="2012" type="button">2012 (Sensor Shift)</button>
-            <button class="year-pill active" data-year="2014" type="button">2014 (Naive Join Peak)</button>
-            <button class="year-pill" data-year="2019" type="button">2019 (Test Start)</button>
-            <button class="year-pill" data-year="2021" type="button">2021 (Held-out End)</button>
-          </div>
-
-          <!-- SENSOR PROVENANCE STRIP (2002–2026+) -->
-          <div class="provenance-strip-wrapper" aria-label="Sensor satellite observation custody chain">
-            <div class="provenance-strip-header">
-              <span class="muted small">OBSERVATION PLATFORM CUSTODY:</span>
-              <span id="active-sensor-name" class="font-mono text-green small">S-NPP VIIRS (375 m) · calibration &amp; training</span>
-            </div>
-            <div class="provenance-strip" role="img" aria-label="Timeline colored by satellite sensor custody">
-<!-- BEGIN:SENSOR_CUSTODY -->
-              <div class="provenance-segment seg-modis" data-start="2002-07" data-end="2011-12" data-label="Aqua MODIS (1 km) · reference observations" style="flex: 114;" title="2002-07–2011-12: Aqua MODIS (1 km) · reference observations">
-                <span class="seg-label">Aqua MODIS (2002–2011)</span>
-              </div>
-              <div class="provenance-segment seg-viirs-train active" data-start="2012-01" data-end="2018-12" data-label="S-NPP VIIRS (375 m) · calibration &amp; training" style="flex: 84;" title="2012-01–2018-12: S-NPP VIIRS (375 m) · calibration &amp; training">
-                <span class="seg-label">S-NPP VIIRS Train</span>
-              </div>
-              <div class="provenance-segment seg-viirs-test" data-start="2019-01" data-end="2021-12" data-label="S-NPP VIIRS (375 m) · held-out validation" style="flex: 36;" title="2019-01–2021-12: S-NPP VIIRS (375 m) · held-out validation">
-                <span class="seg-label">S-NPP VIIRS Test</span>
-              </div>
-              <div class="provenance-segment seg-gap" data-start="2022-01" data-end="2026-10" data-label="No archive downloaded (—) · delivery gap" style="flex: 58;" title="2022-01–2026-10: No archive downloaded (—) · delivery gap">
-                <span class="seg-label">Archive gap (2022-01–2026-10)</span>
-              </div>
-              <div class="provenance-segment seg-noaa20" data-start="2026-11" data-end="2099-12" data-label="NOAA-20 / 21 VIIRS (375 m) · forward continuity leg" style="flex: 60;" title="2026-11–present: NOAA-20 / 21 VIIRS (375 m) · forward continuity leg">
-                <span class="seg-label">NOAA-20 / 21 (post-Nov 2026)</span>
-              </div>
-<!-- END:SENSOR_CUSTODY -->
-            </div>
-            <div class="provenance-strip-legend">
-<!-- BEGIN:SENSOR_CUSTODY_LEGEND -->
-              <span><i class="dot dot-modis"></i> Aqua MODIS (1 km)</span>
-              <span><i class="dot dot-viirs-train"></i> S-NPP VIIRS Train</span>
-              <span><i class="dot dot-viirs-test"></i> S-NPP VIIRS Test</span>
-              <span><i class="dot dot-gap"></i> No archive downloaded</span>
-              <span><i class="dot dot-noaa20"></i> NOAA-20 / 21 (next leg) — not fitted</span>
-              <span class="small text-amber" style="margin-left: auto;">⚡ S-NPP Science Sunset: 1 Nov 2026</span>
-<!-- END:SENSOR_CUSTODY_LEGEND -->
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- STEP 4: LIVE CALIBRATION PLAYGROUND -->
     <section class="card" id="try">
       <div class="card-header-row">
         <div>
-          <span class="kicker">STEP 04 · INTERACTIVE SENSOR SIMULATOR</span>
+          <span class="kicker">TRUST IT · TRY THE CONVERSION</span>
           <h2>Live Calibration Playground</h2>
           <p class="muted">
             Drag the slider or pick a scenario to see how many fires MODIS would have counted for that month.
@@ -674,41 +685,54 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       </div>
     </section>
 
-    <!-- STEP 5: 20-YEAR BURNING SEASONALITY MATRIX (HEATMAP) -->
-    <section class="card" id="matrix">
+    <!-- NOAA-20 / 21 CONTINUITY LEG (F2/P2) -->
+    <section class="card" id="noaa20">
       <div class="card-header-row">
         <div>
-          <span class="kicker">STEP 05 · WHICH MONTHS BURN?</span>
-          <h2>20-Year Monthly Burning Activity Matrix (2002–2021)</h2>
+          <span class="kicker">TRUST IT · AFTER SUOMI-NPP</span>
+          <h2>Built to Outlive Suomi-NPP (1 November 2026)</h2>
           <p class="muted">
-            Visualizing the strict seasonal calendar of the Chittagong Hill Tracts: slash-and-burn clearing is concentrated in 
-            <strong>March–April</strong> (tapering through February and May), followed by near-zero fire detections from June to October (the monsoon rains).
+            MODIS is already gone; S-NPP VIIRS is next. The pipeline carries a NOAA-20 / 21
+            calibration leg so the record can continue after the sunset, but only after the
+            overlap exists. This page shows the leg's real status, not a promised equation.
           </p>
         </div>
       </div>
-
-      <div id="seasonality-matrix" class="matrix-container" role="group" aria-label="2002 to 2021 monthly fire activity heatmap matrix">
-        <!-- Rendered dynamically by app.js -->
+<!-- BEGIN:NOAA20_PANEL -->
+      <div class="proof-grid">
+        <div class="proof-card">
+          <p class="proof-num text-amber" style="font-size: 1.35rem;">Not fitted</p>
+          <p class="proof-label">NOAA-20 calibration leg</p>
+          <p class="proof-hint">Status: insufficient_overlap</p>
+        </div>
+        <div class="proof-card">
+          <p class="proof-num">0 / 24</p>
+          <p class="proof-label">S-NPP / NOAA-20 overlap months downloaded</p>
+          <p class="proof-hint">The code refuses to publish a slope below 24.</p>
+        </div>
+        <div class="proof-card">
+          <p class="proof-num">0</p>
+          <p class="proof-label">Months of record extended past the archive</p>
+          <p class="proof-hint">No NOAA-20 fit is claimed on the page.</p>
+        </div>
       </div>
-
-      <div class="matrix-legend">
-        <span>Fire Intensity Scale:</span>
-        <span><i class="matrix-legend-swatch" style="background: var(--track); border: 1px solid var(--line);"></i> 0 (Dormant Monsoon)</span>
-        <span><i class="matrix-legend-swatch matrix-legend-na" aria-hidden="true"></i> No data (no coverage)</span>
-        <span><i class="matrix-legend-swatch" style="background: #1e3a5f;"></i> 1–20 (Low)</span>
-        <span><i class="matrix-legend-swatch" style="background: #2563eb;"></i> 21–100 (Moderate)</span>
-        <span><i class="matrix-legend-swatch" style="background: #f59e0b;"></i> 101–250 (High Jhum)</span>
-        <span><i class="matrix-legend-swatch" style="background: #ef4444;"></i> 251–600 (Peak Flare)</span>
-        <span><i class="matrix-legend-swatch" style="background: #ff0055;"></i> 600+ (Extreme Fire Season)</span>
-        <span class="small muted" style="margin-left: auto;">Click any year row to jump the satellite map to that year.</span>
-      </div>
+      <p class="proof-note"><strong>Honest status:</strong> the NOAA-20 leg is not fitted — only 0 overlapping months; at least 24 are required.
+      The forward mapping above is still an algebraic inversion, not a validated NOAA-20 model.
+      Fetch the archive (<code>VIIRS_NOAA20_SP</code>) and re-run the pipeline;
+      the leg fits automatically once at least 24 overlap months exist.</p>
+<!-- END:NOAA20_PANEL -->
     </section>
+
+    <div class="chapter" id="ch-understand">
+      <span class="chapter-num">03</span>
+      <div><h2 class="chapter-title">How it works and where it stops</h2><p class="chapter-sub">The open method, the words we use, and the honest limits.</p></div>
+    </div>
 
     <!-- PLAIN-LANGUAGE GLOSSARY -->
     <section class="card" id="glossary">
       <div class="card-header-row">
         <div>
-          <span class="kicker">PLAIN WORDS</span>
+          <span class="kicker">UNDERSTAND IT · PLAIN WORDS</span>
           <h2>What the terms on this page mean</h2>
         </div>
       </div>
@@ -724,30 +748,11 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       </dl>
     </section>
 
-    <!-- STEP 6: LIMITS -->
-    <section class="card limits" id="limits">
-      <div class="card-header-row">
-        <div>
-          <span class="kicker">HONEST SCIENTIFIC LIMITS</span>
-          <h2>What BD-FireOps Is and Is Not</h2>
-          <p class="muted">Where this tool stops — stated plainly.</p>
-        </div>
-      </div>
-
-      <ul class="plain-list">
-        <li><strong>Not a Live Fire Alarm:</strong> This system harmonizes historical climate and environmental records for 2002–2021. It is not an active real-time dispatch feed.</li>
-        <li><strong>Region-Specific Scope:</strong> Empirically calibrated specifically for the 3 hill districts of Bangladesh (Bandarban, Rangamati, Khagrachhari). Applying these coefficients to boreal or tropical rainforest biomes requires local recalibration.</li>
-        <li><strong>Detection Realities:</strong> NASA FIRMS reports positive thermal detections. Absence of detection does not guarantee absence of ground fire; heavy monsoon cloud cover (June–October) or satellite orbital overpass gaps can obscure active burning.</li>
-        <li><strong>No Fire-Cause Attribution:</strong> BD-FireOps standardizes fire observation numbers; it does not classify whether a thermal anomaly was intentional Jhum agricultural clearing or accidental forest wildfire.</li>
-        <li><strong>Operational Succession:</strong> Suomi-NPP VIIRS delivery officially terminates on <strong>November 1, 2026</strong>. Future pipelines must extend this methodology to NOAA-20 (VJ114) and NOAA-21 (VJ214).</li>
-      </ul>
-    </section>
-
     <!-- STEP 7: METHODOLOGY -->
     <section class="card method" id="method">
       <div class="card-header-row">
         <div>
-          <span class="kicker">OPEN SOURCE · STEP BY STEP</span>
+          <span class="kicker">UNDERSTAND IT · OPEN METHOD</span>
           <h2>Five Steps, Completely Open Source</h2>
           <p class="muted">Every data point, script, and test is version-controlled and reproducible.</p>
         </div>
@@ -772,18 +777,36 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       </ol>
     </section>
 
+    <!-- STEP 6: LIMITS -->
+    <section class="card limits" id="limits">
+      <div class="card-header-row">
+        <div>
+          <span class="kicker">UNDERSTAND IT · HONEST LIMITS</span>
+          <h2>What BD-FireOps Is and Is Not</h2>
+          <p class="muted">Where this tool stops — stated plainly.</p>
+        </div>
+      </div>
+
+      <ul class="plain-list">
+        <li><strong>Not a Live Fire Alarm:</strong> This system harmonizes historical climate and environmental records for 2002–2021. It is not an active real-time dispatch feed.</li>
+        <li><strong>Region-Specific Scope:</strong> Empirically calibrated specifically for the 3 hill districts of Bangladesh (Bandarban, Rangamati, Khagrachhari). Applying these coefficients to boreal or tropical rainforest biomes requires local recalibration.</li>
+        <li><strong>Detection Realities:</strong> NASA FIRMS reports positive thermal detections. Absence of detection does not guarantee absence of ground fire; heavy monsoon cloud cover (June–October) or satellite orbital overpass gaps can obscure active burning.</li>
+        <li><strong>No Fire-Cause Attribution:</strong> BD-FireOps standardizes fire observation numbers; it does not classify whether a thermal anomaly was intentional Jhum agricultural clearing or accidental forest wildfire.</li>
+        <li><strong>Operational Succession:</strong> Suomi-NPP VIIRS delivery officially terminates on <strong>November 1, 2026</strong>. Future pipelines must extend this methodology to NOAA-20 (VJ114) and NOAA-21 (VJ214).</li>
+      </ul>
+    </section>
+
     <!-- TEAM, AI USE & DATA SOURCES (Participants Guide: members with roles, AI disclosure, data list) -->
     <section class="card" id="team">
       <div class="card-header-row">
         <div>
-          <span class="kicker">WHO BUILT THIS &amp; HOW</span>
+          <span class="kicker">CREDITS · WHO BUILT THIS</span>
           <h2>Team, data and use of AI</h2>
         </div>
       </div>
       <div class="team-grid">
         <div>
           <h3>Team Claude Fable 7.0 &middot; Dhaka</h3>
-          <!-- TODO(team): replace every bracketed line with a real name and role before submitting. -->
           <ul class="plain-list team-list">
             <li>Shamim Shahriyar &mdash; Data &amp; pipeline (analysis/)</li>
             <li>Tanjum Raisa &mdash; Web dashboard (index.html, app.js)</li>
@@ -811,6 +834,22 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
   </main>
+
+  <!-- GUIDED PATH DOCK (shown only while a path is active) -->
+  <div class="tour-dock" id="tour-dock" role="region" aria-label="Guided path" hidden>
+    <div class="tour-progress" aria-hidden="true"><span id="tour-progress-fill"></span></div>
+    <div class="tour-row">
+      <div class="tour-info">
+        <span class="tour-role" id="tour-role"></span>
+        <span class="tour-step" id="tour-step" aria-live="polite"></span>
+      </div>
+      <div class="tour-actions">
+        <button type="button" class="tour-btn" id="tour-prev" aria-label="Previous step">←</button>
+        <button type="button" class="tour-btn primary" id="tour-next">Next</button>
+        <button type="button" class="tour-btn ghost" id="tour-exit" aria-label="Leave guided path">✕</button>
+      </div>
+    </div>
+  </div>
 
   <!-- MODERN APPLICATION FOOTER -->
   <footer class="footer">
