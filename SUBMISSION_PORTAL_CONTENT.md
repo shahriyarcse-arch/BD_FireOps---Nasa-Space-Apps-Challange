@@ -187,10 +187,10 @@ Record this walkthrough using OBS Studio, Loom, or Windows Game Bar (`Win + G`).
 
 | Name | Role |
 | :--- | :--- |
-| `[Member 1]` | Data & pipeline |
-| `[Member 2]` | Web dashboard |
-| `[Member 3]` | Science validation & documentation |
-| `[Member 4]` | Story, video & presentation |
+| Shamim Shahriyar | Data & pipeline |
+| Tanjum Raisa | Web dashboard |
+| Rashedul Anik | Science validation & documentation |
+| Nusrat Alam Lamim | Story, video & presentation |
 
 Also replace the dashed placeholders in the **Team** section of `index.html`. Under-18 members: no recognisable name, voice or face in any video or submission (Guide §10).
 
@@ -200,7 +200,7 @@ Also replace the dashed placeholders in the **Team** section of `index.html`. Un
 
 The Guide requires, in **every** video: team name, **every member by name**, the problem and challenge statement; Video 2 also needs a **working demo** and **NASA datasets said out loud**, with **English subtitles**, under 240 s.
 
-1. **0:00 opening line, replace with:** *"We are Team Claude Fable 7.0 — [names] — answering the 2026 challenge Harmonization of MODIS and VIIRS Hot Spots."*
+1. **0:00 opening line, replace with:** *"We are Team Claude Fable 7.0 — Shamim Shahriyar, Tanjum Raisa, Rashedul Anik, and Nusrat Alam Lamim — answering the 2026 challenge Harmonization of MODIS and VIIRS Hot Spots."*
 2. **Show the three audience views (about 20 s):** click *Forest officer* in the hero switch, set **April 2014**: *"An officer asks where to look first. BD-FireOps compares each district with its own normal — Rangamati is ranked first, at about twice its usual April."* Click *See 2014 on the map*. Then click *Community*: *"For people in the hills, almost all burning falls in March and April."*
 3. **Add at about 1:55 (swap for part of the simulator segment):** open **Check a season**, choose *March 2019*: *"A forest officer asks: was this March unusual? BD-FireOps answers in plain words — within the normal range, ranked 6 of 19 years — and gives the uncertainty."* Then click **Download CSV**.
 4. **Say the data aloud:** *"We use NASA FIRMS MODIS_SP from Aqua and VIIRS_SNPP_SP, plus geoBoundaries district polygons."*
@@ -212,7 +212,7 @@ The Guide requires, in **every** video: team name, **every member by name**, the
 
 | Time | On screen | Voiceover |
 | :--- | :--- | :--- |
-| 0–5 s | Title card: BD-FireOps · Team Claude Fable 7.0 · member names | *"Team Claude Fable 7.0: [names]."* |
+| 0–5 s | Title card: BD-FireOps · Team Claude Fable 7.0 · Shamim, Tanjum, Rashedul, Nusrat | *"Team Claude Fable 7.0: Shamim Shahriyar, Tanjum Raisa, Rashedul Anik, and Nusrat Alam Lamim."* |
 | 5–12 s | Chart A jump at 2012 | *"Join NASA's MODIS and VIIRS fire records and Bangladesh's hill fires seem to triple overnight."* |
 | 12–18 s | Control panel: MODIS −23.1% | *"But the camera that never changed saw burning fall. It's the sensor, not the forest."* |
 | 18–26 s | Chart B, then the Check-a-season answer | *"BD-FireOps puts both on one scale from NASA FIRMS data, so anyone can ask: was this season unusual?"* |
