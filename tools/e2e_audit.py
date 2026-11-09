@@ -199,5 +199,17 @@ missing_ids = [t for t in js_targets if f'id="{t}"' not in html]
 chk("every getElementById target exists in HTML", not missing_ids,
     str(missing_ids) if missing_ids else f"({len(js_targets)} targets)")
 
+# --- Participants Guide surfaces: user task, plain glossary, team / AI / data disclosure ---
+for sid in ("season", "glossary", "team"):
+    chk(f"section #{sid} present", f'id="{sid}"' in html)
+chk("Use of AI disclosed on page", "Use of AI" in html)
+chk("Season check reads only generated data", "function seasonAssessment" in js and "CHT_SERIES" in js)
+chk("CSV export wired", 'id="download-csv"' in html and "downloadHarmonizedCsv" in js)
+
+# Submission readiness: warn (not fail) while member placeholders remain.
+placeholders = html.count("[Member name]")
+if placeholders:
+    print(f"WARN - {placeholders} team-member placeholders still in index.html (fill before submitting)")
+
 print("TOTAL FAILURES:", len(fails))
 sys.exit(1 if fails else 0)

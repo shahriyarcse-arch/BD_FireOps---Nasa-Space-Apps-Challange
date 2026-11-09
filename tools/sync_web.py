@@ -31,6 +31,8 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 CSV = ROOT / "data" / "processed" / "monthly_harmonized.csv"
 METRICS = ROOT / "data" / "processed" / "metrics.json"
+DISTRICT_CSV = ROOT / "data" / "processed" / "monthly_districts.csv"
+DISTRICT_METRICS = ROOT / "data" / "processed" / "district_metrics.json"
 APPJS = ROOT / "app.js"
 INDEX = ROOT / "index.html"
 
@@ -100,7 +102,9 @@ def build_map_cells() -> str:
         d["clat"] = (d["latitude"] / CELL_DEG).round() * CELL_DEG
         d["clon"] = (d["longitude"] / CELL_DEG).round() * CELL_DEG
         g = d.groupby(["year", "clat", "clon"]).size().reset_index(name="n")
-        g = g.sort_values("n", ascending=False).groupby("year").head(CELL_TOP_N)
+        # Stable, fully-keyed sort: ties at the top-N cutoff resolve the same way on every
+        # pandas version, so `sync_web.py --check` cannot flap between machines.
+        g = g.sort_values(["n", "clat", "clon"], ascending=[False, True, True], kind="mergesort").groupby("year").head(CELL_TOP_N)
         for _, r in g.iterrows():
             cells[sensor].append(
                 (int(r["year"]), round(float(r["clat"]), 3), round(float(r["clon"]), 3), int(r["n"]))
@@ -382,6 +386,52 @@ def build_series() -> str:
     if lines[-1].endswith(","):
         lines[-1] = lines[-1][:-1]
     lines.append("];")
+    return "\n".join(lines)
+
+
+def build_district_series() -> str:
+    """Per-district monthly series for the officer view.
+
+    MODIS months are observed values; VIIRS-era months use each district's own
+    held-out-tested fit from district_metrics.json (same split as the region).
+    Districts whose fit is not "fitted" fall back to observed MODIS only.
+    """
+    df = pd.read_csv(DISTRICT_CSV)
+    dm = json.loads(DISTRICT_METRICS.read_text(encoding="utf-8"))
+    fits, series = {}, {}
+    for name in sorted(df["district"].unique()):
+        d = dm.get(name, {})
+        fitted = d.get("status") == "fitted" and d.get("slope") is not None
+        fits[name] = {
+            "slope": d.get("slope") if fitted else None,
+            "intercept": d.get("intercept") if fitted else None,
+            "slopeCI": d.get("bootstrap_slope_95_ci") if fitted else None,
+            "quality": d.get("fit_quality", "n/a"),
+            "rmse": d.get("held_out_rmse"),
+            "scalarRmse": d.get("held_out_scalar_rmse"),
+        }
+        rows = []
+        for _, r in df[df["district"] == name].sort_values("month").iterrows():
+            modis = _num(r["modis"], 0)
+            viirs = _num(r["viirs"], 0)
+            if viirs is not None and fitted:
+                harm = round(d["slope"] * viirs + d["intercept"], 1)
+            else:
+                harm = modis
+            js = lambda v: "null" if v is None else (str(int(v)) if float(v).is_integer() else str(v))
+            rows.append(f'["{r["month"]}",{js(modis)},{js(viirs)},{js(harm)}]')
+        series[name] = rows
+    lines = ["// Rows: [month, modis_observed, viirs_raw, harmonized_modis_equivalent]",
+             "const DISTRICT_FITS = " + json.dumps(fits, sort_keys=True) + ";",
+             "const DISTRICT_SERIES = {"]
+    for name, rows in series.items():
+        lines.append(f'  "{name}": [')
+        for i in range(0, len(rows), 6):
+            lines.append("    " + ",".join(rows[i:i + 6]) + ",")
+        lines[-1] = lines[-1].rstrip(",")
+        lines.append("  ],")
+    lines[-1] = lines[-1].rstrip(",")
+    lines.append("};")
     return "\n".join(lines)
 
 
@@ -719,6 +769,7 @@ def main(argv: list[str] | None = None) -> int:
 
     new_js = replace_block(js, "// BEGIN:CHT_SERIES", "// END:CHT_SERIES", build_series())
     new_js = replace_block(new_js, "// BEGIN:MODEL_PARAMS", "// END:MODEL_PARAMS", build_model_params(metrics))
+    new_js = replace_block(new_js, "// BEGIN:DISTRICT_SERIES", "// END:DISTRICT_SERIES", build_district_series())
     new_js = replace_block(new_js, "// BEGIN:MAP_CELLS", "// END:MAP_CELLS", build_map_cells())
     new_js = replace_block(new_js, "// BEGIN:CHT_BOUNDARY", "// END:CHT_BOUNDARY", build_cht_boundary())
     new_html = replace_block(html, "<!-- BEGIN:VALIDATION_METRICS -->", "<!-- END:VALIDATION_METRICS -->",

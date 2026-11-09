@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -48,14 +48,14 @@
       </a>
 
       <nav id="topnav" class="topnav" aria-label="Jump to section">
-        <a href="#problem">Problem</a>
+        <a href="#season">Check a season</a>
+        <a href="#priority">Priorities</a>
         <a href="#proof">Proof</a>
         <a href="#map-section">Map</a>
-        <a href="#try">Try it</a>
         <a href="#matrix">Seasonality</a>
         <a href="#noaa20">Sunset</a>
-        <a href="#limits">Limits</a>
         <a href="#method">Method</a>
+        <a href="#team">Team</a>
       </nav>
 
       <div class="topbar-actions">
@@ -78,19 +78,37 @@
   <main id="main-content" class="page">
 
     <!-- HERO SECTION · MISSION STATEMENT & TELEMETRY HUD -->
-    <section class="card hero" id="hero">
+    <section class="card hero" id="hero" data-views="all">
       <div class="hero-content">
         <span class="kicker">EARTH OBSERVATION · CROSS-SENSOR HARMONIZATION</span>
-        <h1>One Continuous Fire Record for 20 Years of NASA Satellite Data</h1>
+        <h1>Hill-Tracts fires did not triple in 2012. The satellite camera changed.</h1>
         <p class="hero-lead">
-          Two NASA satellite instruments have monitored forest and agricultural burning in the Chittagong Hill Tracts:
-          <strong>Aqua MODIS</strong> (2002–2021, 1 km pixels) and <strong>S-NPP VIIRS</strong> (2012–2021, 375 m pixels).
-          Because VIIRS sees small fires that MODIS missed, joining the two cameras directly makes it look like fires
-          <span class="hero-highlight">almost tripled overnight (+185%)</span>.
-          <strong>BD-FireOps</strong> rebuilds the record on one footing and, just as importantly, says plainly how much of
-          that repair is simple scaling and how much is ours. It is a calibration for these three districts with a measured
-          confidence range and a real held-out test, not a universal MODIS-to-VIIRS conversion.
+          NASA has watched burning in Bandarban, Rangamati and Khagrachhari since 2002 with two different cameras:
+          <strong>Aqua MODIS</strong> (1 km pixels) and, from 2012, the sharper <strong>S-NPP VIIRS</strong> (375 m pixels).
+          Joined directly, the record makes fires look <span class="hero-highlight">almost three times higher (+185%) overnight</span>.
+          <strong>BD-FireOps</strong> puts both cameras on one scale, so a forest officer or researcher can compare any
+          season with a true 20-year normal &mdash; and see how sure we are.
         </p>
+        <div class="hero-answer" role="note">
+          <strong>Bottom line:</strong> the camera that never changed (MODIS) saw burning <em>fall</em> about 23% after 2012.
+          The jump is a sensor artefact, not a fire trend.
+        </div>
+        <p class="hero-bn" lang="bn">সহজ কথায়: ২০১২ সালে পাহাড়ে আগুন তিনগুণ হয়নি — স্যাটেলাইটের ক্যামেরা বদলেছিল। BD-FireOps দুই ক্যামেরাকে এক মাপে এনে ২০ বছরের সঠিক রেকর্ড দেখায়।</p>
+        <div class="hero-cta">
+          <a class="cta-btn primary" href="#season">Check a burning season</a>
+          <a class="cta-btn" href="#problem">See the proof</a>
+        </div>
+
+        <div class="persona" role="group" aria-labelledby="persona-label">
+          <span id="persona-label" class="persona-label">Show me the page for</span>
+          <div class="segmented" id="persona-switch">
+            <button type="button" data-view="all" aria-pressed="true">Everyone</button>
+            <button type="button" data-view="public" aria-pressed="false">Community</button>
+            <button type="button" data-view="officer" aria-pressed="false">Forest officer</button>
+            <button type="button" data-view="research" aria-pressed="false">Researcher</button>
+          </div>
+          <p class="persona-hint small muted" id="persona-hint" aria-live="polite">All sections are shown.</p>
+        </div>
 
         <!-- KPI Telemetry Ribbon -->
         <div class="kpi-ribbon">
@@ -120,8 +138,85 @@
       </div>
     </section>
 
+    <!-- USER TASK: IS THIS SEASON UNUSUAL? (computed in-browser from CHT_SERIES) -->
+    <section class="card" id="season" data-views="public officer research">
+      <div class="card-header-row">
+        <div>
+          <span class="kicker">FOR FOREST OFFICERS &amp; PLANNERS</span>
+          <h2>Was this burning season unusual?</h2>
+          <p class="muted">Pick a month. We compare it with the same month in every other year, on one consistent scale.</p>
+        </div>
+      </div>
+
+      <div class="season-tool">
+        <div class="season-controls">
+          <label for="season-year">Year</label>
+          <select id="season-year" aria-label="Year to check"></select>
+          <label for="season-month">Month</label>
+          <select id="season-month" aria-label="Month to check">
+            <option value="1">January</option><option value="2">February</option>
+            <option value="3" selected>March</option><option value="4">April</option>
+            <option value="5">May</option><option value="6">June</option>
+            <option value="7">July</option><option value="8">August</option>
+            <option value="9">September</option><option value="10">October</option>
+            <option value="11">November</option><option value="12">December</option>
+          </select>
+        </div>
+
+        <div id="season-result" class="season-result" aria-live="polite">
+          <p class="season-verdict" id="season-verdict">Loading&hellip;</p>
+          <p class="season-detail" id="season-detail"></p>
+          <div class="season-bars" id="season-bars" aria-hidden="true"></div>
+          <p class="small muted" id="season-source"></p>
+        </div>
+      </div>
+
+      <div class="season-download">
+        <button type="button" id="download-csv" class="cta-btn">Download the 20-year harmonized record (CSV)</button>
+        <span class="small muted">Monthly counts, 2002&ndash;2021, generated from the same data shown on this page. Works offline.</span>
+      </div>
+    </section>
+
+    <!-- OFFICER TASK: WHERE TO LOOK FIRST (per-district, own-normal comparison) -->
+    <section class="card" id="priority" data-views="officer research">
+      <div class="card-header-row">
+        <div>
+          <span class="kicker">FOR FOREST OFFICERS</span>
+          <h2>Where should we look first?</h2>
+          <p class="muted">Each district is compared with <em>its own</em> normal for the same month, on one satellite scale. The district furthest above its normal comes first.</p>
+        </div>
+      </div>
+      <div class="priority-controls">
+        <label for="prio-year">Year</label>
+        <select id="prio-year" aria-label="Year"></select>
+        <label for="prio-month">Month</label>
+        <select id="prio-month" aria-label="Month"></select>
+      </div>
+      <p class="priority-headline" id="prio-headline" aria-live="polite"></p>
+      <div class="priority-grid" id="prio-cards"></div>
+      <p class="small muted">A hotspot is a satellite heat detection, not a confirmed fire. Use this to plan field checks, not as an alarm. Historical record 2002&ndash;2021.</p>
+    </section>
+
+    <!-- COMMUNITY TASK: WHEN DO THE HILLS BURN? -->
+    <section class="card" id="calendar" data-views="public">
+      <div class="card-header-row">
+        <div>
+          <span class="kicker">FOR PEOPLE WHO LIVE IN THE HILLS</span>
+          <h2>When do the Hills burn?</h2>
+          <p class="muted">The average year, built from 20 years of NASA satellite records on one scale.</p>
+        </div>
+      </div>
+      <p class="calendar-headline" id="cal-headline"></p>
+      <div class="calendar-bars" id="cal-bars" role="img" aria-label="Typical hotspots per month"></div>
+      <ul class="tips">
+        <li><strong>Before the season (Jan&ndash;Feb):</strong> clear dry litter near homes, granaries and schools.</li>
+        <li><strong>During jhum burning (Mar&ndash;Apr):</strong> burn only on calm days, keep a cleared firebreak, and never leave a burn unattended.</li>
+        <li><strong>If a fire spreads:</strong> move people away first, then call the Fire Service and inform the local forest office.</li>
+      </ul>
+    </section>
+
     <!-- STEP 1: PROBLEM & FIX (INTERACTIVE DUAL-VIEW LINE CHARTS) -->
-    <section class="card" id="problem">
+    <section class="card" id="problem" data-views="public research">
       <div class="card-header-row">
         <div>
           <span class="kicker">STEP 01 · WHY THE JOIN LOOKS WRONG</span>
@@ -195,7 +290,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- CONTROL TEST: THE SENSOR THAT NEVER CHANGED -->
-    <section class="card" id="continuity">
+    <section class="card" id="continuity" data-views="public research">
       <div class="card-header-row">
         <div>
           <span class="kicker">CONTROL TEST · THE CAMERA THAT NEVER CHANGED</span>
@@ -230,7 +325,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- NOAA-20 / 21 CONTINUITY LEG (F2/P2) -->
-    <section class="card" id="noaa20">
+    <section class="card" id="noaa20" data-views="officer research">
       <div class="card-header-row">
         <div>
           <span class="kicker">SENSOR SUNSET · THE NEXT LEG</span>
@@ -268,7 +363,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- STEP 2: PROOF & VALIDATION -->
-    <section class="card" id="proof">
+    <section class="card" id="proof" data-views="research">
       <div class="card-header-row">
         <div>
           <span class="kicker">STEP 02 · THE PROOF</span>
@@ -415,7 +510,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- STEP 3: INTERACTIVE GIS SATELLITE MAP -->
-    <section class="card" id="map-section">
+    <section class="card" id="map-section" data-views="public officer research">
       <div class="card-header-row">
         <div>
           <span class="kicker">STEP 03 · THE FIRE MAP</span>
@@ -519,7 +614,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- STEP 4: LIVE CALIBRATION PLAYGROUND -->
-    <section class="card" id="try">
+    <section class="card" id="try" data-views="research">
       <div class="card-header-row">
         <div>
           <span class="kicker">STEP 04 · INTERACTIVE SENSOR SIMULATOR</span>
@@ -578,7 +673,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- STEP 5: 20-YEAR BURNING SEASONALITY MATRIX (HEATMAP) -->
-    <section class="card" id="matrix">
+    <section class="card" id="matrix" data-views="public officer research">
       <div class="card-header-row">
         <div>
           <span class="kicker">STEP 05 · WHICH MONTHS BURN?</span>
@@ -607,8 +702,28 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       </div>
     </section>
 
+    <!-- PLAIN-LANGUAGE GLOSSARY -->
+    <section class="card" id="glossary" data-views="public officer">
+      <div class="card-header-row">
+        <div>
+          <span class="kicker">PLAIN WORDS</span>
+          <h2>What the terms on this page mean</h2>
+        </div>
+      </div>
+      <dl class="glossary">
+        <div><dt>Hotspot (detection)</dt><dd>A satellite pixel that was unusually hot when the satellite passed over. Usually a fire, but not a confirmed fire event and not burned area.</dd></div>
+        <div><dt>MODIS / VIIRS</dt><dd>Two NASA satellite cameras. MODIS sees 1 km squares; VIIRS sees 375 m squares, so it catches smaller fires.</dd></div>
+        <div><dt>Harmonized</dt><dd>VIIRS counts converted to what MODIS would have counted, so the whole 20 years sits on one scale.</dd></div>
+        <div><dt>Held-out test</dt><dd>We fitted the conversion on 2012&ndash;2018 only, then checked it on 2019&ndash;2021, data the model never saw.</dd></div>
+        <div><dt>Monthly error (RMSE)</dt><dd>The typical size of a monthly miss, in hotspots. Large months dominate it.</dd></div>
+        <div><dt>Rank agreement (Spearman)</dt><dd>Whether busy and quiet months come out in the right order. 1.0 is perfect.</dd></div>
+        <div><dt>95% range</dt><dd>How much the conversion factor could shift if the data had come out slightly differently (bootstrap). It is a range on the factor, not on a single month.</dd></div>
+        <div><dt>Jhum</dt><dd>Traditional shifting cultivation in the Hill Tracts; fields are cleared by fire mostly in March&ndash;April.</dd></div>
+      </dl>
+    </section>
+
     <!-- STEP 6: LIMITS -->
-    <section class="card limits" id="limits">
+    <section class="card limits" id="limits" data-views="public officer research">
       <div class="card-header-row">
         <div>
           <span class="kicker">HONEST SCIENTIFIC LIMITS</span>
@@ -627,7 +742,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
     </section>
 
     <!-- STEP 7: METHODOLOGY -->
-    <section class="card method" id="method">
+    <section class="card method" id="method" data-views="research">
       <div class="card-header-row">
         <div>
           <span class="kicker">OPEN SOURCE · STEP BY STEP</span>
@@ -653,6 +768,44 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
           <strong>Automated Sync & CI Guards:</strong> Automated continuous-integration pipeline (<code>sync_web.py</code>, <code>sync_readme.py</code>) guaranteeing zero drift between model parameters and presentation surfaces.
         </li>
       </ol>
+    </section>
+
+    <!-- TEAM, AI USE & DATA SOURCES (Participants Guide: members with roles, AI disclosure, data list) -->
+    <section class="card" id="team" data-views="public officer research">
+      <div class="card-header-row">
+        <div>
+          <span class="kicker">WHO BUILT THIS &amp; HOW</span>
+          <h2>Team, data and use of AI</h2>
+        </div>
+      </div>
+      <div class="team-grid">
+        <div>
+          <h3>Team Claude Fable 7.0 &middot; Dhaka</h3>
+          <!-- TODO(team): replace every bracketed line with a real name and role before submitting. -->
+          <ul class="plain-list team-list">
+            <li class="todo-fill">[Member name] &mdash; Data &amp; pipeline (analysis/)</li>
+            <li class="todo-fill">[Member name] &mdash; Web dashboard (index.html, app.js)</li>
+            <li class="todo-fill">[Member name] &mdash; Science validation &amp; documentation</li>
+            <li class="todo-fill">[Member name] &mdash; Story, video &amp; presentation</li>
+          </ul>
+        </div>
+        <div>
+          <h3>NASA &amp; partner data</h3>
+          <ul class="plain-list">
+            <li><strong>NASA FIRMS MODIS_SP</strong> (Aqua, Collection 6.1) &mdash; the 2002&ndash;2021 reference record.</li>
+            <li><strong>NASA FIRMS VIIRS_SNPP_SP</strong> (375 m) &mdash; 2012&ndash;2021, converted to the MODIS scale.</li>
+            <li><strong>NASA FIRMS VIIRS_NOAA20_SP</strong> &mdash; continuity leg after the Suomi-NPP shutdown (fitted only when 24+ overlap months are downloaded).</li>
+            <li><strong>geoBoundaries BGD-ADM2</strong> (CC BY 3.0) &mdash; district polygons that keep India/Myanmar detections out.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Use of AI</h3>
+          <!-- TODO(team): confirm tools and add your own prompts to SUBMISSION_PORTAL_CONTENT.md §5. -->
+          <p class="small">AI assistants (Anthropic Claude) helped review code, audit claims against <code>metrics.json</code>, and draft interface text.
+          Every number on this page is produced by our own open pipeline from NASA data and checked by an automated audit, not by AI.
+          No AI-generated images, voices or data are used. Full prompts and reasoning are listed in the repository.</p>
+        </div>
+      </div>
     </section>
 
   </main>
