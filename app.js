@@ -7,6 +7,19 @@
 // Any uncaught failure (missing vendor lib, old browser) shows a visible,
 // honest banner instead of a silently half-dead page.
 if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
+  // Ensure page refresh always starts at the initial hero section
+  if (typeof history !== 'undefined' && 'scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+  }
+  if (window.location.hash) {
+    try {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    } catch (e) {}
+  }
+  window.scrollTo(0, 0);
+  window.addEventListener('beforeunload', () => { window.scrollTo(0, 0); });
+  window.addEventListener('load', () => { window.scrollTo(0, 0); });
+
   window.addEventListener('error', (e) => {
     console.error('[BD-FireOps] runtime error:', e.error || e.message);
     const banner = document.getElementById('app-error-banner');
@@ -2398,6 +2411,7 @@ function initCalendar() {
     try { initReveal(); } catch (e) { console.error('[BD-FireOps] reveal failed:', e); }
     if (slider) updateTimeline(slider.value || 2014);
     if (simSlider) updateSimulator(parseInt(simSlider.value, 10) || 300);
+    window.scrollTo(0, 0);
   } catch (err) {
     console.error('[BD-FireOps] init failed:', err);
     const banner = document.getElementById('app-error-banner');
