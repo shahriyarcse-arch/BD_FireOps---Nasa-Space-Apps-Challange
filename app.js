@@ -2227,7 +2227,13 @@ function initViews() {
   const nx = document.getElementById('tour-next'), pv = document.getElementById('tour-prev'), ex = document.getElementById('tour-exit');
   if (nx) nx.addEventListener('click', () => {
     const p = PATHS[TOUR.path];
-    if (p && TOUR.idx === p.steps.length - 1) { endTour(); scrollToSection(document.getElementById('team')); }
+    if (p && TOUR.idx === p.steps.length - 1) {
+      const finishedView = TOUR.path;
+      endTour();
+      const card = document.querySelector('#persona-switch [data-view="' + finishedView + '"]') || document.getElementById('persona-switch');
+      scrollToSection(card);
+      if (card) { try { card.focus({ preventScroll: true }); } catch (err) {} }
+    }
     else goToStep(TOUR.idx + 1);
   });
   if (pv) pv.addEventListener('click', () => goToStep(TOUR.idx - 1));

@@ -1630,7 +1630,6 @@ h3 { font-weight: 650; }
 .hero-lead { font-size: clamp(1.08rem, 1.6vw, 1.32rem); line-height: 1.55; color: var(--ink-secondary); max-width: 62ch; }
 .hero-lead strong { color: var(--ink); }
 .hero-highlight { color: var(--fire); font-weight: 600; background: none; }
-.hero-bn { font-size: 1.02rem; color: var(--ink-secondary); max-width: 62ch; margin: 0; font-family: "Noto Sans Bengali", "Hind Siliguri", var(--sans); }
 .hero-answer {
   border: 1px solid var(--line); border-left: 0; border-radius: 16px;
   background: var(--bg-elevated); padding: 16px 20px; font-size: 1.02rem; position: relative; padding-left: 22px;
@@ -1847,7 +1846,6 @@ body.touring { padding-bottom: 96px; }
   .reveal-ready main > section, .reveal-ready main > .chapter { opacity: 1 !important; transform: none !important; transition: none !important; }
   .tour-dock, .path-card { animation: none; transition: none; }
 }
-.hero-bn { font-size: 1.1rem; line-height: 1.7; }
 @media (max-width: 760px) {
   .tour-row { flex-wrap: wrap; gap: 8px; padding: 10px 12px 12px; }
   .tour-info { flex: 1 1 100%; }
