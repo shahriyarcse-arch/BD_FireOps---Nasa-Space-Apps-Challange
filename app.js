@@ -2263,7 +2263,7 @@ function initReveal() {
   document.body.classList.add('reveal-ready');
   const io = new IntersectionObserver((entries) => entries.forEach((en) => {
     if (en.isIntersecting) { en.target.classList.add('in-view'); io.unobserve(en.target); }
-  }), { rootMargin: '0px 0px -8% 0px', threshold: 0.04 });
+  }), { rootMargin: '120px 0px 120px 0px', threshold: 0.01 });
   secs.forEach((s) => io.observe(s));
 }
 

@@ -1798,17 +1798,20 @@ body[data-path] .topnav a { display: inline-flex; align-items: center; gap: 7px;
 .path-meta { font-size: 0.82rem; color: var(--muted); }
 .path-meta::after { content: "  →"; color: var(--ink); }
 
-/* Reveal on scroll */
+/* Reveal on scroll — keep fully visible so content never appears blank while scrolling */
+main > section,
+main > .chapter { opacity: 1; }
 .reveal-ready main > section:not(.hero),
-.reveal-ready main > .chapter { opacity: 0; transform: translateY(18px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
-.reveal-ready main > .in-view { opacity: 1; transform: none; }
+.reveal-ready main > .chapter { opacity: 1; transform: none; }
+.reveal-ready main > section.in-view,
+.reveal-ready main > .chapter.in-view { opacity: 1 !important; transform: none !important; }
 
 /* Spotlight while a path is active */
 body.touring main > section:not(.hero),
-body.touring main > .chapter { transition: opacity .45s ease, transform .7s cubic-bezier(.2,.7,.2,1), box-shadow .45s ease; }
-body.touring main > section.in-view:not(.tour-focus):not(.hero),
-body.touring main > .chapter.in-view { opacity: 0.38; }
-body.touring main > section.tour-focus { opacity: 1; box-shadow: 0 0 0 2px var(--ink), var(--shadow); }
+body.touring main > .chapter { transition: opacity .45s ease, transform .5s cubic-bezier(.2,.7,.2,1), box-shadow .45s ease; }
+body.touring main > section:not(.tour-focus):not(.hero),
+body.touring main > .chapter { opacity: 0.38; }
+body.touring main > section.tour-focus { opacity: 1 !important; box-shadow: 0 0 0 2px var(--ink), var(--shadow); }
 body.touring { padding-bottom: 96px; }
 
 /* Floating dock */
