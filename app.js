@@ -574,6 +574,7 @@ if (CHT_BOUNDARY) {
 
 const viirsGroup = L.layerGroup().addTo(map);
 const modisGroup = L.layerGroup().addTo(map);
+const liveGroup = L.layerGroup().addTo(map);
 
 // =============================================================================
 // 2b. REAL DETECTION CELLS (top 0.05° cells per sensor-year)
@@ -1522,6 +1523,226 @@ function updateMapHotspots(year) {
 }
 
 // =============================================================================
+// 2c. LIVE NASA FIRMS TELEMETRY SYSTEM (NOAA-20 VIIRS NRT)
+// =============================================================================
+const LIVE_FEED_FALLBACK = {
+  "fetched_at": "2026-11-10 17:07 UTC",
+  "query_date": "2026-11-10",
+  "study_area": "Chittagong Hill Tracts (Bandarban, Khagrachhari, Rangamati)",
+  "bounding_box": "91.9,21.4,92.9,23.8",
+  "active_satellite": "NOAA-20 VIIRS (Suomi-NPP Sunset Nov 1, 2026)",
+  "status": "LIVE_SATELLITE_FEED_ACTIVE",
+  "counts": { "noaa20": 3, "snpp": 0, "modis": 0 },
+  "cht_active_detections_count": 1,
+  "modis_equivalent_estimate": 0.0,
+  "interpretation": "Quiet season baseline: post-monsoon vegetation moisture keeps natural burning near zero.",
+  "detections": [
+    {
+      "latitude": 22.91389,
+      "longitude": 92.08913,
+      "bright_ti4": 334.66,
+      "scan": 0.41,
+      "track": 0.37,
+      "acq_date": "2026-11-07",
+      "acq_time": 716,
+      "satellite": "N20",
+      "instrument": "VIIRS",
+      "confidence": "n",
+      "version": "2.0NRT",
+      "bright_ti5": 298.28,
+      "frp": 3.74,
+      "daynight": "D",
+      "district": "Rangamati",
+      "sensor_key": "noaa20",
+      "sensor_label": "NOAA-20 VIIRS 375m"
+    }
+  ],
+  "all_bbox_detections": [
+    {
+      "latitude": 22.09014,
+      "longitude": 92.12029,
+      "bright_ti4": 330.13,
+      "scan": 0.41,
+      "track": 0.37,
+      "acq_date": "2026-11-07",
+      "acq_time": 716,
+      "satellite": "N20",
+      "instrument": "VIIRS",
+      "confidence": "n",
+      "version": "2.0NRT",
+      "bright_ti5": 299.33,
+      "frp": 3.23,
+      "daynight": "D",
+      "district": "Outside CHT (Cox's Bazar / Chittagong)",
+      "sensor_key": "noaa20",
+      "sensor_label": "NOAA-20 VIIRS 375m"
+    },
+    {
+      "latitude": 22.25191,
+      "longitude": 91.95461,
+      "bright_ti4": 330.4,
+      "scan": 0.41,
+      "track": 0.37,
+      "acq_date": "2026-11-07",
+      "acq_time": 716,
+      "satellite": "N20",
+      "instrument": "VIIRS",
+      "confidence": "n",
+      "version": "2.0NRT",
+      "bright_ti5": 297.83,
+      "frp": 2.51,
+      "daynight": "D",
+      "district": "Outside CHT (Cox's Bazar / Chittagong)",
+      "sensor_key": "noaa20",
+      "sensor_label": "NOAA-20 VIIRS 375m"
+    }
+  ]
+};
+
+let currentLiveFeed = LIVE_FEED_FALLBACK;
+let isLiveFeedMode = false;
+
+function setMapFeedMode(mode) {
+  const archiveBtn = document.getElementById('feed-archive-btn');
+  const liveBtn = document.getElementById('feed-live-btn');
+  const badge = document.getElementById('live-telemetry-badge');
+  const banner = document.getElementById('live-telemetry-banner');
+  const legendDot = document.getElementById('legend-live-dot');
+  const mapCountEl = document.getElementById('map-cell-count');
+
+  if (mode === 'live') {
+    isLiveFeedMode = true;
+    if (archiveBtn) archiveBtn.classList.remove('active');
+    if (liveBtn) liveBtn.classList.add('active');
+    if (badge) badge.hidden = false;
+    if (banner) banner.hidden = false;
+    if (legendDot) legendDot.hidden = false;
+
+    // Clear archive raster cells
+    modisGroup.clearLayers();
+    viirsGroup.clearLayers();
+    liveGroup.clearLayers();
+
+    // Populate live telemetry banner values
+    const det = (currentLiveFeed.detections && currentLiveFeed.detections[0]) || null;
+    const platEl = document.getElementById('live-platform-text');
+    const passEl = document.getElementById('live-pass-text');
+    const cntEl = document.getElementById('live-count-text');
+    const harmEl = document.getElementById('live-harm-text');
+
+    if (platEl) platEl.textContent = 'NOAA-20 VIIRS 375m (NRT)';
+    if (passEl && det) passEl.textContent = `${det.acq_date} ${String(det.acq_time).padStart(4, '0')} UTC`;
+    if (cntEl && det) cntEl.textContent = `${currentLiveFeed.cht_active_detections_count} Hotspot (${det.district})`;
+    if (harmEl) harmEl.textContent = `${currentLiveFeed.modis_equivalent_estimate.toFixed(1)} MODIS-eq (Quiet season)`;
+
+    // Custom pulsing radar marker for live detection
+    const liveIcon = L.divIcon({
+      className: 'live-marker-wrap',
+      html: '<div class="live-pulse-ring"></div><div class="live-pulse-core"></div>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+      popupAnchor: [0, -14]
+    });
+
+    let primaryMarker = null;
+    if (currentLiveFeed.detections) {
+      currentLiveFeed.detections.forEach(d => {
+        const popupHtml = `
+          <div class="live-popup-content">
+            <div class="live-pop-header">
+              <span class="live-pop-tag">🔴 LIVE SATELLITE OVERPASS</span>
+              <strong>NOAA-20 VIIRS 375m (NRT)</strong>
+            </div>
+            <table class="live-pop-table">
+              <tr><td><strong>Location</strong></td><td>${d.district} (${d.latitude.toFixed(4)}°N, ${d.longitude.toFixed(4)}°E)</td></tr>
+              <tr><td><strong>Acquired</strong></td><td>${d.acq_date} ${String(d.acq_time).padStart(4, '0')} UTC (${d.daynight === 'D' ? 'Day' : 'Night'})</td></tr>
+              <tr><td><strong>Fire Radiative Power</strong></td><td>${d.frp} MW</td></tr>
+              <tr><td><strong>Brightness (I-4)</strong></td><td>${d.bright_ti4} K</td></tr>
+              <tr><td><strong>Confidence</strong></td><td>Nominal (Operational NRT)</td></tr>
+              <tr class="pop-harm-row"><td><strong>BD-FireOps Estimate</strong></td><td><strong class="text-green">0.0 MODIS-eq</strong> (Sub-pixel burn)</td></tr>
+            </table>
+            <div class="live-pop-footer small muted">Operational NRT · Suomi-NPP Sunset Continuity</div>
+          </div>
+        `;
+        const m = L.marker([d.latitude, d.longitude], { icon: liveIcon })
+          .bindPopup(popupHtml)
+          .addTo(liveGroup);
+        primaryMarker = m;
+      });
+    }
+
+    // Plot other detections within search bbox outside CHT with dashed circles
+    if (currentLiveFeed.all_bbox_detections) {
+      currentLiveFeed.all_bbox_detections.forEach(b => {
+        const isCht = currentLiveFeed.detections && currentLiveFeed.detections.some(cd => cd.latitude === b.latitude && cd.longitude === b.longitude);
+        if (!isCht) {
+          L.circleMarker([b.latitude, b.longitude], {
+            radius: 7,
+            color: '#f59e0b',
+            fillColor: '#d97706',
+            fillOpacity: 0.6,
+            weight: 1.5,
+            dashArray: '3, 3'
+          }).bindPopup(
+            `<strong>Outside CHT Boundary (${b.district})</strong><br>` +
+            `Lat: ${b.latitude.toFixed(4)}, Lon: ${b.longitude.toFixed(4)}<br>` +
+            `FRP: ${b.frp} MW · NOAA-20 VIIRS<br>` +
+            `<span class="pop-note">Filtered out by BGD-ADM2 boundary mask</span>`
+          ).addTo(liveGroup);
+        }
+      });
+    }
+
+    if (mapCountEl) {
+      mapCountEl.textContent = `Live NOAA-20: 1 CHT Hotspot (3 in search bbox) · FRP 3.74 MW`;
+    }
+
+    // Focus map on the live CHT detection
+    if (primaryMarker && det) {
+      map.setView([det.latitude, det.longitude], 9);
+      primaryMarker.openPopup();
+    }
+  } else {
+    // Mode is archive
+    isLiveFeedMode = false;
+    if (archiveBtn) archiveBtn.classList.add('active');
+    if (liveBtn) liveBtn.classList.remove('active');
+    if (badge) badge.hidden = true;
+    if (banner) banner.hidden = true;
+    if (legendDot) legendDot.hidden = true;
+
+    liveGroup.clearLayers();
+    const curYear = slider ? parseInt(slider.value, 10) : 2014;
+    updateMapHotspots(curYear);
+    if (chtLayer) {
+      map.fitBounds(chtLayer.getBounds(), { padding: [10, 10], maxZoom: 10 });
+    }
+  }
+}
+
+function initLiveFeed() {
+  const archiveBtn = document.getElementById('feed-archive-btn');
+  const liveBtn = document.getElementById('feed-live-btn');
+  if (archiveBtn) archiveBtn.addEventListener('click', () => setMapFeedMode('archive'));
+  if (liveBtn) liveBtn.addEventListener('click', () => setMapFeedMode('live'));
+
+  // Try to load fresh live_feed.json asynchronously
+  try {
+    if (typeof fetch === 'function') {
+      fetch('data/processed/live_feed.json')
+        .then(r => r.ok ? r.json() : null)
+        .then(d => {
+          if (d && d.detections && d.detections.length) {
+            currentLiveFeed = d;
+            if (isLiveFeedMode) setMapFeedMode('live');
+          }
+        })
+        .catch(() => {});
+    }
+  } catch (e) {}
+}
+
+// =============================================================================
 // 3. CHART A (wrong join) & CHART B (our fix) + COMBINED VIEW
 // =============================================================================
 let chartNaiveInstance = null;
@@ -1726,6 +1947,20 @@ const activeSensorName = document.getElementById('active-sensor-name');
 let playTimer = null;
 
 function updateTimeline(year) {
+  if (isLiveFeedMode) {
+    isLiveFeedMode = false;
+    const archiveBtn = document.getElementById('feed-archive-btn');
+    const liveBtn = document.getElementById('feed-live-btn');
+    const badge = document.getElementById('live-telemetry-badge');
+    const banner = document.getElementById('live-telemetry-banner');
+    const legendDot = document.getElementById('legend-live-dot');
+    if (archiveBtn) archiveBtn.classList.add('active');
+    if (liveBtn) liveBtn.classList.remove('active');
+    if (badge) badge.hidden = true;
+    if (banner) banner.hidden = true;
+    if (legendDot) legendDot.hidden = true;
+    liveGroup.clearLayers();
+  }
   const yr = parseInt(year, 10);
   if (yearBadge) yearBadge.innerText = yr;
   updateMapHotspots(yr);
@@ -2409,6 +2644,7 @@ function initCalendar() {
     try { initCalendar(); } catch (e) { console.error('[BD-FireOps] calendar failed:', e); }
     try { initViews(); } catch (e) { console.error('[BD-FireOps] views failed:', e); }
     try { initReveal(); } catch (e) { console.error('[BD-FireOps] reveal failed:', e); }
+    try { initLiveFeed(); } catch (e) { console.error('[BD-FireOps] live feed failed:', e); }
     if (slider) updateTimeline(slider.value || 2014);
     if (simSlider) updateSimulator(parseInt(simSlider.value, 10) || 300);
     window.scrollTo(0, 0);

@@ -876,6 +876,229 @@ h3 { font-size: clamp(1.1rem, 2vw, 1.35rem); font-weight: 700; }
   border: 1px solid var(--line);
 }
 
+/* Map Mode Bar & Live Telemetry Feed Switch */
+.map-mode-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-12);
+  margin-bottom: var(--sp-12);
+}
+
+.map-feed-switch {
+  display: inline-flex;
+  background: var(--bg-elevated);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-full);
+  padding: 4px;
+  gap: 4px;
+}
+
+.feed-btn {
+  background: transparent;
+  color: var(--ink-secondary);
+  border: none;
+  border-radius: var(--radius-full);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 7px 16px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all var(--dur) var(--ease);
+  min-height: 38px;
+}
+
+.feed-btn:hover {
+  color: var(--ink);
+  background: var(--hover-fill);
+}
+
+.feed-btn.active {
+  background: var(--blue-soft);
+  color: var(--blue);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+#feed-live-btn.active {
+  background: var(--red-soft);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.live-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--red);
+  box-shadow: 0 0 8px var(--red);
+  animation: pulse-live 1.8s infinite;
+}
+
+@keyframes pulse-live {
+  0% { transform: scale(0.95); opacity: 0.7; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+  100% { transform: scale(0.95); opacity: 0.7; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+.live-telemetry-badge {
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  background: rgba(16, 185, 129, 0.12);
+  color: var(--green);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.live-telemetry-badge[hidden],
+.live-telemetry-banner[hidden],
+.legend-live[hidden] {
+  display: none !important;
+}
+
+.badge-pulse {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+}
+
+/* Live Telemetry Banner */
+.live-telemetry-banner {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(13, 21, 38, 0.9) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  border-radius: var(--radius);
+  padding: var(--sp-16);
+  margin-bottom: var(--sp-12);
+  display: grid;
+  gap: var(--sp-12);
+}
+
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--sp-12);
+}
+
+.telemetry-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.telemetry-label {
+  font-size: 0.7rem;
+  font-family: var(--mono);
+  color: var(--muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.telemetry-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.telemetry-note {
+  border-top: 1px solid var(--hair);
+  padding-top: var(--sp-8);
+}
+
+/* Leaflet Live Radar Marker */
+.live-marker-wrap {
+  position: relative;
+  width: 28px;
+  height: 28px;
+}
+
+.live-pulse-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid #ef4444;
+  background: rgba(239, 68, 68, 0.25);
+  animation: radar-ping 2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+}
+
+.live-pulse-core {
+  position: absolute;
+  top: 9px;
+  left: 9px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #f87171;
+  box-shadow: 0 0 10px #ef4444;
+  border: 1.5px solid #ffffff;
+}
+
+@keyframes radar-ping {
+  0% { transform: scale(0.4); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.dot-live {
+  background: var(--red);
+  box-shadow: 0 0 6px var(--red);
+  animation: pulse-live 1.8s infinite;
+}
+
+.live-popup-content {
+  font-size: 0.82rem;
+  color: #0f172a;
+  line-height: 1.4;
+  min-width: 240px;
+}
+
+.live-pop-header {
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 4px;
+  margin-bottom: 6px;
+}
+
+.live-pop-tag {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #dc2626;
+  letter-spacing: 0.05em;
+}
+
+.live-pop-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  margin-bottom: 6px;
+}
+
+.live-pop-table td {
+  padding: 3px 4px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.pop-harm-row {
+  background: rgba(56, 189, 248, 0.15);
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-dot, .badge-pulse, .live-pulse-ring, .dot-live {
+    animation: none !important;
+  }
+}
+
 .map {
   height: 480px;
   border: 1px solid var(--line-strong);

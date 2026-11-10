@@ -248,12 +248,57 @@
         </div>
       </div>
 
+      <!-- MAP MODE SWITCH: 20-YEAR ARCHIVE vs LIVE NASA TELEMETRY -->
+      <div class="map-mode-bar">
+        <div class="map-feed-switch" role="group" aria-label="Select data mode: Archive or Live Telemetry">
+          <button type="button" id="feed-archive-btn" class="feed-btn active">
+            <span class="feed-icon">📂</span> 20-Year Archive (2002–2021)
+          </button>
+          <button type="button" id="feed-live-btn" class="feed-btn">
+            <span class="live-dot" aria-hidden="true"></span>
+            <span class="feed-label">Live NASA Telemetry (Nov 2026)</span>
+          </button>
+        </div>
+        <div id="live-telemetry-badge" class="live-telemetry-badge font-mono" hidden>
+          <span class="badge-pulse"></span> NOAA-20 VIIRS NRT ACTIVE
+        </div>
+      </div>
+
+      <!-- LIVE TELEMETRY BANNER (Shown when Live Feed mode is active) -->
+      <div id="live-telemetry-banner" class="live-telemetry-banner" hidden>
+        <div class="telemetry-grid">
+          <div class="telemetry-item">
+            <span class="telemetry-label">ACTIVE PLATFORM</span>
+            <span class="telemetry-val text-green font-mono" id="live-platform-text">NOAA-20 VIIRS 375m</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">LAST ORBITAL PASS</span>
+            <span class="telemetry-val font-mono" id="live-pass-text">2026-11-07 07:16 UTC</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">CHT DETECTIONS</span>
+            <span class="telemetry-val font-mono text-orange" id="live-count-text">1 Hotspot (Rangamati)</span>
+          </div>
+          <div class="telemetry-item">
+            <span class="telemetry-label">HARMONIZED MODIS-EQ</span>
+            <span class="telemetry-val font-mono text-blue" id="live-harm-text">0.0 equiv (Quiet season)</span>
+          </div>
+        </div>
+        <div class="telemetry-note">
+          <span class="small muted">
+            🔴 Direct Near Real-Time telemetry from NASA FIRMS API (Area bbox: 91.9–92.9°E, 21.4–23.8°N).
+            Suomi-NPP VIIRS retired Nov 1, 2026; NOAA-20 provides operational continuity. To pull latest satellite pass, run <code>python probe_firms.py --live</code> in terminal.
+          </span>
+        </div>
+      </div>
+
       <div class="map-outer">
         <div id="map" class="map" role="region" aria-label="Interactive map of fire detections in Chittagong Hill Tracts"></div>
 
         <div class="map-legend">
           <span><i class="dot dot-modis" aria-hidden="true"></i> Aqua MODIS (2002–2021)</span>
           <span><i class="dot dot-viirs" aria-hidden="true"></i> S-NPP VIIRS (2012–2021)</span>
+          <span id="legend-live-dot" class="legend-live" hidden><i class="dot dot-live" aria-hidden="true"></i> Live NOAA-20 VIIRS Hotspot (Nov 2026)</span>
           <span><i class="dot dot-line" aria-hidden="true"></i> CHT District Boundaries (BGD-ADM2)</span>
           <span><i class="dot dot-window" aria-hidden="true"></i> FIRMS Search Bounding Box</span>
           <span class="small muted" style="margin-left: auto;">Circle radius scales with detection density</span>

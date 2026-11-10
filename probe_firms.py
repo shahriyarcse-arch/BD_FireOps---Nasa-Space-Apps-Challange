@@ -134,8 +134,28 @@ def main() -> int:
                         help="Run the pipeline on explicitly-labelled SIMULATED data")
     parser.add_argument("--test", action="store_true",
                         help="1-day FIRMS API probe (status code + returned columns)")
+    parser.add_argument("--live", action="store_true",
+                        help="Fetch live Near Real-Time (NRT) NASA FIRMS satellite detections for CHT")
     parser.add_argument("--metrics", action="store_true", help="Print data/processed/metrics.json")
     args = parser.parse_args()
+
+    if args.live:
+        from tools.fetch_live import fetch_live_feed
+        live = fetch_live_feed()
+        print("\n" + "=" * 76)
+        print("   NASA FIRMS LIVE SATELLITE TELEMETRY (NEAR REAL-TIME)")
+        print(f"   Fetched: {live['fetched_at']} | Area: {live['study_area']}")
+        print("=" * 76)
+        print(f"   Active Satellite    : {live['active_satellite']}")
+        print(f"   Detections in CHT   : {live['cht_active_detections_count']}")
+        print(f"   Harmonized MODIS-Eq : {live['modis_equivalent_estimate']}")
+        print(f"   Status Note         : {live['interpretation']}")
+        if live['detections']:
+            print("\n   Live Detections:")
+            for d in live['detections']:
+                print(f"     * {d.get('acq_date')} | {d.get('district')} | Lat {d.get('latitude')}, Lon {d.get('longitude')} | FRP: {d.get('frp')} MW | Sat: {d.get('satellite')}")
+        print("=" * 76)
+        return 0
 
     if args.metrics:
         path = PROCESSED / "metrics.json"
