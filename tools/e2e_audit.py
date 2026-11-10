@@ -97,8 +97,8 @@ checks = [
     ("CHT_SERIES rows = 234", len(re.findall(r'\{m:"', js)) == 234),
     ("bootstrap 500 in metrics", "500" in met_raw),
     ("matrix legend thresholds match js classes",
-     all(s in html for s in ["1–20 (Low)", "21–100 (Moderate)", "101–250 (High Jhum)",
-                             "251–600 (Peak Flare)", "600+ (Extreme Fire Season)"])
+     all(s in html for s in ["1–20 (low)", "21–100 (moderate)", "101–250 (high)",
+                             "251–600 (very high)", "600+ (peak season)"])
      and all(s in js for s in ["cls = 'c-2'", "cls = 'c-3'", "cls = 'c-4'", "cls = 'c-5'"])),
     ("map popup top-30 = sync CELL_TOP_N", "top-30" in js),
     ("og:image URL still live",
@@ -218,6 +218,15 @@ if live_path.exists():
     chk("live feed carries no API key", not re.search(r"/csv/[0-9a-fA-F]{20,}/", live_raw))
     chk("live snapshot embedded via sync_web", "const LIVE_SNAPSHOT = " in js)
 chk("no hand-written live fallback in app.js", "LIVE_FEED_FALLBACK" not in js)
+
+# Year labels written in words must still be true for the data.
+import pandas as _pd
+_mh = _pd.read_csv(ROOT / "data" / "processed" / "monthly_harmonized.csv")
+_busiest = int(_mh.groupby("year")["harmonized_splice"].sum().idxmax())
+_naive_peak = int(_mh.groupby("year")["naive_splice"].sum().idxmax())
+chk("'busiest year' label matches data", f"{_busiest} · busiest year" in html, str(_busiest))
+chk("'biggest false jump' label matches data", f"{_naive_peak} · biggest false jump" in html, str(_naive_peak))
+chk("hero '23% less' matches control test", "about 23% less" in html and "-23.1%" in html)
 
 # Submission readiness: warn (not fail) while member placeholders remain.
 placeholders = html.count("[Member name]")

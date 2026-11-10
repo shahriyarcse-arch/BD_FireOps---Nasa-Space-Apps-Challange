@@ -22,7 +22,7 @@ if (typeof window !== 'undefined' && typeof window.addEventListener === 'functio
     const banner = document.getElementById('app-error-banner');
     if (banner) {
       banner.hidden = false;
-      banner.textContent = 'Some interactive widgets failed to load. The rest of the page still works.';
+      banner.textContent = 'Part of the page did not load properly. The rest still works.';
     }
   });
 }
@@ -503,7 +503,7 @@ function applyOfflineBasemap() {
   const note = document.createElement('div');
   note.className = 'map-offline-note';
   note.setAttribute('role', 'status');
-  note.textContent = 'Offline mode · basemap tiles unreachable. District boundaries and NASA FIRMS detections are loaded locally and shown below.';
+  note.textContent = 'No internet for the satellite photo layer. The district outlines and fire data still work, they are stored with the page.';
   container.appendChild(note);
 
   if (chtLayer && chtLayer.setStyle) {
@@ -1514,8 +1514,8 @@ function updateMapHotspots(year) {
     const totalD = mCells.reduce((s, c) => s + c.n, 0) + vCells.reduce((s, c) => s + c.n, 0);
     const cellCount = mCells.length + vCells.length;
     mapCountEl.textContent = year < 2012
-      ? `Year ${year}: ${cellCount} MODIS cells (${totalD.toLocaleString()} detections)`
-      : `Year ${year}: ${cellCount} cells (${totalD.toLocaleString()} total detections)`;
+      ? `${year}: ${cellCount} map squares · ${totalD.toLocaleString()} detections (MODIS only)`
+      : `${year}: ${cellCount} map squares · ${totalD.toLocaleString()} detections`;
   }
 }
 
@@ -1528,7 +1528,7 @@ function updateMapHotspots(year) {
 //     regional totals, not a 5-day window.
 // =============================================================================
 // BEGIN:LIVE_SNAPSHOT
-const LIVE_SNAPSHOT = {"bbox":"91.9,21.4,92.9,23.8","by_district":{"Khagrachhari":2,"Rangamati":2},"cht_count":4,"cht_modis_count":0,"cht_viirs_count":4,"detections":[{"acq_date":"2026-11-07","acq_time":716,"confidence":"n","daynight":"D","district":"Rangamati","frp":3.74,"latitude":22.91389,"longitude":92.08913,"satellite":"N20","sensor_key":"noaa20","sensor_label":"NOAA-20 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":722,"confidence":"n","daynight":"D","district":"Rangamati","frp":6.12,"latitude":23.10928,"longitude":92.20343,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":722,"confidence":"n","daynight":"D","district":"Khagrachhari","frp":6.51,"latitude":23.2152,"longitude":91.95415,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"},{"acq_date":"2026-11-10","acq_time":703,"confidence":"n","daynight":"D","district":"Khagrachhari","frp":2.19,"latitude":23.32403,"longitude":92.01492,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"}],"fetched_at":"2026-11-10T18:34Z","kind":"firms_nrt_snapshot","latest_acq_date":"2026-11-10","outside_cht":[{"acq_date":"2026-11-07","acq_time":716,"confidence":"n","daynight":"D","district":"","frp":3.52,"latitude":22.09014,"longitude":92.12029,"satellite":"N20","sensor_key":"noaa20","sensor_label":"NOAA-20 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":639,"confidence":"n","daynight":"D","district":"","frp":2.83,"latitude":23.09525,"longitude":92.78256,"satellite":"N20","sensor_key":"noaa20","sensor_label":"NOAA-20 VIIRS 375 m"},{"acq_date":"2026-11-06","acq_time":637,"confidence":"n","daynight":"D","district":"","frp":3.32,"latitude":21.43967,"longitude":92.84576,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":722,"confidence":"n","daynight":"D","district":"","frp":4.81,"latitude":23.28909,"longitude":92.81541,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":722,"confidence":"n","daynight":"D","district":"","frp":7.56,"latitude":23.29315,"longitude":92.74084,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"}],"sources":{"modis":{"cht_rows":0,"label":"Terra/Aqua MODIS 1 km","status":"ok"},"noaa20":{"cht_rows":1,"label":"NOAA-20 VIIRS 375 m","status":"ok"},"noaa21":{"cht_rows":3,"label":"NOAA-21 VIIRS 375 m","status":"ok"}},"status":"ok","window_days":5,"window_end":"2026-11-10"};
+const LIVE_SNAPSHOT = {"bbox":"91.9,21.4,92.9,23.8","by_district":{"Khagrachhari":2,"Rangamati":2},"cht_count":4,"cht_modis_count":0,"cht_viirs_count":4,"detections":[{"acq_date":"2026-11-07","acq_time":716,"confidence":"n","daynight":"D","district":"Rangamati","frp":3.74,"latitude":22.91389,"longitude":92.08913,"satellite":"N20","sensor_key":"noaa20","sensor_label":"NOAA-20 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":722,"confidence":"n","daynight":"D","district":"Rangamati","frp":6.12,"latitude":23.10928,"longitude":92.20343,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":722,"confidence":"n","daynight":"D","district":"Khagrachhari","frp":6.51,"latitude":23.2152,"longitude":91.95415,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"},{"acq_date":"2026-11-10","acq_time":703,"confidence":"n","daynight":"D","district":"Khagrachhari","frp":2.19,"latitude":23.32403,"longitude":92.01492,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"}],"fetched_at":"2026-11-10T18:27Z","kind":"firms_nrt_snapshot","latest_acq_date":"2026-11-10","outside_cht":[{"acq_date":"2026-11-07","acq_time":716,"confidence":"n","daynight":"D","district":"","frp":3.52,"latitude":22.09014,"longitude":92.12029,"satellite":"N20","sensor_key":"noaa20","sensor_label":"NOAA-20 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":639,"confidence":"n","daynight":"D","district":"","frp":2.83,"latitude":23.09525,"longitude":92.78256,"satellite":"N20","sensor_key":"noaa20","sensor_label":"NOAA-20 VIIRS 375 m"},{"acq_date":"2026-11-06","acq_time":637,"confidence":"n","daynight":"D","district":"","frp":3.32,"latitude":21.43967,"longitude":92.84576,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":722,"confidence":"n","daynight":"D","district":"","frp":4.81,"latitude":23.28909,"longitude":92.81541,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":722,"confidence":"n","daynight":"D","district":"","frp":7.56,"latitude":23.29315,"longitude":92.74084,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"}],"sources":{"modis":{"cht_rows":0,"label":"Terra/Aqua MODIS 1 km","status":"ok"},"noaa20":{"cht_rows":1,"label":"NOAA-20 VIIRS 375 m","status":"ok"},"noaa21":{"cht_rows":3,"label":"NOAA-21 VIIRS 375 m","status":"ok"}},"status":"ok","window_days":5,"window_end":"2026-11-10"};
 // END:LIVE_SNAPSHOT
 
 let currentLiveFeed = (typeof LIVE_SNAPSHOT !== 'undefined') ? LIVE_SNAPSHOT : null;
@@ -1747,7 +1747,7 @@ const CHART_OPTS = (yTitle) => {
 function buildSplitDatasets() {
   return [
     {
-      label: 'Aqua MODIS (Empirical 1 km)',
+      label: 'Aqua MODIS (measured)',
       data: modisSeries,
       borderColor: '#38bdf8',
       borderWidth: 1.8,
@@ -1755,7 +1755,7 @@ function buildSplitDatasets() {
       tension: 0.25
     },
     {
-      label: 'BD-FireOps Harmonized (Calibrated Baseline)',
+      label: 'VIIRS converted to MODIS scale',
       data: harmSeries,
       borderColor: '#10b981',
       backgroundColor: 'rgba(16, 185, 129, 0.12)',
@@ -1770,7 +1770,7 @@ function buildSplitDatasets() {
 function buildCombinedDatasets() {
   return [
     {
-      label: 'Raw Naive Splice (Artificial Spike)',
+      label: 'MODIS, then raw VIIRS from 2012',
       data: naiveSeries,
       borderColor: '#ef4444',
       borderWidth: 2,
@@ -1779,7 +1779,7 @@ function buildCombinedDatasets() {
       tension: 0.2
     },
     {
-      label: 'Aqua MODIS (Ground Truth Baseline)',
+      label: 'Aqua MODIS (measured)',
       data: modisSeries,
       borderColor: '#38bdf8',
       borderWidth: 2,
@@ -1787,7 +1787,7 @@ function buildCombinedDatasets() {
       tension: 0.2
     },
     {
-      label: 'BD-FireOps Continuous Calibration',
+      label: 'BD-FireOps corrected record',
       data: harmSeries,
       borderColor: '#10b981',
       backgroundColor: 'rgba(16, 185, 129, 0.14)',
@@ -1943,13 +1943,13 @@ function updateTimeline(year) {
 
   if (eraText) {
     if (yr < 2012) {
-      eraText.innerText = "MODIS Years (2002–2011)";
+      eraText.innerText = "MODIS only (2002–2011)";
       eraText.className = "regime-badge font-mono text-blue";
     } else if (yr <= 2018) {
-      eraText.innerText = "Training Years (2012–2018)";
+      eraText.innerText = "Used to fit the model (2012–2018)";
       eraText.className = "regime-badge font-mono text-green";
     } else {
-      eraText.innerText = "Test Years (2019–2021)";
+      eraText.innerText = "Kept aside for testing (2019–2021)";
       eraText.className = "regime-badge font-mono text-amber";
     }
   }
@@ -2445,6 +2445,10 @@ function updatePathProgress(activeId) {
 }
 
 function initViews() {
+  document.querySelectorAll('#persona-switch [data-view]').forEach((b) => {
+    const p = PATHS[b.dataset.view], meta = b.querySelector('.path-meta');
+    if (p && meta) meta.textContent = p.steps.length + ' stops · about ' + Math.max(2, Math.round(p.steps.length * 0.6)) + ' min';
+  });
   const cards = document.getElementById('persona-switch');
   if (cards) cards.addEventListener('click', (e) => {
     const b = e.target.closest('[data-view]');
@@ -2637,7 +2641,7 @@ function initCalendar() {
     const banner = document.getElementById('app-error-banner');
     if (banner) {
       banner.hidden = false;
-      banner.textContent = 'Some interactive widgets encountered an issue. Basic tables and data remain functional.';
+      banner.textContent = 'Part of the page did not load properly. The tables and numbers below are still correct.';
     }
   }
 })();
