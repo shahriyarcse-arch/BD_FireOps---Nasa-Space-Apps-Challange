@@ -2,17 +2,17 @@
 
 > **Challenge:** Harmonization of MODIS and VIIRS Hot Spots (NASA Space Apps Challenge 2026)  
 > **Team:** Claude Fable 7.0 (Dhaka Local Chapter)  
-> **Members:** Shamim Shahriyar, Tanjum Raisa, Rashedul Anik, Nusrat Alam Lamim  
+> **Members (All 4 named in video):** Shamim Shahriyar, Tanjum Raisa, Rashedul Anik, Nusrat Alam Lamim  
 > **Hard Limit:** Strictly under 30.0 seconds!  
 > **Target Recording Length:** **26 to 28 seconds** (2-second buffer ensures automated video encoders won't truncate or disqualify).  
-> **Word Count:** 68 words (~150 words per minute, clear, punchy, confident delivery).  
+> **Word Count:** 68 words (natural, conversational pace: ~150 words per minute).  
 > **Aspect Ratio:** 16:9 (1920x1080) Full HD with English captions burned in or uploaded as CC.
 
 ---
 
-## ⏱️ Second-by-Second Storyboard Table
+## ⏱️ Second-by-Second Storyboard & Web Screen Direction
 
-| Time Window | Visual on Screen | Spoken Audio (English Voiceover) | Action / Focus |
+| Timestamp | What to Show & Click on Web (`index.html`) | Spoken Voiceover (Natural English) | Screen Focus & Action |
 | :--- | :--- | :--- | :--- |
 | **0:00 – 0:07** <br>*(7 sec)* | **Title Screen & Live Topbar**<br>Screen opens on the top Hero section showing the NASA Space Apps logo, dual status pills (`Archive 2002–2021` · `Live · just updated`), and team names. | *"We are Team Claude Fable 7.0: Shamim Shahriyar, Tanjum Raisa, Rashedul Anik, and Nusrat Alam Lamim, presenting BD-FireOps."* | Show live pulsing status pill and team names on screen. |
 | **0:07 – 0:14** <br>*(7 sec)* | **The 2012 Sensor Crisis**<br>Cut to the interactive Before/After drag handle over Chart A (`#problem`). Drag the handle across the 2012 jump. | *"In 2012, satellite sensors switched, creating a false 185% fire surge across Bangladesh's Hill Tracts."* | Slide the comparison bar from left to right to highlight the red spike. |
@@ -30,13 +30,16 @@
 
 ---
 
-## 💡 Quick Filming Tips for the 30-Second Video
-1. **Speed & Clarity:** Do not rush; speak at an authoritative, steady pace. Practice with a phone stopwatch 2 or 3 times until you hit 26–27 seconds consistently.
-2. **Text Overlays:** Add bold on-screen subtitles for key metrics:
+## 🗣️ Natural Pronunciation & Filming Tips
+1. **Pronunciation:**
+   - *"BD-FireOps"* -> say *"B-D Fire Ops"*.
+   - *"185%"* -> say *"one hundred eighty-five percent"*.
+   - *"NOAA-20 and 21"* -> say *"Noah twenty and twenty-one"*.
+2. **Speed & Delivery:** Speak naturally and firmly. Don't rush; pause a quarter-second after each sentence.
+3. **Text Overlays:** Add bold, clean subtitle cards in the video editor for the 4 key facts:
    - `FALSE SURGE: +185%`
    - `CONTROL TEST: -23%`
    - `ERROR REDUCTION: 95.1%`
    - `LIVE TELEMETRY: NOAA-20 & NOAA-21`
-3. **No Dead Air:** Cut any silence before the first word and after the last word.
-4. **NASA Requirement:** Ensure the video is uploaded to YouTube as **Public** or **Unlisted** and embedded in your project submission page.
-
+4. **No Dead Air:** Trim any dead silence before your first word and after your last word.
+5. **NASA Requirement:** Make sure the video is uploaded to YouTube as **Public** or **Unlisted** and embedded in your project submission page.
