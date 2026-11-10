@@ -134,7 +134,7 @@ $$\text{MODIS}_{\text{equivalent}} = 0.2694 \times \text{VIIRS}_{375\text{m}} + 
 
 ---
 
-## 3. Visual Artifacts (Chart A vs. Chart B)
+## 3. Visual Artifacts & Interactive Telemetry HUD
 
 ### Chart A: Naive Sensor Splicing (The Sensor Jump Failure)
 ![Chart A - Naive Splice](data/processed/chart_a_naive_splice.png)
@@ -148,6 +148,14 @@ $$\text{MODIS}_{\text{equivalent}} = 0.2694 \times \text{VIIRS}_{375\text{m}} + 
 ![Chart C - Parity Scatter](data/processed/chart_validation_scatter.png)
 *Figure 3: Test set observations. Left shows the severe uncalibrated overestimation of raw VIIRS; right demonstrates BD-FireOps predictions adhering tightly to the 1:1 parity line.*
 
+### Chapter 00: Live Telemetry & Dual-Clock Architecture
+In addition to the historical 2002–2021 archive, BD-FireOps deploys a live **Chapter 00 ("Right Now")** operational command HUD:
+- **Live NASA FIRMS Telemetry:** Direct ingestion of NOAA-20 & NOAA-21 VIIRS 375 m active fire detections for the last 5 days via `tools/fetch_live.py`.
+- **Geographic Gate:** Filters detections through official geoBoundaries BGD-ADM2 polygons for Bandarban, Rangamati, and Khagrachhari, discarding out-of-boundary border noise.
+- **Automated 6-Hour Cloud Sync:** A GitHub Actions cron job (`.github/workflows/sync_live_feed.yml`) refreshes detections every 6 hours using secure repo secrets (`secrets.FIRMS_MAP_KEY`), sanitizes client-facing data, and pushes updates without exposing API keys to the browser.
+- **Scientific Humility:** Live 5-day detections are preserved as raw provisional detections and compared to the historical November baseline (~1 detection/month), rather than misapplying the monthly calibration formula to a short 5-day window.
+- **Interactive Before/After Slider:** An interactive drag handle over Chart A on the exact same axis lets users inspect the artificial spike against the harmonized line.
+
 ---
 
 ## 4. Repository Structure
@@ -158,27 +166,31 @@ bd-fireops/
 │   ├── download.py             # NASA FIRMS Area API ingestion (5-day chunks, resume, retries)
 │   ├── clean.py                # Confidence / Aqua-reference / bbox / CHT-district gate / duplicates
 │   ├── aggregate.py            # Regional monthly counts; zero months kept, gaps stay blank
-│   └── model.py                # Time-split training, bootstrap, metrics & chart generation
+│   ├── model.py                # Time-split training, bootstrap, metrics & chart generation
+│   └── window.py               # Dynamic temporal window manager (2002-07 to latest complete month)
 ├── tools/
+│   ├── fetch_live.py           # NASA FIRMS live NRT client for NOAA-20 & NOAA-21 (375 m)
 │   ├── sync_readme.py          # Regenerates the §2 metrics block from metrics.json
-│   ├── sync_web.py             # Regenerates app.js/index.html generated blocks (series, model, map cells, boundary, sim defaults)
+│   ├── sync_web.py             # Regenerates app.js/index.html generated blocks & embeds live snapshot
 │   ├── sensitivity.py          # Low-confidence-kept robustness run → sensitivity.json
 │   ├── verify_bootstrap.py     # Verifies bootstrap intervals match metrics.json
-│   └── e2e_audit.py            # End-to-end audit verifying frontend UI matches metrics.json
+│   └── e2e_audit.py            # 98-point automated end-to-end audit (UI, live schemas, zero regressions)
 ├── data/
-│   ├── raw/                    # Raw FIRMS chunk files, <start>_<end>.csv per 5-day window (git-ignored)
+│   ├── raw/                    # Raw FIRMS chunk files (git-ignored)
 │   ├── reference/              # geoBoundaries BGD-ADM2 district polygons (CHT boundary gate)
-│   └── processed/              # monthly_harmonized.csv, metrics.json, data_source.json, PNGs
+│   └── processed/              # monthly_harmonized.csv, metrics.json, live_feed.json, PNGs
 ├── dashboard/
 │   └── app.py                  # Streamlit interactive web application
 ├── tests/
 │   └── test_pipeline.py        # Synthetic end-to-end fixture (clean → aggregate → audits), no API key
-├── .github/workflows/check.yml # CI: sync --check + node --check + fixture pipeline
-├── vendor/                     # Leaflet 1.9.4 + Chart.js 4.4.1, vendored (no CDN dependency)
+├── .github/workflows/
+│   ├── check.yml               # CI: sync --check + node --check + fixture pipeline
+│   └── sync_live_feed.yml      # Automated 6-hour cron & manual sync for live satellite telemetry
+├── vendor/                     # Leaflet 1.9.4 + Chart.js 4.4.1, vendored (zero CDN dependencies)
 ├── probe_firms.py              # Master CLI pipeline runner
-├── index.html                  # Standalone client-side Web GIS dashboard
-├── style.css                   # Light, simple CSS (white background, big cards)
-├── app.js                      # Leaflet mapping and Chart.js interactive controls
+├── index.html                  # Standalone client-side Web GIS dashboard & Mission Control HUD
+├── style.css                   # Glassmorphic Mission-Ops theme, tokens, responsive layout
+├── app.js                      # Leaflet mapping, dual-view charts, and live feed controller
 ├── robots.txt                  # Crawler policy for the deployed static site
 ├── requirements.txt            # Python dependencies (pinned)
 ├── vercel.json                 # Static deploy config + security headers (CSP, etc.)
@@ -243,7 +255,7 @@ python tools/verify_bootstrap.py      # recomputes the published CI and compares
 python tools/sync_readme.py --check   # README numbers still match metrics.json
 python tools/sync_web.py --check      # website numbers still match metrics.json
 python tests/test_pipeline.py         # clean/aggregate fixture checks
-python tools/e2e_audit.py             # 88-point end-to-end frontend audit vs metrics.json
+python tools/e2e_audit.py             # 98-point end-to-end frontend audit vs metrics.json
 ```
 `verify_bootstrap.py` re-derives the moving-block bootstrap interval from
 `monthly.csv` (same split, same 12-month blocks, same seed) and exits non-zero if

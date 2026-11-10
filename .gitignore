@@ -1,5 +1,12 @@
-# Environment variables
+# Environment & security credentials
 .env
+.env.*
+*.key
+*.token
+*.secret
+
+# Video presentation scripts (kept local only, not pushed to GitHub)
+VIDEO_SCRIPT_*.md
 
 # Python artifacts
 __pycache__/
