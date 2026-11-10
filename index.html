@@ -86,7 +86,9 @@
           and what NOAA-20 is picking up this week.
         </p>
         <div class="hero-answer" role="note">
+<!-- BEGIN:HERO_LINE -->
           <strong>In one line:</strong> the satellite that never changed (Aqua MODIS) actually saw <em>less</em> burning after 2012, about 23% less. The jump comes from the new camera, not from the hills.
+<!-- END:HERO_LINE -->
         </div>
         <div class="hero-cta">
           <a class="cta-btn primary" href="#season">Check a burning season</a>
@@ -342,12 +344,14 @@
           <!-- Quick Jump Preset Pills -->
           <div class="year-pills" role="group" aria-label="Quick jump to milestone years">
             <span class="muted small" style="display: flex; align-items: center;">Jump to:</span>
+<!-- BEGIN:YEAR_PILLS -->
             <button class="year-pill" data-year="2002" type="button">2002 · first year</button>
             <button class="year-pill" data-year="2007" type="button">2007 · busiest year</button>
             <button class="year-pill" data-year="2012" type="button">2012 · VIIRS joins</button>
             <button class="year-pill active" data-year="2014" type="button">2014 · biggest false jump</button>
             <button class="year-pill" data-year="2019" type="button">2019 · test years</button>
             <button class="year-pill" data-year="2021" type="button">2021 · last year</button>
+<!-- END:YEAR_PILLS -->
           </div>
 
           <!-- SENSOR PROVENANCE STRIP (2002–2026+) -->
@@ -686,7 +690,9 @@ Join the two satellites' counts directly and fires look almost 2.85× higher aft
 <!-- END:DISTRICT_PANEL -->
 
       <p class="small muted" style="margin-top: 10px;">
-        <em>Sensitivity check:</em> Re-evaluating with afternoon day-only observations (<code>daynight=D</code>) yields RMSE 49.69 (-10.74% shift). The reported baseline includes both day and night passes; the alternative is published here rather than folded in.
+<!-- BEGIN:SENSITIVITY_NOTE -->
+        <em>Sensitivity check:</em> using daytime passes only (<code>daynight=D</code>) gives a test error (RMSE) of 49.69 instead of 55.67 (-10.74%). The main result keeps both day and night passes; the day-only version is shown here rather than swapped in.
+<!-- END:SENSITIVITY_NOTE -->
       </p>
     </section>
 

@@ -802,6 +802,40 @@ def build_sim_defaults(m: dict) -> dict[str, str]:
     }
 
 
+def build_hero_line(m: dict) -> str:
+    c = m["modis_only_continuity"]["modis_only_change_percent"]
+    word = "less" if c < 0 else "more"
+    return (f'          <strong>In one line:</strong> the satellite that never changed (Aqua MODIS) actually saw '
+            f'<em>{word}</em> burning after 2012, about {abs(round(c)):.0f}% {word}. '
+            'The jump comes from the new camera, not from the hills.')
+
+
+def build_sensitivity_note() -> str:
+    s = json.loads((ROOT / "data" / "processed" / "sensitivity.json").read_text(encoding="utf-8"))
+    d, b = s["day_only"], s["baseline"]
+    return (f'        <em>Sensitivity check:</em> using daytime passes only (<code>daynight=D</code>) gives a test error (RMSE) of '
+            f'{d["test_rmse"]} instead of {b["test_rmse"]} ({s["delta_day"]["test_rmse_percent"]:+.2f}%). '
+            'The main result keeps both day and night passes; the day-only version is shown here rather than swapped in.')
+
+
+def build_year_pills() -> str:
+    import pandas as pd
+    d = pd.read_csv(CSV)
+    y = d.groupby("year")[["modis", "viirs"]].sum(min_count=1)
+    full = y[y.index > y.index.min()]  # first year is a partial year
+    busiest = int(full["modis"].idxmax())
+    jump = int((y["viirs"] - y["modis"]).idxmax())
+    first, last = int(y.index.min()), int(y.index.max())
+    vstart = int(y["viirs"].first_valid_index())
+    pills = [(first, "first year"), (busiest, "busiest year"), (vstart, "VIIRS joins"),
+             (jump, "biggest false jump"), (2019, "test years"), (last, "last year")]
+    out = []
+    for yr, lab in pills:
+        act = " active" if yr == jump else ""
+        out.append(f'            <button class="year-pill{act}" data-year="{yr}" type="button">{yr} · {lab}</button>')
+    return "\n".join(out)
+
+
 def replace_block(text: str, begin: str, end: str, body: str) -> str:
     if begin not in text or end not in text:
         raise RuntimeError(f"markers not found: {begin} / {end}")
@@ -858,6 +892,10 @@ def main(argv: list[str] | None = None) -> int:
                              build_custody_legend(metrics))
     new_html = replace_block(new_html, "<!-- BEGIN:NOAA20_PANEL -->", "<!-- END:NOAA20_PANEL -->",
                              build_noaa20_panel(metrics))
+    new_html = replace_block(new_html, "<!-- BEGIN:HERO_LINE -->", "<!-- END:HERO_LINE -->", build_hero_line(metrics))
+    new_html = replace_block(new_html, "<!-- BEGIN:SENSITIVITY_NOTE -->", "<!-- END:SENSITIVITY_NOTE -->",
+                             build_sensitivity_note())
+    new_html = replace_block(new_html, "<!-- BEGIN:YEAR_PILLS -->", "<!-- END:YEAR_PILLS -->", build_year_pills())
     for key, body in build_sim_defaults(metrics).items():
         new_html = replace_block(new_html, f"<!-- BEGIN:{key} -->", f"<!-- END:{key} -->", body)
 
