@@ -14,19 +14,19 @@
 
 | Time Window | Visual on Screen | Spoken Audio (English Voiceover) | Action / Focus |
 | :--- | :--- | :--- | :--- |
-| **0:00 – 0:06** <br>*(6 sec)* | **Title Screen & Live Topbar**<br>Screen opens on the top Hero section showing the NASA Space Apps logo, dual status pills (`Archive 2002–2021` · `Live · just updated`), and team names. | *"We are Team Claude Fable 7.0 from Dhaka: Shamim, Raisa, Anik, and Lamim, presenting BD-FireOps."* | Show live pulsing status pill and team name. |
-| **0:06 – 0:13** <br>*(7 sec)* | **The 2012 Sensor Crisis**<br>Cut to the interactive Before/After drag handle over Chart A (`#problem`). Drag the handle across the 2012 jump. | *"In 2012, satellite sensors switched, creating a false 185% fire surge across Bangladesh's Hill Tracts."* | Slide the comparison bar from left to right to highlight the red spike. |
-| **0:13 – 0:20** <br>*(7 sec)* | **Scientific Proof & Control Test**<br>Quick transition to `#proof` displaying the Aqua MODIS control test (-23%) and the 95.1% RMSE reduction. | *"Our control test proved fires actually fell 23%. BD-FireOps eliminates 95% of sensor splice error."* | Cursor highlights `-23%` control badge and `55.67` calibrated RMSE. |
-| **0:20 – 0:28** <br>*(8 sec)* | **Live Satellite Telemetry & GitHub**<br>Scroll to Chapter 00 (`#now`) showing the real-time NOAA-20 & 21 detection map, then snap to the open-source GitHub URL. | *"Now powered by live NOAA-20 and 21 telemetry. Twenty years of forest truth — live and open source."* | Click on the live satellite map popup, end on GitHub repo link. |
+| **0:00 – 0:07** <br>*(7 sec)* | **Title Screen & Live Topbar**<br>Screen opens on the top Hero section showing the NASA Space Apps logo, dual status pills (`Archive 2002–2021` · `Live · just updated`), and team names. | *"We are Team Claude Fable 7.0: Shamim Shahriyar, Tanjum Raisa, Rashedul Anik, and Nusrat Alam Lamim, presenting BD-FireOps."* | Show live pulsing status pill and team names on screen. |
+| **0:07 – 0:14** <br>*(7 sec)* | **The 2012 Sensor Crisis**<br>Cut to the interactive Before/After drag handle over Chart A (`#problem`). Drag the handle across the 2012 jump. | *"In 2012, satellite sensors switched, creating a false 185% fire surge across Bangladesh's Hill Tracts."* | Slide the comparison bar from left to right to highlight the red spike. |
+| **0:14 – 0:21** <br>*(7 sec)* | **Scientific Proof & Control Test**<br>Quick transition to `#proof` displaying the Aqua MODIS control test (-23%) and the 95.1% RMSE reduction. | *"Our control test proved fires actually fell 23%. BD-FireOps eliminates 95% of sensor splice error."* | Cursor highlights `-23%` control badge and `55.67` calibrated RMSE. |
+| **0:21 – 0:28** <br>*(7 sec)* | **Live Satellite Telemetry & GitHub**<br>Scroll to Chapter 00 (`#now`) showing the real-time NOAA-20 & 21 detection map, then snap to the open-source GitHub URL. | *"Now live with NOAA-20 and 21 telemetry. Twenty years of forest truth — live and open source."* | Click on the live satellite map popup, end on GitHub repo link. |
 
 ---
 
 ## 🎙️ Clean Teleprompter Text (Read Aloud)
 
-> *"We are Team Claude Fable 7.0 from Dhaka: Shamim, Raisa, Anik, and Lamim, presenting BD-FireOps.*  
+> *"We are Team Claude Fable 7.0: Shamim Shahriyar, Tanjum Raisa, Rashedul Anik, and Nusrat Alam Lamim, presenting BD-FireOps.*  
 > *In 2012, satellite sensors switched, creating a false 185% fire surge across Bangladesh's Hill Tracts.*  
 > *Our control test proved fires actually fell 23%. BD-FireOps eliminates 95% of sensor splice error.*  
-> *Now powered by live NOAA-20 and 21 telemetry. Twenty years of forest truth — live and open source."*
+> *Now live with NOAA-20 and 21 telemetry. Twenty years of forest truth — live and open source."*
 
 ---
 
@@ -39,3 +39,4 @@
    - `LIVE TELEMETRY: NOAA-20 & NOAA-21`
 3. **No Dead Air:** Cut any silence before the first word and after the last word.
 4. **NASA Requirement:** Ensure the video is uploaded to YouTube as **Public** or **Unlisted** and embedded in your project submission page.
+

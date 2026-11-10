@@ -29,3 +29,4 @@
 3. **Pacing:** Speak at an energetic, confident, conversational speed (approx. 140–150 words per minute).
 4. **Subtitles:** NASA requires English subtitles. When uploading to YouTube, check **Subtitles / CC** and verify that timestamps align.
 5. **Video Privacy:** Set video visibility to **Public** or **Unlisted** (never Private, or judges cannot grade it!).
+
