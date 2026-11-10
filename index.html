@@ -23,9 +23,9 @@
 
   <!-- Leaflet CSS & JS (vendored: the map works without third-party CDNs) -->
   <link rel="stylesheet" href="vendor/leaflet.css" />
-  <script src="vendor/leaflet.js"></script>
+  <script src="vendor/leaflet.js" defer></script>
   <!-- Chart.js (vendored) -->
-  <script src="vendor/chart.umd.min.js"></script>
+  <script src="vendor/chart.umd.min.js" defer></script>
   
   <link rel="stylesheet" href="style.css">
 </head>
@@ -36,7 +36,7 @@
   <!-- STICKY TELEMETRY TOPBAR -->
   <header class="topbar">
     <div class="topbar-inner">
-      <a href="#hero" class="brand" aria-label="BD-FireOps Home">
+      <a href="#hero" class="brand">
         <img class="brand-logo" src="vendor/nasa-logo.svg" alt="NASA Insignia" width="44" height="37">
         <div class="brand-text">
           <div class="brand-title">
@@ -65,7 +65,7 @@
           <span class="ds-item"><span class="status-dot ds-archive" aria-hidden="true"></span><span class="ds-text">Archive 2002–2021</span></span>
           <span class="ds-item"><span class="status-dot ds-live" id="ds-live-dot" aria-hidden="true"></span><span class="ds-text" id="ds-live-text">Live snapshot</span></span>
         </a>
-        <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark/light theme" title="Toggle theme">
+        <button id="theme-toggle" class="theme-toggle-btn" title="Switch between light and dark">
           <span id="theme-label" class="small">Light</span>
         </button>
       </div>
@@ -97,25 +97,25 @@
           <span id="persona-label" class="persona-label">Take a guided path</span>
           <div class="path-cards" id="persona-switch">
             <button type="button" class="path-card" data-view="officer">
-              <span class="path-icon" aria-hidden="true">🚒</span>
+              <span class="path-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg></span>
               <span class="path-role">Forest Ranger</span>
               <span class="path-q">Which district first, and is anything burning now?</span>
               <span class="path-meta">6 steps · about 3 min</span>
             </button>
             <button type="button" class="path-card" data-view="public">
-              <span class="path-icon" aria-hidden="true">🏡</span>
+              <span class="path-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9h11v-9"/><path d="M10.5 19v-4.5h3V19"/></svg></span>
               <span class="path-role">Hill Community</span>
               <span class="path-q">When do the Hills burn? Plain answers, with a Bangla guide.</span>
               <span class="path-meta">6 steps · about 3 min</span>
             </button>
             <button type="button" class="path-card" data-view="research">
-              <span class="path-icon" aria-hidden="true">👨‍🔬</span>
+              <span class="path-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M6 16l4-5 3 3 5-7"/><circle cx="18" cy="7" r="1.2"/></svg></span>
               <span class="path-role">Climate Researcher</span>
               <span class="path-q">How was the 2012 jump removed, and how sure are we?</span>
               <span class="path-meta">7 steps · about 5 min</span>
             </button>
             <button type="button" class="path-card" data-view="judge">
-              <span class="path-icon" aria-hidden="true">🏆</span>
+              <span class="path-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M9 13.5 8 20l4-2 4 2-1-6.5"/></svg></span>
               <span class="path-role">NASA Judge</span>
               <span class="path-q">The answer, the NASA data, the validation and the open code.</span>
               <span class="path-meta">7 steps · about 4 min</span>
@@ -400,7 +400,7 @@
         </div>
       </div>
 
-      <div id="seasonality-matrix" class="matrix-container" role="group" aria-label="2002 to 2021 monthly fire activity heatmap matrix">
+      <div id="seasonality-matrix" class="matrix-container" role="group" tabindex="0" aria-label="Hotspots for every month from 2002 to 2021. Scroll sideways on small screens.">
         <!-- Rendered dynamically by app.js -->
       </div>
 
@@ -913,6 +913,6 @@ Join the two satellites' counts directly and fires look almost 2.85× higher aft
     </p>
   </footer>
 
-  <script src="app.js"></script>
+  <script src="app.js" defer></script>
 </body>
 </html>

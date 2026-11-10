@@ -1528,7 +1528,7 @@ function updateMapHotspots(year) {
 //     regional totals, not a 5-day window.
 // =============================================================================
 // BEGIN:LIVE_SNAPSHOT
-const LIVE_SNAPSHOT = {"bbox":"91.9,21.4,92.9,23.8","by_district":{"Khagrachhari":2,"Rangamati":2},"cht_count":4,"cht_modis_count":0,"cht_viirs_count":4,"detections":[{"acq_date":"2026-11-07","acq_time":716,"confidence":"n","daynight":"D","district":"Rangamati","frp":3.74,"latitude":22.91389,"longitude":92.08913,"satellite":"N20","sensor_key":"noaa20","sensor_label":"NOAA-20 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":722,"confidence":"n","daynight":"D","district":"Rangamati","frp":6.12,"latitude":23.10928,"longitude":92.20343,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":722,"confidence":"n","daynight":"D","district":"Khagrachhari","frp":6.51,"latitude":23.2152,"longitude":91.95415,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"},{"acq_date":"2026-11-10","acq_time":703,"confidence":"n","daynight":"D","district":"Khagrachhari","frp":2.19,"latitude":23.32403,"longitude":92.01492,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"}],"fetched_at":"2026-11-10T18:27Z","kind":"firms_nrt_snapshot","latest_acq_date":"2026-11-10","outside_cht":[{"acq_date":"2026-11-07","acq_time":716,"confidence":"n","daynight":"D","district":"","frp":3.52,"latitude":22.09014,"longitude":92.12029,"satellite":"N20","sensor_key":"noaa20","sensor_label":"NOAA-20 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":639,"confidence":"n","daynight":"D","district":"","frp":2.83,"latitude":23.09525,"longitude":92.78256,"satellite":"N20","sensor_key":"noaa20","sensor_label":"NOAA-20 VIIRS 375 m"},{"acq_date":"2026-11-06","acq_time":637,"confidence":"n","daynight":"D","district":"","frp":3.32,"latitude":21.43967,"longitude":92.84576,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":722,"confidence":"n","daynight":"D","district":"","frp":4.81,"latitude":23.28909,"longitude":92.81541,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":722,"confidence":"n","daynight":"D","district":"","frp":7.56,"latitude":23.29315,"longitude":92.74084,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"}],"sources":{"modis":{"cht_rows":0,"label":"Terra/Aqua MODIS 1 km","status":"ok"},"noaa20":{"cht_rows":1,"label":"NOAA-20 VIIRS 375 m","status":"ok"},"noaa21":{"cht_rows":3,"label":"NOAA-21 VIIRS 375 m","status":"ok"}},"status":"ok","window_days":5,"window_end":"2026-11-10"};
+const LIVE_SNAPSHOT = {"bbox":"91.9,21.4,92.9,23.8","by_district":{"Khagrachhari":2,"Rangamati":2},"cht_count":4,"cht_modis_count":0,"cht_viirs_count":4,"detections":[{"acq_date":"2026-11-07","acq_time":716,"confidence":"n","daynight":"D","district":"Rangamati","frp":3.74,"latitude":22.91389,"longitude":92.08913,"satellite":"N20","sensor_key":"noaa20","sensor_label":"NOAA-20 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":722,"confidence":"n","daynight":"D","district":"Rangamati","frp":6.12,"latitude":23.10928,"longitude":92.20343,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":722,"confidence":"n","daynight":"D","district":"Khagrachhari","frp":6.51,"latitude":23.2152,"longitude":91.95415,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"},{"acq_date":"2026-11-10","acq_time":703,"confidence":"n","daynight":"D","district":"Khagrachhari","frp":2.19,"latitude":23.32403,"longitude":92.01492,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"}],"fetched_at":"2026-11-10T18:34Z","kind":"firms_nrt_snapshot","latest_acq_date":"2026-11-10","outside_cht":[{"acq_date":"2026-11-07","acq_time":716,"confidence":"n","daynight":"D","district":"","frp":3.52,"latitude":22.09014,"longitude":92.12029,"satellite":"N20","sensor_key":"noaa20","sensor_label":"NOAA-20 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":639,"confidence":"n","daynight":"D","district":"","frp":2.83,"latitude":23.09525,"longitude":92.78256,"satellite":"N20","sensor_key":"noaa20","sensor_label":"NOAA-20 VIIRS 375 m"},{"acq_date":"2026-11-06","acq_time":637,"confidence":"n","daynight":"D","district":"","frp":3.32,"latitude":21.43967,"longitude":92.84576,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":722,"confidence":"n","daynight":"D","district":"","frp":4.81,"latitude":23.28909,"longitude":92.81541,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":722,"confidence":"n","daynight":"D","district":"","frp":7.56,"latitude":23.29315,"longitude":92.74084,"satellite":"N21","sensor_key":"noaa21","sensor_label":"NOAA-21 VIIRS 375 m"}],"sources":{"modis":{"cht_rows":0,"label":"Terra/Aqua MODIS 1 km","status":"ok"},"noaa20":{"cht_rows":1,"label":"NOAA-20 VIIRS 375 m","status":"ok"},"noaa21":{"cht_rows":3,"label":"NOAA-21 VIIRS 375 m","status":"ok"}},"status":"ok","window_days":5,"window_end":"2026-11-10"};
 // END:LIVE_SNAPSHOT
 
 let currentLiveFeed = (typeof LIVE_SNAPSHOT !== 'undefined') ? LIVE_SNAPSHOT : null;
@@ -1620,7 +1620,7 @@ function renderNow() {
   const list = (feed && feed.detections) || [];
   set('now-list', list.slice().sort((a, b) => String(b.acq_date).localeCompare(String(a.acq_date))).slice(0, 6).map((d) =>
     `<li><span class="nl-date">${escapeHtml(fmtDate(d.acq_date))}</span><span class="nl-place">${escapeHtml(d.district)}</span><span class="nl-sat">${escapeHtml((d.sensor_label || '').replace(' VIIRS 375 m', ''))}</span><span class="nl-frp">${escapeHtml(d.frp)} MW</span></li>`).join(''), true);
-  drawNowMap();
+  if (nowMap) drawNowMap(); else if (!renderNow.pending) { renderNow.pending = true; whenNear('now', drawNowMap); }
 }
 
 function drawNowMap() {
@@ -1639,7 +1639,7 @@ function drawNowMap() {
   const feed = currentLiveFeed;
   if (!feed) return;
   const icon = L.divIcon({ className: 'live-marker-wrap', html: '<div class="live-pulse-ring"></div><div class="live-pulse-core"></div>', iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14] });
-  (feed.detections || []).forEach((d) => L.marker([d.latitude, d.longitude], { icon }).bindPopup(
+  (feed.detections || []).forEach((d) => L.marker([d.latitude, d.longitude], { icon, title: `Hotspot in ${d.district}, ${fmtDate(d.acq_date)}`, alt: `Hotspot in ${d.district}` }).bindPopup(
     `<strong>${escapeHtml(d.district)}</strong><br>${escapeHtml(fmtDate(d.acq_date))} ${String(d.acq_time).padStart(4, '0')} UTC · ${escapeHtml(d.sensor_label)}<br>FRP ${escapeHtml(d.frp)} MW · confidence ${escapeHtml(d.confidence)}<br><span class="pop-note">Provisional heat detection, not a confirmed fire.</span>`
   ).addTo(nowLayer));
   (feed.outside_cht || []).forEach((d) => L.circleMarker([d.latitude, d.longitude], { radius: 4, color: '#94a3b8', fillColor: '#94a3b8', fillOpacity: .4, weight: 1 })
@@ -1848,7 +1848,19 @@ function initBA() {
   on();
 }
 
+let chartsBuilt = false;
+// Run fn once when the element is near the viewport (or immediately if unsupported).
+function whenNear(id, fn) {
+  const el = document.getElementById(id);
+  if (!el || !('IntersectionObserver' in window)) { fn(); return; }
+  const io = new IntersectionObserver((ents) => {
+    if (ents.some((e) => e.isIntersecting)) { io.disconnect(); fn(); }
+  }, { rootMargin: '800px 0px' });
+  io.observe(el);
+}
+
 function initCharts() {
+  chartsBuilt = true;
   const elA = document.getElementById('chartNaive');
   const elB = document.getElementById('chartHarm');
   if (!elA || !elB) return;
@@ -2163,7 +2175,7 @@ function initTheme() {
 
     // Re-render charts with the updated theme palette. Skipped on the first
     // apply: safeInit calls initCharts() once right after initTheme().
-    if (rebuildCharts) initCharts();
+    if (rebuildCharts && chartsBuilt) initCharts();
   }
 
   applyTheme(saved, false);
@@ -2621,8 +2633,8 @@ function initCalendar() {
 (function safeInit() {
   try {
     initTheme();            // resolve saved theme first (no chart rebuild)
-    initCharts();           // build charts once, with the final theme applied
-    setupChartViews();
+    // Charts are built when the Evidence chapter comes near the screen (keeps first load light).
+    whenNear('problem', () => { if (!chartsBuilt) { initCharts(); setupChartViews(); } try { initBA(); } catch (e) { console.error(e); } });
     buildSeasonalityMatrix();
     initScrollSpy();
     initMobileNav();
@@ -2631,7 +2643,6 @@ function initCalendar() {
     try { initCalendar(); } catch (e) { console.error('[BD-FireOps] calendar failed:', e); }
     try { initViews(); } catch (e) { console.error('[BD-FireOps] views failed:', e); }
     try { initReveal(); } catch (e) { console.error('[BD-FireOps] reveal failed:', e); }
-    try { initBA(); } catch (e) { console.error('[BD-FireOps] compare failed:', e); }
     try { initLiveFeed(); } catch (e) { console.error('[BD-FireOps] live feed failed:', e); }
     if (slider) updateTimeline(slider.value || 2014);
     if (simSlider) updateSimulator(parseInt(simSlider.value, 10) || 300);
