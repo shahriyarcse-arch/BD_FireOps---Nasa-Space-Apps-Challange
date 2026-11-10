@@ -7,18 +7,15 @@
 // Any uncaught failure (missing vendor lib, old browser) shows a visible,
 // honest banner instead of a silently half-dead page.
 if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
-  // Ensure page refresh always starts at the initial hero section
-  if (typeof history !== 'undefined' && 'scrollRestoration' in history) {
-    history.scrollRestoration = 'manual';
-  }
-  if (window.location.hash) {
-    try {
-      history.replaceState(null, '', window.location.pathname + window.location.search);
-    } catch (e) {}
-  }
-  window.scrollTo(0, 0);
-  window.addEventListener('beforeunload', () => { window.scrollTo(0, 0); });
-  window.addEventListener('load', () => { window.scrollTo(0, 0); });
+  // A plain refresh starts at the hero; a shared deep link (#method, #map-section)
+  // still lands on its section once the page has laid out.
+  if (typeof history !== 'undefined' && 'scrollRestoration' in history) history.scrollRestoration = 'manual';
+  window.addEventListener('load', () => {
+    const id = window.location.hash.slice(1);
+    const el = id && document.getElementById(id);
+    if (el && typeof scrollToSection === 'function') setTimeout(() => scrollToSection(el), 60);
+    else if (!/[?&]view=/.test(window.location.search)) window.scrollTo(0, 0);
+  });
 
   window.addEventListener('error', (e) => {
     console.error('[BD-FireOps] runtime error:', e.error || e.message);
@@ -1523,223 +1520,162 @@ function updateMapHotspots(year) {
 }
 
 // =============================================================================
-// 2c. LIVE NASA FIRMS TELEMETRY SYSTEM (NOAA-20 VIIRS NRT)
+// 2c. LATEST NOAA-20 / NOAA-21 SNAPSHOT (NASA FIRMS NRT)
+//     Every value shown comes from LIVE_SNAPSHOT (generated from
+//     data/processed/live_feed.json by tools/sync_web.py) or, when the page is
+//     served over HTTP, from a fresher live_feed.json read at runtime.
+//     Nothing is converted to MODIS-equivalent: the calibration is for monthly
+//     regional totals, not a 5-day window.
 // =============================================================================
-const LIVE_FEED_FALLBACK = {
-  "fetched_at": "2026-11-10 17:07 UTC",
-  "query_date": "2026-11-10",
-  "study_area": "Chittagong Hill Tracts (Bandarban, Khagrachhari, Rangamati)",
-  "bounding_box": "91.9,21.4,92.9,23.8",
-  "active_satellite": "NOAA-20 VIIRS (Suomi-NPP Sunset Nov 1, 2026)",
-  "status": "LIVE_SATELLITE_FEED_ACTIVE",
-  "counts": { "noaa20": 3, "snpp": 0, "modis": 0 },
-  "cht_active_detections_count": 1,
-  "modis_equivalent_estimate": 0.0,
-  "interpretation": "Quiet season baseline: post-monsoon vegetation moisture keeps natural burning near zero.",
-  "detections": [
-    {
-      "latitude": 22.91389,
-      "longitude": 92.08913,
-      "bright_ti4": 334.66,
-      "scan": 0.41,
-      "track": 0.37,
-      "acq_date": "2026-11-07",
-      "acq_time": 716,
-      "satellite": "N20",
-      "instrument": "VIIRS",
-      "confidence": "n",
-      "version": "2.0NRT",
-      "bright_ti5": 298.28,
-      "frp": 3.74,
-      "daynight": "D",
-      "district": "Rangamati",
-      "sensor_key": "noaa20",
-      "sensor_label": "NOAA-20 VIIRS 375m"
-    }
-  ],
-  "all_bbox_detections": [
-    {
-      "latitude": 22.09014,
-      "longitude": 92.12029,
-      "bright_ti4": 330.13,
-      "scan": 0.41,
-      "track": 0.37,
-      "acq_date": "2026-11-07",
-      "acq_time": 716,
-      "satellite": "N20",
-      "instrument": "VIIRS",
-      "confidence": "n",
-      "version": "2.0NRT",
-      "bright_ti5": 299.33,
-      "frp": 3.23,
-      "daynight": "D",
-      "district": "Outside CHT (Cox's Bazar / Chittagong)",
-      "sensor_key": "noaa20",
-      "sensor_label": "NOAA-20 VIIRS 375m"
-    },
-    {
-      "latitude": 22.25191,
-      "longitude": 91.95461,
-      "bright_ti4": 330.4,
-      "scan": 0.41,
-      "track": 0.37,
-      "acq_date": "2026-11-07",
-      "acq_time": 716,
-      "satellite": "N20",
-      "instrument": "VIIRS",
-      "confidence": "n",
-      "version": "2.0NRT",
-      "bright_ti5": 297.83,
-      "frp": 2.51,
-      "daynight": "D",
-      "district": "Outside CHT (Cox's Bazar / Chittagong)",
-      "sensor_key": "noaa20",
-      "sensor_label": "NOAA-20 VIIRS 375m"
-    }
-  ]
-};
+// BEGIN:LIVE_SNAPSHOT
+const LIVE_SNAPSHOT = {"bbox":"91.9,21.4,92.9,23.8","by_district":{"Rangamati":1},"cht_count":1,"cht_modis_count":0,"cht_viirs_count":1,"detections":[{"acq_date":"2026-11-07","acq_time":716,"confidence":"n","daynight":"D","district":"Rangamati","frp":3.74,"latitude":22.91389,"longitude":92.08913,"satellite":"N20","sensor_key":"noaa20","sensor_label":"NOAA-20 VIIRS 375 m"}],"fetched_at":"2026-11-10T17:07Z","kind":"firms_nrt_snapshot","latest_acq_date":"2026-11-09","outside_cht":[{"acq_date":"2026-11-07","acq_time":716,"confidence":"n","daynight":"D","district":"","frp":3.52,"latitude":22.09014,"longitude":92.12029,"satellite":"N20","sensor_key":"noaa20","sensor_label":"NOAA-20 VIIRS 375 m"},{"acq_date":"2026-11-09","acq_time":639,"confidence":"n","daynight":"D","district":"","frp":2.83,"latitude":23.09525,"longitude":92.78256,"satellite":"N20","sensor_key":"noaa20","sensor_label":"NOAA-20 VIIRS 375 m"}],"sources":{"modis":{"cht_rows":0,"label":"Terra/Aqua MODIS 1 km","status":"ok"},"noaa20":{"cht_rows":1,"label":"NOAA-20 VIIRS 375 m","status":"ok"}},"status":"ok","window_days":5,"window_end":"2026-11-10"};
+// END:LIVE_SNAPSHOT
 
-let currentLiveFeed = LIVE_FEED_FALLBACK;
+let currentLiveFeed = (typeof LIVE_SNAPSHOT !== 'undefined') ? LIVE_SNAPSHOT : null;
 let isLiveFeedMode = false;
+const MONTH_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function feedAgeDays(feed) {
+  const t = feed && Date.parse((feed.fetched_at || '').replace(/Z$/, ':00Z'));
+  return Number.isFinite(t) ? Math.max(0, Math.floor((Date.now() - t) / 86400000)) : null;
+}
+
+function escapeHtml(v) {
+  return String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function describeFeed(feed) {
+  if (!feed) return { state: 'error', headline: 'Snapshot unavailable', sub: 'No NRT snapshot is bundled with this build.' };
+  const age = feedAgeDays(feed);
+  const ageTxt = age == null ? '' : age === 0 ? 'fetched today' : `fetched ${age} day${age === 1 ? '' : 's'} ago`;
+  const win = `last ${feed.window_days || 5} days to ${feed.window_end || '—'}`;
+  if (feed.status === 'error') return { state: 'error', headline: 'Snapshot unavailable', sub: `FIRMS request failed · ${ageTxt}` };
+  const n = feed.cht_count || 0;
+  const parts = Object.entries(feed.by_district || {}).map(([d, c]) => `${d} ${c}`).join(' · ');
+  return {
+    state: n ? 'ok' : 'empty',
+    headline: n ? `${n} hotspot${n === 1 ? '' : 's'} in the Hill Tracts` : 'No hotspots in the Hill Tracts',
+    sub: `${win} · ${ageTxt}` + (parts ? ` · ${parts}` : ''),
+    age
+  };
+}
+
+// Archive context for the window's calendar month: the honest comparison.
+function monthContext(feed) {
+  const end = feed && feed.window_end ? new Date(feed.window_end + 'T00:00:00Z') : null;
+  if (!end || isNaN(end)) return null;
+  const mn = end.getUTCMonth() + 1;
+  const vals = CHT_SERIES.filter((r) => r.mn === mn && r.harm != null).map((r) => Math.max(0, r.harm));
+  if (!vals.length) return null;
+  const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
+  return { month: MONTH_SHORT[mn - 1], mean, years: vals.length };
+}
+
+function renderLiveHud() {
+  const d = describeFeed(currentLiveFeed);
+  const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
+  set('live-count-text', d.headline);
+  set('live-pass-text', d.sub);
+  const latest = currentLiveFeed && currentLiveFeed.latest_acq_date;
+  set('live-platform-text', d.state === 'error' ? 'Re-run: python tools/fetch_live.py' : latest ? `Latest detection in window: ${latest}` : 'No detections anywhere in the search box');
+  const ctx = monthContext(currentLiveFeed);
+  set('live-harm-text', ctx
+    ? `Archive context: an average ${ctx.month} (2002–2021) has ≈ ${Math.round(ctx.mean)} hotspot${Math.round(ctx.mean) === 1 ? '' : 's'} for the whole month (MODIS scale). This 5-day NOAA-20 count is raw and provisional, so it is shown beside the archive, not converted.`
+    : 'Provisional near-real-time detections, shown beside the archive and not converted.');
+  const badge = document.getElementById('live-telemetry-badge');
+  if (badge) {
+    badge.dataset.state = d.state;
+    badge.textContent = d.state === 'error' ? 'Snapshot unavailable'
+      : (d.age != null && d.age > 2 ? `Snapshot · ${d.age} days old` : 'NRT snapshot · current');
+  }
+}
+
+function drawLiveLayer() {
+  liveGroup.clearLayers();
+  const feed = currentLiveFeed;
+  if (!feed) return null;
+  const icon = L.divIcon({
+    className: 'live-marker-wrap',
+    html: '<div class="live-pulse-ring"></div><div class="live-pulse-core"></div>',
+    iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14]
+  });
+  const pts = [];
+  (feed.detections || []).forEach((d) => {
+    pts.push([d.latitude, d.longitude]);
+    L.marker([d.latitude, d.longitude], { icon }).bindPopup(
+      `<div class="live-popup-content"><div class="live-pop-header"><span class="live-pop-tag">NRT DETECTION · PROVISIONAL</span>` +
+      `<strong>${escapeHtml(d.sensor_label)}</strong></div><table class="live-pop-table">` +
+      `<tr><td>District</td><td>${escapeHtml(d.district)}</td></tr>` +
+      `<tr><td>Position</td><td>${(+d.latitude).toFixed(4)}°N, ${(+d.longitude).toFixed(4)}°E</td></tr>` +
+      `<tr><td>Acquired</td><td>${escapeHtml(d.acq_date)} ${String(d.acq_time).padStart(4, '0')} UTC (${d.daynight === 'D' ? 'day' : 'night'})</td></tr>` +
+      `<tr><td>Fire radiative power</td><td>${escapeHtml(d.frp)} MW</td></tr>` +
+      `<tr><td>Confidence</td><td>${escapeHtml(d.confidence)}</td></tr></table>` +
+      `<div class="live-pop-footer">A heat detection, not a confirmed fire. Not part of the fitted 2002–2021 record.</div></div>`,
+      { autoPan: true, autoPanPaddingTopLeft: [20, 90] }
+    ).addTo(liveGroup);
+  });
+  (feed.outside_cht || []).forEach((b) => {
+    L.circleMarker([b.latitude, b.longitude], { radius: 5, color: '#94a3b8', fillColor: '#94a3b8', fillOpacity: 0.35, weight: 1, dashArray: '2 3' })
+      .bindPopup(`<strong>Outside the study area</strong><br>${escapeHtml(b.acq_date)} · FRP ${escapeHtml(b.frp)} MW · ${escapeHtml(b.sensor_label)}<br><span class="pop-note">Removed by the BGD-ADM2 district gate</span>`)
+      .addTo(liveGroup);
+  });
+  return pts;
+}
 
 function setMapFeedMode(mode) {
-  const archiveBtn = document.getElementById('feed-archive-btn');
-  const liveBtn = document.getElementById('feed-live-btn');
-  const badge = document.getElementById('live-telemetry-badge');
-  const banner = document.getElementById('live-telemetry-banner');
-  const legendDot = document.getElementById('legend-live-dot');
-  const mapCountEl = document.getElementById('map-cell-count');
-
-  if (mode === 'live') {
-    isLiveFeedMode = true;
-    if (archiveBtn) archiveBtn.classList.remove('active');
-    if (liveBtn) liveBtn.classList.add('active');
-    if (badge) badge.hidden = false;
-    if (banner) banner.hidden = false;
-    if (legendDot) legendDot.hidden = false;
-
-    // Clear archive raster cells
+  const live = mode === 'live';
+  isLiveFeedMode = live;
+  const tog = (id, on) => { const el = document.getElementById(id); if (el) { el.classList.toggle('active', on); el.setAttribute('aria-pressed', String(on)); } };
+  tog('feed-archive-btn', !live);
+  tog('feed-live-btn', live);
+  ['live-telemetry-badge', 'live-telemetry-banner', 'legend-live-dot', 'live-harm-text'].forEach((id) => {
+    const el = document.getElementById(id); if (el) el.hidden = !live;
+  });
+  const archiveHud = document.getElementById('archive-hud');
+  if (archiveHud) archiveHud.hidden = live;
+  document.querySelectorAll('.archive-only').forEach((el) => { el.classList.toggle('is-muted', live); });
+  if (live) {
     modisGroup.clearLayers();
     viirsGroup.clearLayers();
-    liveGroup.clearLayers();
-
-    // Populate live telemetry banner values
-    const det = (currentLiveFeed.detections && currentLiveFeed.detections[0]) || null;
-    const platEl = document.getElementById('live-platform-text');
-    const passEl = document.getElementById('live-pass-text');
-    const cntEl = document.getElementById('live-count-text');
-    const harmEl = document.getElementById('live-harm-text');
-
-    if (platEl) platEl.textContent = 'NOAA-20 VIIRS 375m (NRT)';
-    if (passEl && det) passEl.textContent = `${det.acq_date} ${String(det.acq_time).padStart(4, '0')} UTC`;
-    if (cntEl && det) cntEl.textContent = `${currentLiveFeed.cht_active_detections_count} Hotspot (${det.district})`;
-    if (harmEl) harmEl.textContent = `${currentLiveFeed.modis_equivalent_estimate.toFixed(1)} MODIS-eq (Quiet season)`;
-
-    // Custom pulsing radar marker for live detection
-    const liveIcon = L.divIcon({
-      className: 'live-marker-wrap',
-      html: '<div class="live-pulse-ring"></div><div class="live-pulse-core"></div>',
-      iconSize: [28, 28],
-      iconAnchor: [14, 14],
-      popupAnchor: [0, -14]
-    });
-
-    let primaryMarker = null;
-    if (currentLiveFeed.detections) {
-      currentLiveFeed.detections.forEach(d => {
-        const popupHtml = `
-          <div class="live-popup-content">
-            <div class="live-pop-header">
-              <span class="live-pop-tag">🔴 LIVE SATELLITE OVERPASS</span>
-              <strong>NOAA-20 VIIRS 375m (NRT)</strong>
-            </div>
-            <table class="live-pop-table">
-              <tr><td><strong>Location</strong></td><td>${d.district} (${d.latitude.toFixed(4)}°N, ${d.longitude.toFixed(4)}°E)</td></tr>
-              <tr><td><strong>Acquired</strong></td><td>${d.acq_date} ${String(d.acq_time).padStart(4, '0')} UTC (${d.daynight === 'D' ? 'Day' : 'Night'})</td></tr>
-              <tr><td><strong>Fire Radiative Power</strong></td><td>${d.frp} MW</td></tr>
-              <tr><td><strong>Brightness (I-4)</strong></td><td>${d.bright_ti4} K</td></tr>
-              <tr><td><strong>Confidence</strong></td><td>Nominal (Operational NRT)</td></tr>
-              <tr class="pop-harm-row"><td><strong>BD-FireOps Estimate</strong></td><td><strong class="text-green">0.0 MODIS-eq</strong> (Sub-pixel burn)</td></tr>
-            </table>
-            <div class="live-pop-footer small muted">Operational NRT · Suomi-NPP Sunset Continuity</div>
-          </div>
-        `;
-        const m = L.marker([d.latitude, d.longitude], { icon: liveIcon })
-          .bindPopup(popupHtml)
-          .addTo(liveGroup);
-        primaryMarker = m;
-      });
-    }
-
-    // Plot other detections within search bbox outside CHT with dashed circles
-    if (currentLiveFeed.all_bbox_detections) {
-      currentLiveFeed.all_bbox_detections.forEach(b => {
-        const isCht = currentLiveFeed.detections && currentLiveFeed.detections.some(cd => cd.latitude === b.latitude && cd.longitude === b.longitude);
-        if (!isCht) {
-          L.circleMarker([b.latitude, b.longitude], {
-            radius: 7,
-            color: '#f59e0b',
-            fillColor: '#d97706',
-            fillOpacity: 0.6,
-            weight: 1.5,
-            dashArray: '3, 3'
-          }).bindPopup(
-            `<strong>Outside CHT Boundary (${b.district})</strong><br>` +
-            `Lat: ${b.latitude.toFixed(4)}, Lon: ${b.longitude.toFixed(4)}<br>` +
-            `FRP: ${b.frp} MW · NOAA-20 VIIRS<br>` +
-            `<span class="pop-note">Filtered out by BGD-ADM2 boundary mask</span>`
-          ).addTo(liveGroup);
-        }
-      });
-    }
-
-    if (mapCountEl) {
-      mapCountEl.textContent = `Live NOAA-20: 1 CHT Hotspot (3 in search bbox) · FRP 3.74 MW`;
-    }
-
-    // Focus map on the live CHT detection
-    if (primaryMarker && det) {
-      map.setView([det.latitude, det.longitude], 9);
-      primaryMarker.openPopup();
-    }
+    renderLiveHud();
+    const pts = drawLiveLayer();
+    if (chtLayer) map.fitBounds(chtLayer.getBounds(), { padding: [20, 20], maxZoom: 10 });
+    if (pts && pts.length === 1) map.setView(pts[0], Math.max(map.getZoom(), 9));
   } else {
-    // Mode is archive
-    isLiveFeedMode = false;
-    if (archiveBtn) archiveBtn.classList.add('active');
-    if (liveBtn) liveBtn.classList.remove('active');
-    if (badge) badge.hidden = true;
-    if (banner) banner.hidden = true;
-    if (legendDot) legendDot.hidden = true;
-
     liveGroup.clearLayers();
-    const curYear = slider ? parseInt(slider.value, 10) : 2014;
-    updateMapHotspots(curYear);
-    if (chtLayer) {
-      map.fitBounds(chtLayer.getBounds(), { padding: [10, 10], maxZoom: 10 });
-    }
+    updateMapHotspots(slider ? parseInt(slider.value, 10) : 2014);
+    if (chtLayer) map.fitBounds(chtLayer.getBounds(), { padding: [10, 10], maxZoom: 10 });
   }
 }
 
 function initLiveFeed() {
-  const archiveBtn = document.getElementById('feed-archive-btn');
-  const liveBtn = document.getElementById('feed-live-btn');
-  if (archiveBtn) archiveBtn.addEventListener('click', () => setMapFeedMode('archive'));
-  if (liveBtn) liveBtn.addEventListener('click', () => setMapFeedMode('live'));
-
-  // Try to load fresh live_feed.json asynchronously
-  try {
-    if (typeof fetch === 'function') {
-      fetch('data/processed/live_feed.json')
-        .then(r => r.ok ? r.json() : null)
-        .then(d => {
-          if (d && d.detections && d.detections.length) {
-            currentLiveFeed = d;
-            if (isLiveFeedMode) setMapFeedMode('live');
-          }
-        })
-        .catch(() => {});
-    }
-  } catch (e) {}
+  const step = (dy) => {
+    if (!slider) return;
+    const y = Math.max(+slider.min, Math.min(+slider.max, parseInt(slider.value, 10) + dy));
+    slider.value = y; updateTimeline(y);
+  };
+  const pv = document.getElementById('dock-prev'), nx = document.getElementById('dock-next');
+  if (pv) pv.addEventListener('click', () => step(-1));
+  if (nx) nx.addEventListener('click', () => step(1));
+  const a = document.getElementById('feed-archive-btn'), l = document.getElementById('feed-live-btn');
+  if (a) a.addEventListener('click', () => setMapFeedMode('archive'));
+  if (l) l.addEventListener('click', () => setMapFeedMode('live'));
+  renderLiveHud();
+  // Over HTTP, prefer a fresher live_feed.json than the one embedded at build time.
+  if (location.protocol.startsWith('http') && typeof fetch === 'function') {
+    fetch('data/processed/live_feed.json', { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!d || d.kind !== 'firms_nrt_snapshot') return;
+        const cur = currentLiveFeed && currentLiveFeed.fetched_at;
+        if (!cur || (d.fetched_at || '') >= cur) {
+          currentLiveFeed = d;
+          renderLiveHud();
+          if (isLiveFeedMode) setMapFeedMode('live');
+        }
+      })
+      .catch(() => { /* keep the embedded snapshot */ });
+  }
 }
 
 // =============================================================================
@@ -1861,6 +1797,55 @@ function buildCombinedDatasets() {
   ];
 }
 
+
+// =============================================================================
+// 3b. BEFORE / AFTER COMPARE — yearly totals on one shared axis.
+//     Left of the handle shows the naive join, right shows BD-FireOps.
+// =============================================================================
+let baCharts = [];
+function yearlyTotals(pick) {
+  const by = {};
+  CHT_SERIES.forEach((r) => { const v = pick(r); if (v != null) by[r.y] = (by[r.y] || 0) + Math.max(0, v); });
+  const years = Object.keys(by).map(Number).sort((a, b) => a - b);
+  return { years, vals: years.map((y) => Math.round(by[y])) };
+}
+function buildBA() {
+  const a = document.getElementById('baNaive'), b = document.getElementById('baHarm');
+  if (!a || !b || typeof Chart === 'undefined') return;
+  baCharts.forEach((c) => c.destroy()); baCharts = [];
+  // Years with a partial first year (2002 starts in July) are still shown as recorded.
+  const naive = yearlyTotals((r) => (r.y >= 2012 ? r.viirs : r.modis));
+  const harm = yearlyTotals((r) => r.harm);
+  const max = Math.ceil(Math.max(...naive.vals, ...harm.vals) * 1.08 / 500) * 500;
+  const c = getChartColors();
+  const mk = (el, data, color) => new Chart(el, {
+    type: 'bar',
+    data: { labels: data.years, datasets: [{ data: data.vals, backgroundColor: data.years.map((y) => (y >= 2012 ? color : 'rgba(148,163,184,.55)')), borderRadius: 4, barPercentage: 0.82 }] },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: { duration: 500 },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: (t) => ' ' + t.parsed.y.toLocaleString() + ' hotspots' } } },
+      scales: {
+        x: { ticks: { color: c.text, maxRotation: 0, autoSkip: true, autoSkipPadding: 10 }, grid: { display: false } },
+        y: { min: 0, max, ticks: { color: c.text }, grid: { color: c.grid }, title: { display: true, text: 'Hotspots per year', color: c.text } }
+      }
+    }
+  });
+  baCharts = [mk(a, naive, 'rgba(239,68,68,.85)'), mk(b, harm, 'rgba(56,189,248,.9)')];
+}
+function setBA(pct) {
+  const top = document.getElementById('ba-top'), h = document.getElementById('ba-handle');
+  if (top) top.style.clipPath = `inset(0 0 0 ${pct}%)`;
+  if (h) h.style.left = pct + '%';
+}
+function initBA() {
+  const r = document.getElementById('ba-range');
+  if (!r) return;
+  buildBA();
+  const on = () => setBA(+r.value);
+  r.addEventListener('input', on);
+  on();
+}
+
 function initCharts() {
   const elA = document.getElementById('chartNaive');
   const elB = document.getElementById('chartHarm');
@@ -1902,6 +1887,7 @@ function initCharts() {
     },
     options: CHART_OPTS('Fires per month')
   });
+  if (baCharts.length) buildBA();
 }
 
 // Chart View Switcher (Split vs Combined)
@@ -1947,22 +1933,10 @@ const activeSensorName = document.getElementById('active-sensor-name');
 let playTimer = null;
 
 function updateTimeline(year) {
-  if (isLiveFeedMode) {
-    isLiveFeedMode = false;
-    const archiveBtn = document.getElementById('feed-archive-btn');
-    const liveBtn = document.getElementById('feed-live-btn');
-    const badge = document.getElementById('live-telemetry-badge');
-    const banner = document.getElementById('live-telemetry-banner');
-    const legendDot = document.getElementById('legend-live-dot');
-    if (archiveBtn) archiveBtn.classList.add('active');
-    if (liveBtn) liveBtn.classList.remove('active');
-    if (badge) badge.hidden = true;
-    if (banner) banner.hidden = true;
-    if (legendDot) legendDot.hidden = true;
-    liveGroup.clearLayers();
-  }
+  if (isLiveFeedMode) setMapFeedMode('archive');   // moving the year always returns to the archive
   const yr = parseInt(year, 10);
   if (yearBadge) yearBadge.innerText = yr;
+  const dockYear = document.getElementById('dock-year'); if (dockYear) dockYear.textContent = yr;
   updateMapHotspots(yr);
 
   if (eraText) {
@@ -2170,9 +2144,9 @@ function buildSeasonalityMatrix() {
 function initTheme() {
   const toggleBtn = document.getElementById('theme-toggle');
   const label = document.getElementById('theme-label');
-  let saved = 'light';
+  let saved = 'dark';
   try {
-    saved = localStorage.getItem('bd_fireops_theme') || 'light';
+    saved = localStorage.getItem('bd_fireops_theme') || 'dark';
   } catch (err) { /* storage blocked (private mode) — keep default */ }
 
   function applyTheme(theme, rebuildCharts = true) {
@@ -2393,9 +2367,10 @@ const SECTION_LABELS = {
 };
 // Steps are listed in page order, so every path moves strictly downward.
 const PATHS = {
-  officer:  { name: 'Forest officer', steps: ['priority', 'season', 'map-section', 'matrix', 'noaa20', 'limits'] },
-  public:   { name: 'Community',      steps: ['season', 'calendar', 'map-section', 'continuity', 'glossary', 'limits'] },
-  research: { name: 'Researcher',     steps: ['problem', 'continuity', 'proof', 'try', 'noaa20', 'method', 'limits'] }
+  officer:  { name: 'Forest Ranger', steps: ['priority', 'season', 'map-section', 'matrix', 'noaa20', 'limits'] },
+  public:   { name: 'Hill Community',      steps: ['season', 'calendar', 'map-section', 'continuity', 'glossary', 'limits'] },
+  research: { name: 'Climate Researcher', steps: ['problem', 'continuity', 'proof', 'try', 'noaa20', 'method', 'limits'] },
+  judge:    { name: 'NASA Judge',     steps: ['season', 'map-section', 'problem', 'continuity', 'proof', 'noaa20', 'method'] }
 };
 const TOUR = { path: null, idx: 0, lock: 0 };
 
@@ -2420,6 +2395,7 @@ function renderTour() {
   }
   const id = p.steps[TOUR.idx];
   const sec = document.getElementById(id);
+  if (id === 'map-section' && typeof setMapFeedMode === 'function') setMapFeedMode(TOUR.path === 'officer' ? 'live' : 'archive');
   if (sec) sec.classList.add('tour-focus');
   document.body.classList.add('touring');
   dock.hidden = false;
@@ -2519,6 +2495,10 @@ function initReveal() {
     if (en.isIntersecting) { en.target.classList.add('in-view'); io.unobserve(en.target); }
   }), { rootMargin: '120px 0px 120px 0px', threshold: 0.01 });
   secs.forEach((s) => io.observe(s));
+  // Safety net: nothing may stay hidden if an observer callback is missed.
+  const revealAll = () => secs.forEach((s) => s.classList.add('in-view'));
+  setTimeout(revealAll, 2500);
+  window.addEventListener('beforeprint', revealAll);
 }
 
 // =============================================================================
@@ -2644,10 +2624,11 @@ function initCalendar() {
     try { initCalendar(); } catch (e) { console.error('[BD-FireOps] calendar failed:', e); }
     try { initViews(); } catch (e) { console.error('[BD-FireOps] views failed:', e); }
     try { initReveal(); } catch (e) { console.error('[BD-FireOps] reveal failed:', e); }
+    try { initBA(); } catch (e) { console.error('[BD-FireOps] compare failed:', e); }
     try { initLiveFeed(); } catch (e) { console.error('[BD-FireOps] live feed failed:', e); }
     if (slider) updateTimeline(slider.value || 2014);
     if (simSlider) updateSimulator(parseInt(simSlider.value, 10) || 300);
-    window.scrollTo(0, 0);
+    if (!window.location.hash && !/[?&]view=/.test(window.location.search)) window.scrollTo(0, 0);
   } catch (err) {
     console.error('[BD-FireOps] init failed:', err);
     const banner = document.getElementById('app-error-banner');

@@ -143,17 +143,16 @@ def main() -> int:
         from tools.fetch_live import fetch_live_feed
         live = fetch_live_feed()
         print("\n" + "=" * 76)
-        print("   NASA FIRMS LIVE SATELLITE TELEMETRY (NEAR REAL-TIME)")
-        print(f"   Fetched: {live['fetched_at']} | Area: {live['study_area']}")
+        print("   NASA FIRMS NEAR-REAL-TIME SNAPSHOT (provisional, not part of the fitted record)")
+        print(f"   Fetched: {live['fetched_at']} | window: last {live['window_days']} days | status: {live['status']}")
         print("=" * 76)
-        print(f"   Active Satellite    : {live['active_satellite']}")
-        print(f"   Detections in CHT   : {live['cht_active_detections_count']}")
-        print(f"   Harmonized MODIS-Eq : {live['modis_equivalent_estimate']}")
-        print(f"   Status Note         : {live['interpretation']}")
-        if live['detections']:
-            print("\n   Live Detections:")
-            for d in live['detections']:
-                print(f"     * {d.get('acq_date')} | {d.get('district')} | Lat {d.get('latitude')}, Lon {d.get('longitude')} | FRP: {d.get('frp')} MW | Sat: {d.get('satellite')}")
+        for k, src in live["sources"].items():
+            print(f"   {src['label']:<24}: {src['status']} {src.get('cht_rows', src.get('detail', ''))}")
+        print(f"   Detections in CHT      : {live['cht_count']} {live['by_district'] or ''}")
+        for d in live["detections"]:
+            print(f"     * {d.get('acq_date')} {str(d.get('acq_time')).zfill(4)} UTC | {d.get('district')} | "
+                  f"{d.get('latitude')}, {d.get('longitude')} | FRP {d.get('frp')} MW | {d.get('sensor_label')}")
+        print("   Next: python tools/sync_web.py   (embeds this snapshot in app.js)")
         print("=" * 76)
         return 0
 

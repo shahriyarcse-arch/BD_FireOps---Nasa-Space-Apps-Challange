@@ -1,96 +1,78 @@
 {
-  "fetched_at": "2026-11-10 17:07 UTC",
-  "query_date": "2026-11-10",
+  "kind": "firms_nrt_snapshot",
+  "status": "ok",
+  "fetched_at": "2026-11-10T17:07Z",
+  "window_days": 5,
+  "window_end": "2026-11-10",
+  "latest_acq_date": "2026-11-09",
+  "bbox": "91.9,21.4,92.9,23.8",
   "study_area": "Chittagong Hill Tracts (Bandarban, Khagrachhari, Rangamati)",
-  "bounding_box": "91.9,21.4,92.9,23.8",
-  "active_satellite": "NOAA-20 VIIRS (Suomi-NPP Sunset Nov 1, 2026)",
-  "status": "LIVE_SATELLITE_FEED_ACTIVE",
-  "counts": {
-    "noaa20": 3,
-    "snpp": 0,
-    "modis": 0
+  "sources": {
+    "noaa20": {
+      "label": "NOAA-20 VIIRS 375 m",
+      "family": "viirs",
+      "status": "ok",
+      "raw_rows": 3,
+      "kept_rows": 3,
+      "cht_rows": 1
+    },
+    "modis": {
+      "label": "Terra/Aqua MODIS 1 km",
+      "family": "modis",
+      "status": "ok",
+      "raw_rows": 0,
+      "kept_rows": 0,
+      "cht_rows": 0
+    }
   },
-  "cht_active_detections_count": 1,
-  "modis_equivalent_estimate": 0.0,
-  "interpretation": "Quiet season baseline: post-monsoon vegetation moisture keeps natural burning near zero.",
+  "cht_count": 1,
+  "cht_viirs_count": 1,
+  "cht_modis_count": 0,
+  "by_district": {
+    "Rangamati": 1
+  },
+  "note": "Provisional near-real-time detections. Not converted to MODIS-equivalent: the BD-FireOps calibration applies to monthly regional totals only.",
   "detections": [
     {
       "latitude": 22.91389,
       "longitude": 92.08913,
-      "bright_ti4": 334.66,
-      "scan": 0.41,
-      "track": 0.37,
       "acq_date": "2026-11-07",
       "acq_time": 716,
       "satellite": "N20",
-      "instrument": "VIIRS",
       "confidence": "n",
-      "version": "2.0NRT",
-      "bright_ti5": 298.28,
       "frp": 3.74,
       "daynight": "D",
       "district": "Rangamati",
       "sensor_key": "noaa20",
-      "sensor_label": "NOAA-20 VIIRS 375m"
+      "sensor_label": "NOAA-20 VIIRS 375 m"
     }
   ],
-  "all_bbox_detections": [
+  "outside_cht": [
     {
       "latitude": 22.09014,
       "longitude": 92.12029,
-      "bright_ti4": 330.13,
-      "scan": 0.41,
-      "track": 0.37,
       "acq_date": "2026-11-07",
       "acq_time": 716,
       "satellite": "N20",
-      "instrument": "VIIRS",
       "confidence": "n",
-      "version": "2.0NRT",
-      "bright_ti5": 299.33,
       "frp": 3.52,
       "daynight": "D",
       "district": "",
       "sensor_key": "noaa20",
-      "sensor_label": "NOAA-20 VIIRS 375m"
-    },
-    {
-      "latitude": 22.91389,
-      "longitude": 92.08913,
-      "bright_ti4": 334.66,
-      "scan": 0.41,
-      "track": 0.37,
-      "acq_date": "2026-11-07",
-      "acq_time": 716,
-      "satellite": "N20",
-      "instrument": "VIIRS",
-      "confidence": "n",
-      "version": "2.0NRT",
-      "bright_ti5": 298.28,
-      "frp": 3.74,
-      "daynight": "D",
-      "district": "Rangamati",
-      "sensor_key": "noaa20",
-      "sensor_label": "NOAA-20 VIIRS 375m"
+      "sensor_label": "NOAA-20 VIIRS 375 m"
     },
     {
       "latitude": 23.09525,
       "longitude": 92.78256,
-      "bright_ti4": 328.16,
-      "scan": 0.47,
-      "track": 0.48,
       "acq_date": "2026-11-09",
       "acq_time": 639,
       "satellite": "N20",
-      "instrument": "VIIRS",
       "confidence": "n",
-      "version": "2.0NRT",
-      "bright_ti5": 295.42,
       "frp": 2.83,
       "daynight": "D",
       "district": "",
       "sensor_key": "noaa20",
-      "sensor_label": "NOAA-20 VIIRS 375m"
+      "sensor_label": "NOAA-20 VIIRS 375 m"
     }
   ]
 }

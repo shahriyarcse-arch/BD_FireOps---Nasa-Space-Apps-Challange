@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -102,22 +102,31 @@
           <span id="persona-label" class="persona-label">Take a guided path</span>
           <div class="path-cards" id="persona-switch">
             <button type="button" class="path-card" data-view="officer">
-              <span class="path-role">Forest officer</span>
-              <span class="path-q">Which district should we check first?</span>
+              <span class="path-icon" aria-hidden="true">🚒</span>
+              <span class="path-role">Forest Ranger</span>
+              <span class="path-q">Which district first, and is anything burning now?</span>
               <span class="path-meta">6 steps · about 3 min</span>
             </button>
             <button type="button" class="path-card" data-view="public">
-              <span class="path-role">Community</span>
-              <span class="path-q">Was this season unusual, and when do the Hills burn?</span>
+              <span class="path-icon" aria-hidden="true">🏡</span>
+              <span class="path-role">Hill Community</span>
+              <span class="path-q">When do the Hills burn? Plain answers, with a Bangla guide.</span>
               <span class="path-meta">6 steps · about 3 min</span>
             </button>
             <button type="button" class="path-card" data-view="research">
-              <span class="path-role">Researcher</span>
+              <span class="path-icon" aria-hidden="true">👨‍🔬</span>
+              <span class="path-role">Climate Researcher</span>
               <span class="path-q">How was the 2012 jump removed, and how sure are we?</span>
               <span class="path-meta">7 steps · about 5 min</span>
             </button>
+            <button type="button" class="path-card" data-view="judge">
+              <span class="path-icon" aria-hidden="true">🏆</span>
+              <span class="path-role">NASA Judge</span>
+              <span class="path-q">The answer, the NASA data, the validation and the open code.</span>
+              <span class="path-meta">7 steps · about 4 min</span>
+            </button>
           </div>
-          <p class="persona-hint small muted" id="persona-hint" aria-live="polite">Or scroll: the page reads top to bottom — use it, trust it, understand it.</p>
+          <p class="persona-hint small muted" id="persona-hint" aria-live="polite">Pick who you are for a guided path, or just scroll: the page reads top to bottom — use it, trust it, understand it.</p>
         </div>
 
         <!-- KPI Telemetry Ribbon -->
@@ -224,9 +233,12 @@
       <p class="calendar-headline" id="cal-headline"></p>
       <div class="calendar-bars" id="cal-bars" role="img" aria-label="Typical hotspots per month"></div>
       <ul class="tips">
-        <li><strong>Before the season (Jan&ndash;Feb):</strong> clear dry litter near homes, granaries and schools.</li>
-        <li><strong>During jhum burning (Mar&ndash;Apr):</strong> burn only on calm days, keep a cleared firebreak, and never leave a burn unattended.</li>
-        <li><strong>If a fire spreads:</strong> move people away first, then call the Fire Service and inform the local forest office.</li>
+        <li><strong>Before the season (Jan&ndash;Feb):</strong> clear dry litter near homes, granaries and schools.
+          <span class="bn" lang="bn">মৌসুমের আগে: ঘর, গোলা ও স্কুলের পাশের শুকনো পাতা-আবর্জনা সরিয়ে ফেলুন।</span></li>
+        <li><strong>During jhum burning (Mar&ndash;Apr):</strong> burn only on calm days, keep a cleared firebreak, and never leave a burn unattended.
+          <span class="bn" lang="bn">জুম পোড়ানোর সময়: বাতাস কম এমন দিনে পোড়ান, চারপাশে ফাঁকা অগ্নিরোধক পথ রাখুন, আর আগুন কখনো অরক্ষিত রাখবেন না।</span></li>
+        <li><strong>If a fire spreads:</strong> move people away first, then call the Fire Service and inform the local forest office.
+          <span class="bn" lang="bn">আগুন ছড়ালে: আগে মানুষকে নিরাপদে সরান, তারপর ফায়ার সার্ভিস ও স্থানীয় বন অফিসে খবর দিন।</span></li>
       </ul>
     </section>
 
@@ -241,59 +253,49 @@
           </p>
         </div>
 
-        <div class="map-layer-toggles">
-          <button id="toggle-sat-btn" class="layer-toggle-btn active" type="button">Satellite</button>
-          <button id="toggle-carto-btn" class="layer-toggle-btn" type="button">Dark gray</button>
-          <span id="map-cell-count" class="map-stats-counter font-mono">Loading cells...</span>
-        </div>
-      </div>
-
-      <!-- MAP MODE SWITCH: 20-YEAR ARCHIVE vs LIVE NASA TELEMETRY -->
-      <div class="map-mode-bar">
-        <div class="map-feed-switch" role="group" aria-label="Select data mode: Archive or Live Telemetry">
-          <button type="button" id="feed-archive-btn" class="feed-btn active">
-            <span class="feed-icon">📂</span> 20-Year Archive (2002–2021)
-          </button>
-          <button type="button" id="feed-live-btn" class="feed-btn">
-            <span class="live-dot" aria-hidden="true"></span>
-            <span class="feed-label">Live NASA Telemetry (Nov 2026)</span>
-          </button>
-        </div>
-        <div id="live-telemetry-badge" class="live-telemetry-badge font-mono" hidden>
-          <span class="badge-pulse"></span> NOAA-20 VIIRS NRT ACTIVE
-        </div>
-      </div>
-
-      <!-- LIVE TELEMETRY BANNER (Shown when Live Feed mode is active) -->
-      <div id="live-telemetry-banner" class="live-telemetry-banner" hidden>
-        <div class="telemetry-grid">
-          <div class="telemetry-item">
-            <span class="telemetry-label">ACTIVE PLATFORM</span>
-            <span class="telemetry-val text-green font-mono" id="live-platform-text">NOAA-20 VIIRS 375m</span>
-          </div>
-          <div class="telemetry-item">
-            <span class="telemetry-label">LAST ORBITAL PASS</span>
-            <span class="telemetry-val font-mono" id="live-pass-text">2026-11-07 07:16 UTC</span>
-          </div>
-          <div class="telemetry-item">
-            <span class="telemetry-label">CHT DETECTIONS</span>
-            <span class="telemetry-val font-mono text-orange" id="live-count-text">1 Hotspot (Rangamati)</span>
-          </div>
-          <div class="telemetry-item">
-            <span class="telemetry-label">HARMONIZED MODIS-EQ</span>
-            <span class="telemetry-val font-mono text-blue" id="live-harm-text">0.0 equiv (Quiet season)</span>
-          </div>
-        </div>
-        <div class="telemetry-note">
-          <span class="small muted">
-            🔴 Direct Near Real-Time telemetry from NASA FIRMS API (Area bbox: 91.9–92.9°E, 21.4–23.8°N).
-            Suomi-NPP VIIRS retired Nov 1, 2026; NOAA-20 provides operational continuity. To pull latest satellite pass, run <code>python probe_firms.py --live</code> in terminal.
-          </span>
-        </div>
       </div>
 
       <div class="map-outer">
-        <div id="map" class="map" role="region" aria-label="Interactive map of fire detections in Chittagong Hill Tracts"></div>
+        <!-- Map stage: full-bleed map with floating glass controls (Windy / Eyes-style) -->
+        <div class="map-stage">
+          <div id="map" class="map" role="region" aria-label="Interactive map of fire detections in Chittagong Hill Tracts"></div>
+
+          <!-- Top-left HUD: what you are looking at -->
+          <div class="map-hud glass" aria-live="polite">
+            <div id="archive-hud">
+              <span class="hud-kicker">Archive · 2002–2021</span>
+              <span id="map-cell-count" class="hud-main">Loading cells...</span>
+            </div>
+            <div id="live-telemetry-banner" hidden>
+              <span class="hud-kicker"><span class="live-dot" aria-hidden="true"></span> NOAA-20 near-real-time</span>
+              <span id="live-count-text" class="hud-main">—</span>
+              <span id="live-pass-text" class="hud-sub">—</span>
+              <span id="live-platform-text" class="hud-sub">—</span>
+            </div>
+          </div>
+
+          <!-- Top-right: basemap -->
+          <div class="map-layers glass" role="group" aria-label="Basemap">
+            <button id="toggle-sat-btn" class="layer-toggle-btn active" type="button">Satellite</button>
+            <button id="toggle-carto-btn" class="layer-toggle-btn" type="button">Dark</button>
+          </div>
+
+          <!-- Bottom: command dock -->
+          <div class="map-dock glass" role="group" aria-label="Map data">
+            <div class="map-feed-switch seg" role="group" aria-label="Data mode">
+              <button type="button" id="feed-archive-btn" class="feed-btn active" aria-pressed="true">20-year archive</button>
+              <button type="button" id="feed-live-btn" class="feed-btn" aria-pressed="false"><span class="live-dot" aria-hidden="true"></span>Latest NOAA-20</button>
+            </div>
+            <div class="dock-year archive-only">
+              <button type="button" class="dock-step" id="dock-prev" aria-label="Previous year">‹</button>
+              <span class="dock-year-val" id="dock-year">2014</span>
+              <button type="button" class="dock-step" id="dock-next" aria-label="Next year">›</button>
+            </div>
+            <span id="live-telemetry-badge" class="dock-badge" hidden>NRT snapshot</span>
+          </div>
+        </div>
+
+        <p id="live-harm-text" class="live-context small muted" hidden></p>
 
         <div class="map-legend">
           <span><i class="dot dot-modis" aria-hidden="true"></i> Aqua MODIS (2002–2021)</span>
@@ -432,6 +434,22 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
           <button id="view-combined-btn" class="view-btn" type="button">⊡ Combined View</button>
         </div>
       </div>
+
+      <!-- BEFORE / AFTER: same axis, drag to compare (annual totals, MODIS scale) -->
+      <figure class="ba-compare" aria-label="Drag to compare the naive join with the BD-FireOps record">
+        <div class="ba-head">
+          <span class="ba-tag bad">Naive join</span>
+          <span class="ba-hint">Drag the handle · both sides use the same axis</span>
+          <span class="ba-tag good">BD-FireOps</span>
+        </div>
+        <div class="ba-stage" id="ba-stage">
+          <div class="ba-layer"><canvas id="baNaive" role="img" aria-label="Yearly hotspots, naive join"></canvas></div>
+          <div class="ba-layer ba-top" id="ba-top"><canvas id="baHarm" role="img" aria-label="Yearly hotspots, BD-FireOps harmonized"></canvas></div>
+          <div class="ba-handle" id="ba-handle" aria-hidden="true"><span></span></div>
+          <input type="range" id="ba-range" class="ba-range" min="0" max="100" value="72" aria-label="Compare naive join (left) with BD-FireOps (right)">
+        </div>
+        <figcaption class="small muted" id="ba-caption">Yearly hotspot totals in the Hill Tracts. Left of the handle: VIIRS joined raw after 2012. Right: VIIRS converted to the MODIS scale.</figcaption>
+      </figure>
 
       <div id="charts-wrapper" class="two-charts">
         <!-- WRONG NAIVE JOIN -->

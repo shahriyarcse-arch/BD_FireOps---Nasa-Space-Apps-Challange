@@ -33,6 +33,7 @@ CSV = ROOT / "data" / "processed" / "monthly_harmonized.csv"
 METRICS = ROOT / "data" / "processed" / "metrics.json"
 DISTRICT_CSV = ROOT / "data" / "processed" / "monthly_districts.csv"
 DISTRICT_METRICS = ROOT / "data" / "processed" / "district_metrics.json"
+LIVE_FEED = ROOT / "data" / "processed" / "live_feed.json"
 APPJS = ROOT / "app.js"
 INDEX = ROOT / "index.html"
 
@@ -387,6 +388,21 @@ def build_series() -> str:
         lines[-1] = lines[-1][:-1]
     lines.append("];")
     return "\n".join(lines)
+
+
+def build_live_snapshot() -> str:
+    """Embed the latest FIRMS NRT snapshot (tools/fetch_live.py) so file:// and offline demos work."""
+    if not LIVE_FEED.exists():
+        return "const LIVE_SNAPSHOT = null;  // run: python tools/fetch_live.py"
+    feed = json.loads(LIVE_FEED.read_text(encoding="utf-8"))
+    if feed.get("kind") != "firms_nrt_snapshot":
+        raise SystemExit("[SYNC-WEB] live_feed.json has an old schema - re-run python tools/fetch_live.py")
+    keep = ("kind", "status", "fetched_at", "window_days", "window_end", "latest_acq_date", "bbox",
+            "cht_count", "cht_viirs_count", "cht_modis_count", "by_district", "detections", "outside_cht")
+    slim = {k: feed.get(k) for k in keep}
+    slim["sources"] = {k: {kk: v.get(kk) for kk in ("label", "status", "cht_rows")}
+                       for k, v in (feed.get("sources") or {}).items()}
+    return "const LIVE_SNAPSHOT = " + json.dumps(slim, separators=(",", ":"), sort_keys=True) + ";"
 
 
 def build_district_series() -> str:
@@ -769,6 +785,7 @@ def main(argv: list[str] | None = None) -> int:
 
     new_js = replace_block(js, "// BEGIN:CHT_SERIES", "// END:CHT_SERIES", build_series())
     new_js = replace_block(new_js, "// BEGIN:MODEL_PARAMS", "// END:MODEL_PARAMS", build_model_params(metrics))
+    new_js = replace_block(new_js, "// BEGIN:LIVE_SNAPSHOT", "// END:LIVE_SNAPSHOT", build_live_snapshot())
     new_js = replace_block(new_js, "// BEGIN:DISTRICT_SERIES", "// END:DISTRICT_SERIES", build_district_series())
     new_js = replace_block(new_js, "// BEGIN:MAP_CELLS", "// END:MAP_CELLS", build_map_cells())
     new_js = replace_block(new_js, "// BEGIN:CHT_BOUNDARY", "// END:CHT_BOUNDARY", build_cht_boundary())

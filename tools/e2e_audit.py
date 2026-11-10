@@ -206,6 +206,19 @@ chk("Use of AI disclosed on page", "Use of AI" in html)
 chk("Season check reads only generated data", "function seasonAssessment" in js and "CHT_SERIES" in js)
 chk("CSV export wired", 'id="download-csv"' in html and "downloadHarmonizedCsv" in js)
 
+# Live NRT snapshot: generated, honest, and never leaking the FIRMS key.
+live_path = ROOT / "data" / "processed" / "live_feed.json"
+if live_path.exists():
+    live_raw = live_path.read_text(encoding="utf-8")
+    live = json.loads(live_raw)
+    chk("live feed uses current schema", live.get("kind") == "firms_nrt_snapshot")
+    chk("live feed status is ok/empty/error", live.get("status") in ("ok", "empty", "error"))
+    chk("live cht_count matches detections", live.get("cht_count") == len(live.get("detections") or []))
+    chk("live feed has no MODIS-eq conversion", "modis_equivalent" not in live_raw)
+    chk("live feed carries no API key", not re.search(r"/csv/[0-9a-fA-F]{20,}/", live_raw))
+    chk("live snapshot embedded via sync_web", "const LIVE_SNAPSHOT = " in js)
+chk("no hand-written live fallback in app.js", "LIVE_FEED_FALLBACK" not in js)
+
 # Submission readiness: warn (not fail) while member placeholders remain.
 placeholders = html.count("[Member name]")
 if placeholders:
