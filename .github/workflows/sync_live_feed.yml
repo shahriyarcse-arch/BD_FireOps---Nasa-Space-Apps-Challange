@@ -61,3 +61,4 @@ jobs:
             git commit -m "chore(telemetry): auto-sync NASA FIRMS live NRT satellite snapshot [skip ci]"
             git push
           fi
+

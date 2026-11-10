@@ -133,6 +133,19 @@ def fetch_live_feed(days: int = 5) -> dict:
         "detections": inside,
         "outside_cht": outside,
     }
+    # A failed refresh must never wipe the last good snapshot (the scheduled job runs
+    # every 6 hours and a FIRMS outage would otherwise blank the page).
+    if status == "error" and OUT.exists():
+        try:
+            prev = json.loads(OUT.read_text(encoding="utf-8"))
+        except ValueError:
+            prev = {}
+        if prev.get("kind") == "firms_nrt_snapshot" and prev.get("status") in ("ok", "empty"):
+            prev["last_attempt"] = output["fetched_at"]
+            prev["last_attempt_status"] = "error"
+            OUT.write_text(json.dumps(prev, indent=2, default=str), encoding="utf-8")
+            print("[LIVE] FIRMS refresh failed - kept the previous good snapshot.")
+            return prev
     OUT.write_text(json.dumps(output, indent=2, default=str), encoding="utf-8")
     print(f"[LIVE] {status}: {len(inside)} CHT detections, {len(outside)} outside CHT -> {OUT.relative_to(ROOT)}")
     return output

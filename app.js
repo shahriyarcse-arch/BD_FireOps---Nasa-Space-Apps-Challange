@@ -1571,81 +1571,86 @@ function monthContext(feed) {
   return { month: MONTH_SHORT[mn - 1], mean, years: vals.length };
 }
 
-function renderLiveHud() {
-  const d = describeFeed(currentLiveFeed);
-  const set = (id, txt) => { const el = document.getElementById(id); if (el) el.textContent = txt; };
-  set('live-count-text', d.headline);
-  set('live-pass-text', d.sub);
-  const latest = currentLiveFeed && currentLiveFeed.latest_acq_date;
-  set('live-platform-text', d.state === 'error' ? 'Re-run: python tools/fetch_live.py' : latest ? `Latest detection in window: ${latest}` : 'No detections anywhere in the search box');
-  const ctx = monthContext(currentLiveFeed);
-  set('live-harm-text', ctx
-    ? `Archive context: an average ${ctx.month} (2002–2021) has ≈ ${Math.round(ctx.mean)} hotspot${Math.round(ctx.mean) === 1 ? '' : 's'} for the whole month (MODIS scale). This 5-day NOAA-20 count is raw and provisional, so it is shown beside the archive, not converted.`
-    : 'Provisional near-real-time detections, shown beside the archive and not converted.');
-  const badge = document.getElementById('live-telemetry-badge');
-  if (badge) {
-    badge.dataset.state = d.state;
-    badge.textContent = d.state === 'error' ? 'Snapshot unavailable'
-      : (d.age != null && d.age > 2 ? `Snapshot · ${d.age} days old` : 'NRT snapshot · current');
-  }
+// =============================================================================
+// 2d. RIGHT NOW — the live chapter. Separate from the archive by design:
+//     its own map, its own copy, its own freshness clock (6-hour refresh).
+// =============================================================================
+const REFRESH_HOURS = 6;
+let nowMap = null, nowLayer = null;
+
+function feedTimes(feed) {
+  const t = feed && Date.parse((feed.fetched_at || '').replace(/Z$/, ':00Z'));
+  if (!Number.isFinite(t)) return null;
+  const ageH = Math.max(0, (Date.now() - t) / 3600000);
+  return { t, ageH, next: t + REFRESH_HOURS * 3600000, overdue: ageH > REFRESH_HOURS * 2 };
+}
+function fmtAgo(h) {
+  if (h < 1) return 'less than an hour ago';
+  if (h < 48) return Math.round(h) + ' hour' + (Math.round(h) === 1 ? '' : 's') + ' ago';
+  return Math.round(h / 24) + ' days ago';
+}
+function fmtDate(d) {
+  const x = new Date(d + 'T00:00:00Z');
+  return isNaN(x) ? d : x.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
 
-function drawLiveLayer() {
-  liveGroup.clearLayers();
+function renderNow() {
   const feed = currentLiveFeed;
-  if (!feed) return null;
-  const icon = L.divIcon({
-    className: 'live-marker-wrap',
-    html: '<div class="live-pulse-ring"></div><div class="live-pulse-core"></div>',
-    iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14]
-  });
-  const pts = [];
-  (feed.detections || []).forEach((d) => {
-    pts.push([d.latitude, d.longitude]);
-    L.marker([d.latitude, d.longitude], { icon }).bindPopup(
-      `<div class="live-popup-content"><div class="live-pop-header"><span class="live-pop-tag">NRT DETECTION · PROVISIONAL</span>` +
-      `<strong>${escapeHtml(d.sensor_label)}</strong></div><table class="live-pop-table">` +
-      `<tr><td>District</td><td>${escapeHtml(d.district)}</td></tr>` +
-      `<tr><td>Position</td><td>${(+d.latitude).toFixed(4)}°N, ${(+d.longitude).toFixed(4)}°E</td></tr>` +
-      `<tr><td>Acquired</td><td>${escapeHtml(d.acq_date)} ${String(d.acq_time).padStart(4, '0')} UTC (${d.daynight === 'D' ? 'day' : 'night'})</td></tr>` +
-      `<tr><td>Fire radiative power</td><td>${escapeHtml(d.frp)} MW</td></tr>` +
-      `<tr><td>Confidence</td><td>${escapeHtml(d.confidence)}</td></tr></table>` +
-      `<div class="live-pop-footer">A heat detection, not a confirmed fire. Not part of the fitted 2002–2021 record.</div></div>`,
-      { autoPan: true, autoPanPaddingTopLeft: [20, 90] }
-    ).addTo(liveGroup);
-  });
-  (feed.outside_cht || []).forEach((b) => {
-    L.circleMarker([b.latitude, b.longitude], { radius: 5, color: '#94a3b8', fillColor: '#94a3b8', fillOpacity: 0.35, weight: 1, dashArray: '2 3' })
-      .bindPopup(`<strong>Outside the study area</strong><br>${escapeHtml(b.acq_date)} · FRP ${escapeHtml(b.frp)} MW · ${escapeHtml(b.sensor_label)}<br><span class="pop-note">Removed by the BGD-ADM2 district gate</span>`)
-      .addTo(liveGroup);
-  });
-  return pts;
+  const set = (id, v, html) => { const el = document.getElementById(id); if (el) el[html ? 'innerHTML' : 'textContent'] = v; };
+  const tm = feedTimes(feed);
+  const dsText = document.getElementById('ds-live-text'), dsDot = document.getElementById('ds-live-dot');
+  if (!feed || feed.status === 'error') {
+    set('now-headline', 'The latest snapshot is unavailable');
+    set('now-sub', 'The last request to NASA FIRMS failed. The 20-year archive below is unaffected.');
+    if (dsText) dsText.textContent = 'Live · unavailable';
+    if (dsDot) dsDot.dataset.state = 'error';
+  } else {
+    const n = feed.cht_count || 0;
+    set('now-headline', n ? `${n} hotspot${n === 1 ? '' : 's'} in the Hill Tracts in the last ${feed.window_days || 5} days` : `No hotspots in the Hill Tracts in the last ${feed.window_days || 5} days`);
+    const parts = Object.entries(feed.by_district || {}).sort((a, b) => b[1] - a[1]).map(([d, c]) => `${d} ${c}`).join(' · ');
+    set('now-sub', (parts ? parts + ' · ' : '') + `last ${feed.window_days || 5} days to ${fmtDate(feed.window_end)}`);
+    if (dsText) dsText.textContent = tm ? `Live · ${tm.ageH < 1 ? 'just updated' : 'updated ' + fmtAgo(tm.ageH)}` : 'Live snapshot';
+    if (dsDot) dsDot.dataset.state = tm && tm.overdue ? 'stale' : 'ok';
+  }
+  set('now-latest', feed && feed.latest_acq_date ? fmtDate(feed.latest_acq_date) : '—');
+  set('now-updated', tm ? fmtAgo(tm.ageH) : '—');
+  set('now-next', tm ? (tm.overdue ? 'Overdue — showing the last good snapshot' : (tm.next > Date.now() ? 'in about ' + Math.min(REFRESH_HOURS, Math.max(1, Math.round((tm.next - Date.now()) / 3600000))) + ' h' : 'due now')) : '—');
+  const ctx = monthContext(feed);
+  set('now-context', ctx ? `For context: across 2002–2021 an average ${ctx.month} had about <strong>${Math.round(ctx.mean)}</strong> hotspot${Math.round(ctx.mean) === 1 ? '' : 's'} for the <em>whole month</em>. Burning season is March–April.` : '', true);
+  const list = (feed && feed.detections) || [];
+  set('now-list', list.slice().sort((a, b) => String(b.acq_date).localeCompare(String(a.acq_date))).slice(0, 6).map((d) =>
+    `<li><span class="nl-date">${escapeHtml(fmtDate(d.acq_date))}</span><span class="nl-place">${escapeHtml(d.district)}</span><span class="nl-sat">${escapeHtml((d.sensor_label || '').replace(' VIIRS 375 m', ''))}</span><span class="nl-frp">${escapeHtml(d.frp)} MW</span></li>`).join(''), true);
+  drawNowMap();
 }
 
-function setMapFeedMode(mode) {
-  const live = mode === 'live';
-  isLiveFeedMode = live;
-  const tog = (id, on) => { const el = document.getElementById(id); if (el) { el.classList.toggle('active', on); el.setAttribute('aria-pressed', String(on)); } };
-  tog('feed-archive-btn', !live);
-  tog('feed-live-btn', live);
-  ['live-telemetry-badge', 'live-telemetry-banner', 'legend-live-dot', 'live-harm-text'].forEach((id) => {
-    const el = document.getElementById(id); if (el) el.hidden = !live;
-  });
-  const archiveHud = document.getElementById('archive-hud');
-  if (archiveHud) archiveHud.hidden = live;
-  document.querySelectorAll('.archive-only').forEach((el) => { el.classList.toggle('is-muted', live); });
-  if (live) {
-    modisGroup.clearLayers();
-    viirsGroup.clearLayers();
-    renderLiveHud();
-    const pts = drawLiveLayer();
-    if (chtLayer) map.fitBounds(chtLayer.getBounds(), { padding: [20, 20], maxZoom: 10 });
-    if (pts && pts.length === 1) map.setView(pts[0], Math.max(map.getZoom(), 9));
-  } else {
-    liveGroup.clearLayers();
-    updateMapHotspots(slider ? parseInt(slider.value, 10) : 2014);
-    if (chtLayer) map.fitBounds(chtLayer.getBounds(), { padding: [10, 10], maxZoom: 10 });
+function drawNowMap() {
+  const el = document.getElementById('now-map');
+  if (!el || typeof L === 'undefined') return;
+  if (!nowMap) {
+    nowMap = L.map(el, { zoomControl: true, scrollWheelZoom: false, attributionControl: true });
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      { maxZoom: 17, attribution: 'Tiles © Esri' }).addTo(nowMap);
+    const b = L.geoJSON(CHT_BOUNDARY, { style: { color: '#22d3ee', weight: 1.6, fillColor: '#0ea5e9', fillOpacity: 0.08 } }).addTo(nowMap);
+    nowMap.fitBounds(b.getBounds(), { padding: [12, 12] });
+    nowMap.on('click', () => nowMap.scrollWheelZoom.enable());
+    nowLayer = L.layerGroup().addTo(nowMap);
   }
+  nowLayer.clearLayers();
+  const feed = currentLiveFeed;
+  if (!feed) return;
+  const icon = L.divIcon({ className: 'live-marker-wrap', html: '<div class="live-pulse-ring"></div><div class="live-pulse-core"></div>', iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14] });
+  (feed.detections || []).forEach((d) => L.marker([d.latitude, d.longitude], { icon }).bindPopup(
+    `<strong>${escapeHtml(d.district)}</strong><br>${escapeHtml(fmtDate(d.acq_date))} ${String(d.acq_time).padStart(4, '0')} UTC · ${escapeHtml(d.sensor_label)}<br>FRP ${escapeHtml(d.frp)} MW · confidence ${escapeHtml(d.confidence)}<br><span class="pop-note">Provisional heat detection, not a confirmed fire.</span>`
+  ).addTo(nowLayer));
+  (feed.outside_cht || []).forEach((d) => L.circleMarker([d.latitude, d.longitude], { radius: 4, color: '#94a3b8', fillColor: '#94a3b8', fillOpacity: .4, weight: 1 })
+    .bindPopup(`Outside the study area · ${escapeHtml(fmtDate(d.acq_date))}`).addTo(nowLayer));
+}
+
+// Kept for older callers: the archive map is archive-only now.
+function setMapFeedMode() {
+  isLiveFeedMode = false;
+  liveGroup.clearLayers();
+  updateMapHotspots(slider ? parseInt(slider.value, 10) : 2014);
 }
 
 function initLiveFeed() {
@@ -1657,10 +1662,7 @@ function initLiveFeed() {
   const pv = document.getElementById('dock-prev'), nx = document.getElementById('dock-next');
   if (pv) pv.addEventListener('click', () => step(-1));
   if (nx) nx.addEventListener('click', () => step(1));
-  const a = document.getElementById('feed-archive-btn'), l = document.getElementById('feed-live-btn');
-  if (a) a.addEventListener('click', () => setMapFeedMode('archive'));
-  if (l) l.addEventListener('click', () => setMapFeedMode('live'));
-  renderLiveHud();
+  renderNow();
   // Over HTTP, prefer a fresher live_feed.json than the one embedded at build time.
   if (location.protocol.startsWith('http') && typeof fetch === 'function') {
     fetch('data/processed/live_feed.json', { cache: 'no-store' })
@@ -1670,7 +1672,7 @@ function initLiveFeed() {
         const cur = currentLiveFeed && currentLiveFeed.fetched_at;
         if (!cur || (d.fetched_at || '') >= cur) {
           currentLiveFeed = d;
-          renderLiveHud();
+          renderNow();
           if (isLiveFeedMode) setMapFeedMode('live');
         }
       })
@@ -1822,7 +1824,7 @@ function buildBA() {
     type: 'bar',
     data: { labels: data.years, datasets: [{ data: data.vals, backgroundColor: data.years.map((y) => (y >= 2012 ? color : 'rgba(148,163,184,.55)')), borderRadius: 4, barPercentage: 0.82 }] },
     options: {
-      responsive: true, maintainAspectRatio: false, animation: { duration: 500 },
+      responsive: true, maintainAspectRatio: false, animation: { duration: 500 }, layout: { padding: { left: 6, top: 6 } },
       plugins: { legend: { display: false }, tooltip: { callbacks: { label: (t) => ' ' + t.parsed.y.toLocaleString() + ' hotspots' } } },
       scales: {
         x: { ticks: { color: c.text, maxRotation: 0, autoSkip: true, autoSkipPadding: 10 }, grid: { display: false } },
@@ -2360,6 +2362,7 @@ function initSeasonCheck() {
 //     (3) follows the reader if they scroll on their own.
 // =============================================================================
 const SECTION_LABELS = {
+  now: 'Right now',
   season: 'Check a season', priority: 'Where to look first', calendar: 'When the Hills burn',
   problem: 'The 2012 jump', continuity: 'The control test', proof: 'Tested on unseen years',
   'map-section': 'Fire map', try: 'Try the conversion', matrix: 'Burning by month', noaa20: 'After Suomi-NPP',
@@ -2367,10 +2370,10 @@ const SECTION_LABELS = {
 };
 // Steps are listed in page order, so every path moves strictly downward.
 const PATHS = {
-  officer:  { name: 'Forest Ranger', steps: ['priority', 'season', 'map-section', 'matrix', 'noaa20', 'limits'] },
-  public:   { name: 'Hill Community',      steps: ['season', 'calendar', 'map-section', 'continuity', 'glossary', 'limits'] },
+  officer:  { name: 'Forest Ranger', steps: ['now', 'priority', 'season', 'map-section', 'matrix', 'limits'] },
+  public:   { name: 'Hill Community',      steps: ['now', 'season', 'calendar', 'map-section', 'continuity', 'glossary'] },
   research: { name: 'Climate Researcher', steps: ['problem', 'continuity', 'proof', 'try', 'noaa20', 'method', 'limits'] },
-  judge:    { name: 'NASA Judge',     steps: ['season', 'map-section', 'problem', 'continuity', 'proof', 'noaa20', 'method'] }
+  judge:    { name: 'NASA Judge',     steps: ['now', 'season', 'problem', 'continuity', 'proof', 'noaa20', 'method'] }
 };
 const TOUR = { path: null, idx: 0, lock: 0 };
 
@@ -2395,7 +2398,6 @@ function renderTour() {
   }
   const id = p.steps[TOUR.idx];
   const sec = document.getElementById(id);
-  if (id === 'map-section' && typeof setMapFeedMode === 'function') setMapFeedMode(TOUR.path === 'officer' ? 'live' : 'archive');
   if (sec) sec.classList.add('tour-focus');
   document.body.classList.add('touring');
   dock.hidden = false;
@@ -2603,8 +2605,9 @@ function initCalendar() {
   const peak = med.indexOf(max);
   if (head) head.innerHTML = '<strong>' + share + '%</strong> of an average year’s hotspots fall in <strong>March and April</strong>, the jhum burning season. The busiest month is ' + MONTH_NAMES[peak] + '.';
   box.innerHTML = med.map((v, i) =>
-    '<div class="cal-col' + (i === 2 || i === 3 ? ' hot' : '') + '"><span class="cal-val">' + Math.round(v) + '</span>' +
-    '<span class="cal-bar" style="height:' + Math.max(2, Math.round(100 * v / max)) + '%"></span>' +
+    '<div class="cal-col' + (i === 2 || i === 3 ? ' hot' : '') + '"><div class="cal-track">' +
+    '<span class="cal-val">' + Math.round(v).toLocaleString() + '</span>' +
+    '<span class="cal-bar" style="height:' + Math.max(2, Math.round(100 * v / max)) + '%"></span></div>' +
     '<span class="cal-m">' + MONTH_NAMES[i].slice(0, 3) + '</span></div>').join('');
 }
 

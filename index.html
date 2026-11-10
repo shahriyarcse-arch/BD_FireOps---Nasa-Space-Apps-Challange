@@ -41,19 +41,16 @@
         <div class="brand-text">
           <div class="brand-title">
             <span>BD-FireOps</span>
-            <span class="brand-badge">2002–2021</span>
           </div>
           <span class="brand-sub">NASA Space Apps Challenge 2026 · Dhaka</span>
         </div>
       </a>
 
       <nav id="topnav" class="topnav" aria-label="Jump to section">
-        <a href="#priority">Priorities</a>
-        <a href="#season">Check a season</a>
+        <a href="#now">Now</a>
+        <a href="#priority">Use it</a>
         <a href="#map-section">Map</a>
-        <a href="#matrix">Seasonality</a>
-        <a href="#problem">Proof</a>
-        <a href="#noaa20">Sunset</a>
+        <a href="#problem">Evidence</a>
         <a href="#method">Method</a>
         <a href="#team">Team</a>
       </nav>
@@ -64,10 +61,10 @@
             <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"></path>
           </svg>
         </button>
-        <div class="status-pill" title="Checked historical records from NASA's Aqua MODIS and S-NPP VIIRS satellites">
-          <span class="status-dot" aria-hidden="true"></span>
-          <span>HISTORICAL DATA · CHECKED</span>
-        </div>
+        <a class="status-pill data-status" href="#now" title="Two data sources: the checked 2002–2021 archive and the latest NOAA-20/21 snapshot">
+          <span class="ds-item"><span class="status-dot ds-archive" aria-hidden="true"></span><span class="ds-text">Archive 2002–2021</span></span>
+          <span class="ds-item"><span class="status-dot ds-live" id="ds-live-dot" aria-hidden="true"></span><span class="ds-text" id="ds-live-text">Live snapshot</span></span>
+        </a>
         <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle dark/light theme" title="Toggle theme">
           <span id="theme-label" class="small">Light</span>
         </button>
@@ -83,11 +80,10 @@
         <span class="kicker">EARTH OBSERVATION · CROSS-SENSOR HARMONIZATION</span>
         <h1>Hill-Tracts fires did not triple in 2012. The satellite camera changed.</h1>
         <p class="hero-lead">
-          NASA has watched burning in Bandarban, Rangamati and Khagrachhari since 2002 with two different cameras:
-          <strong>Aqua MODIS</strong> (1 km pixels) and, from 2012, the sharper <strong>S-NPP VIIRS</strong> (375 m pixels).
-          Joined directly, the record makes fires look <span class="hero-highlight">almost three times higher (+185%) overnight</span>.
-          <strong>BD-FireOps</strong> puts both cameras on one scale, so a forest officer or researcher can compare any
-          season with a true 20-year normal &mdash; and see how sure we are.
+          Two NASA satellites have watched the Chittagong Hill Tracts burn since 2002. When the sharper one arrived in 2012,
+          the fire count <span class="hero-highlight">jumped almost three times overnight</span> — not because the forest changed, but because the camera did.
+          <strong>BD-FireOps</strong> puts both cameras on one scale, so a ranger, a villager or a scientist can compare any season with a true
+          20-year normal — and see what NOAA-20 is detecting this week.
         </p>
         <div class="hero-answer" role="note">
           <strong>Bottom line:</strong> the camera that never changed (MODIS) saw burning <em>fall</em> about 23% after 2012.
@@ -126,7 +122,7 @@
               <span class="path-meta">7 steps · about 4 min</span>
             </button>
           </div>
-          <p class="persona-hint small muted" id="persona-hint" aria-live="polite">Pick who you are for a guided path, or just scroll: the page reads top to bottom — use it, trust it, understand it.</p>
+          <p class="persona-hint small muted" id="persona-hint" aria-live="polite">Choose who you are for a short guided tour, or simply scroll: right now → use it → trust it → understand it.</p>
         </div>
 
         <!-- KPI Telemetry Ribbon -->
@@ -157,18 +153,46 @@
       </div>
     </section>
 
+    <div class="chapter" id="ch-now">
+      <span class="chapter-num">00</span>
+      <div><h2 class="chapter-title">Right now</h2><p class="chapter-sub">What NASA's newest fire satellites see over the Hill Tracts this week. Refreshed automatically every 6 hours.</p></div>
+    </div>
+
+    <section class="card now-card" id="now">
+      <div class="now-grid">
+        <div class="now-copy">
+          <span class="kicker"><span class="live-dot" aria-hidden="true"></span> Live · NOAA-20 &amp; NOAA-21 · NASA FIRMS</span>
+          <h2 id="now-headline">Loading the latest snapshot…</h2>
+          <p class="now-sub" id="now-sub"></p>
+          <dl class="now-stats">
+            <div><dt>Latest detection</dt><dd id="now-latest">—</dd></div>
+            <div><dt>Updated</dt><dd id="now-updated">—</dd></div>
+            <div><dt>Next refresh</dt><dd id="now-next">—</dd></div>
+          </dl>
+          <p class="now-context" id="now-context"></p>
+          <ul class="now-list" id="now-list" aria-label="Detections in the Hill Tracts"></ul>
+          <p class="small muted now-note">A hotspot is a heat detection from orbit, not a confirmed fire. These near-real-time points are provisional and are
+            <strong>not</strong> mixed into the 2002–2021 record below.</p>
+        </div>
+        <div class="now-map-wrap">
+          <div id="now-map" class="now-map" role="region" aria-label="Map of this week's satellite hotspots in the Chittagong Hill Tracts"></div>
+          <div class="now-legend small"><span><i class="dot dot-live" aria-hidden="true"></i> In the Hill Tracts</span><span><i class="dot dot-out" aria-hidden="true"></i> Outside the study area</span></div>
+        </div>
+      </div>
+    </section>
+
     <div class="chapter" id="ch-use">
       <span class="chapter-num">01</span>
-      <div><h2 class="chapter-title">Use it</h2><p class="chapter-sub">Plain answers for forest officers, planners and people who live in the Hills.</p></div>
+      <div><h2 class="chapter-title">Use it</h2><p class="chapter-sub">Plain answers from 20 years of records: which district, which month, which year.</p></div>
     </div>
 
     <!-- OFFICER TASK: WHERE TO LOOK FIRST (per-district, own-normal comparison) -->
     <section class="card" id="priority">
       <div class="card-header-row">
         <div>
-          <span class="kicker">USE IT · FOR FOREST OFFICERS</span>
-          <h2>Where should we look first?</h2>
-          <p class="muted">Each district is compared with <em>its own</em> normal for the same month, on one satellite scale. The district furthest above its normal comes first.</p>
+          <span class="kicker">USE IT · FOR RANGERS &amp; FOREST OFFICERS</span>
+          <h2>Where should rangers look first?</h2>
+          <p class="muted">Each district is compared with <em>its own</em> usual month. The one furthest above normal goes to the top.</p>
         </div>
       </div>
       <div class="priority-controls">
@@ -187,8 +211,8 @@
       <div class="card-header-row">
         <div>
           <span class="kicker">USE IT · FOR EVERYONE</span>
-          <h2>Was this burning season unusual?</h2>
-          <p class="muted">Pick a month. We compare it with the same month in every other year, on one consistent scale.</p>
+          <h2>Was this season unusual?</h2>
+          <p class="muted">Pick a month. We line it up against the same month in every other year — on one consistent scale.</p>
         </div>
       </div>
 
@@ -227,7 +251,7 @@
         <div>
           <span class="kicker">USE IT · FOR PEOPLE IN THE HILLS</span>
           <h2>When do the Hills burn?</h2>
-          <p class="muted">The average year, built from 20 years of NASA satellite records on one scale.</p>
+          <p class="muted">An average year, built from 20 years of satellite records. Almost all of it happens in two months.</p>
         </div>
       </div>
       <p class="calendar-headline" id="cal-headline"></p>
@@ -247,10 +271,8 @@
       <div class="card-header-row">
         <div>
           <span class="kicker">USE IT · WHERE THE FIRES WERE</span>
-          <h2>Chittagong Hill Tracts Fire Distribution Map</h2>
-          <p class="muted">
-            Aggregated NASA FIRMS active fire detections plotted at 0.05° (~5 km) resolution over high-resolution satellite imagery.
-          </p>
+          <h2>Where the fires were, year by year</h2>
+          <p class="muted">Each dot is a 5 km square where a satellite saw heat that year. Step through the years with the controls on the map.</p>
         </div>
 
       </div>
@@ -263,14 +285,8 @@
           <!-- Top-left HUD: what you are looking at -->
           <div class="map-hud glass" aria-live="polite">
             <div id="archive-hud">
-              <span class="hud-kicker">Archive · 2002–2021</span>
+              <span class="hud-kicker">20-year archive · 2002–2021</span>
               <span id="map-cell-count" class="hud-main">Loading cells...</span>
-            </div>
-            <div id="live-telemetry-banner" hidden>
-              <span class="hud-kicker"><span class="live-dot" aria-hidden="true"></span> NOAA-20 near-real-time</span>
-              <span id="live-count-text" class="hud-main">—</span>
-              <span id="live-pass-text" class="hud-sub">—</span>
-              <span id="live-platform-text" class="hud-sub">—</span>
             </div>
           </div>
 
@@ -282,25 +298,19 @@
 
           <!-- Bottom: command dock -->
           <div class="map-dock glass" role="group" aria-label="Map data">
-            <div class="map-feed-switch seg" role="group" aria-label="Data mode">
-              <button type="button" id="feed-archive-btn" class="feed-btn active" aria-pressed="true">20-year archive</button>
-              <button type="button" id="feed-live-btn" class="feed-btn" aria-pressed="false"><span class="live-dot" aria-hidden="true"></span>Latest NOAA-20</button>
-            </div>
             <div class="dock-year archive-only">
               <button type="button" class="dock-step" id="dock-prev" aria-label="Previous year">‹</button>
               <span class="dock-year-val" id="dock-year">2014</span>
               <button type="button" class="dock-step" id="dock-next" aria-label="Next year">›</button>
             </div>
-            <span id="live-telemetry-badge" class="dock-badge" hidden>NRT snapshot</span>
+            <span class="dock-label">Archive year</span>
           </div>
         </div>
 
-        <p id="live-harm-text" class="live-context small muted" hidden></p>
 
         <div class="map-legend">
           <span><i class="dot dot-modis" aria-hidden="true"></i> Aqua MODIS (2002–2021)</span>
           <span><i class="dot dot-viirs" aria-hidden="true"></i> S-NPP VIIRS (2012–2021)</span>
-          <span id="legend-live-dot" class="legend-live" hidden><i class="dot dot-live" aria-hidden="true"></i> Live NOAA-20 VIIRS Hotspot (Nov 2026)</span>
           <span><i class="dot dot-line" aria-hidden="true"></i> CHT District Boundaries (BGD-ADM2)</span>
           <span><i class="dot dot-window" aria-hidden="true"></i> FIRMS Search Bounding Box</span>
           <span class="small muted" style="margin-left: auto;">Circle radius scales with detection density</span>
@@ -386,11 +396,8 @@
       <div class="card-header-row">
         <div>
           <span class="kicker">USE IT · WHICH MONTHS BURN</span>
-          <h2>20-Year Monthly Burning Activity Matrix (2002–2021)</h2>
-          <p class="muted">
-            Visualizing the strict seasonal calendar of the Chittagong Hill Tracts: slash-and-burn clearing is concentrated in 
-            <strong>March–April</strong> (tapering through February and May), followed by near-zero fire detections from June to October (the monsoon rains).
-          </p>
+          <h2>Twenty years, month by month</h2>
+          <p class="muted">Every row is a year and every square a month. The pattern hardly changes from year to year — which is why a sudden jump in 2012 is suspicious.</p>
         </div>
       </div>
 
@@ -421,7 +428,7 @@
       <div class="card-header-row">
         <div>
           <span class="kicker">TRUST IT · WHY THE JOIN LOOKS WRONG</span>
-          <h2>Wrong Join vs BD-FireOps Harmonized Splice</h2>
+          <h2>The 2012 jump that isn't real</h2>
           <p class="muted">
             <!-- BEGIN:NAIVE_COPY -->
 If we join the two cameras directly, fires look almost 2.85× higher after 2012 — but only the camera changed, not the forest.
@@ -511,11 +518,8 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       <div class="card-header-row">
         <div>
           <span class="kicker">TRUST IT · THE CAMERA THAT NEVER CHANGED</span>
-          <h2>Did Fires Really Rise in 2012?</h2>
-          <p class="muted">
-            Aqua MODIS watched the same three districts before and after 2012 and never changed. Its own record is therefore
-            the control that decides whether the step is real.
-          </p>
+          <h2>Did fires really rise in 2012?</h2>
+          <p class="muted">One camera — Aqua MODIS — flew the whole time and never changed. If burning had really tripled, it would have seen it. It saw the opposite.</p>
         </div>
       </div>
       <!-- BEGIN:CONTINUITY_PANEL -->
@@ -546,11 +550,8 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       <div class="card-header-row">
         <div>
           <span class="kicker">TRUST IT · TESTED ON UNSEEN YEARS</span>
-          <h2>Blind Verification on Unseen Data (2019–2021)</h2>
-          <p class="muted">
-            The model was trained exclusively on 2012–2018. We hid the final 3 years (36 months) completely, 
-            then benchmarked our predictions against ground-truth Aqua MODIS observations.
-          </p>
+          <h2>Tested on years it never saw</h2>
+          <p class="muted">We built the correction on 2012–2018, hid 2019–2021 completely, then checked. Here is how close it gets, and where it struggles.</p>
         </div>
       </div>
 
@@ -693,10 +694,8 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       <div class="card-header-row">
         <div>
           <span class="kicker">TRUST IT · TRY THE CONVERSION</span>
-          <h2>Live Calibration Playground</h2>
-          <p class="muted">
-            Drag the slider or pick a scenario to see how many fires MODIS would have counted for that month.
-          </p>
+          <h2>Try the conversion</h2>
+          <p class="muted">Move the slider to a monthly VIIRS count and see what MODIS would have counted — with an honest range, not a single magic number.</p>
         </div>
       </div>
 
@@ -752,12 +751,8 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       <div class="card-header-row">
         <div>
           <span class="kicker">TRUST IT · AFTER SUOMI-NPP</span>
-          <h2>Built to Outlive Suomi-NPP (1 November 2026)</h2>
-          <p class="muted">
-            MODIS is already gone; S-NPP VIIRS is next. The pipeline carries a NOAA-20 / 21
-            calibration leg so the record can continue after the sunset, but only after the
-            overlap exists. This page shows the leg's real status, not a promised equation.
-          </p>
+          <h2>After Suomi-NPP</h2>
+          <p class="muted">The satellite behind half of our record stopped on 1 November 2026. Here is what carries on, and what is not finished yet.</p>
         </div>
       </div>
 <!-- BEGIN:NOAA20_PANEL -->
@@ -795,7 +790,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       <div class="card-header-row">
         <div>
           <span class="kicker">UNDERSTAND IT · PLAIN WORDS</span>
-          <h2>What the terms on this page mean</h2>
+          <h2>The words we use</h2>
         </div>
       </div>
       <dl class="glossary">
@@ -815,8 +810,8 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       <div class="card-header-row">
         <div>
           <span class="kicker">UNDERSTAND IT · OPEN METHOD</span>
-          <h2>Five Steps, Completely Open Source</h2>
-          <p class="muted">Every data point, script, and test is version-controlled and reproducible.</p>
+          <h2>How it works, in five steps</h2>
+          <p class="muted">Every step is open source and re-runs from NASA data with one command.</p>
         </div>
       </div>
 
@@ -844,8 +839,8 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       <div class="card-header-row">
         <div>
           <span class="kicker">UNDERSTAND IT · HONEST LIMITS</span>
-          <h2>What BD-FireOps Is and Is Not</h2>
-          <p class="muted">Where this tool stops — stated plainly.</p>
+          <h2>What this is — and what it is not</h2>
+          <p class="muted">Where the tool stops, said plainly.</p>
         </div>
       </div>
 
@@ -863,7 +858,7 @@ If we join the two cameras directly, fires look almost 2.85× higher after 2012 
       <div class="card-header-row">
         <div>
           <span class="kicker">CREDITS · WHO BUILT THIS</span>
-          <h2>Team, data and use of AI</h2>
+          <h2>Who built this</h2>
         </div>
       </div>
       <div class="team-grid">

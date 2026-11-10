@@ -2248,3 +2248,85 @@ body { background: var(--bg-base); }
   .map-stage .leaflet-top.leaflet-right { bottom: 172px; }
 }
 @media (max-width: 640px) { .map-stage .map-offline-note { right: 162px; } }
+
+/* ==========================================================================
+   v5 · ONE STORY, TWO CLOCKS
+   The archive (2002–2021, checked) and the live NOAA-20/21 snapshot now live
+   in separate chapters with their own map, copy and freshness. Remaining
+   rules are the polish list from the full-page review.
+   ========================================================================== */
+
+/* Header: two data sources, each with its own status dot */
+.data-status { display: inline-flex; align-items: center; gap: 14px; text-decoration: none; padding: 7px 14px; border-radius: 999px; border: 1px solid var(--line-strong); background: transparent; color: var(--ink-secondary); font-family: var(--sans); font-size: .8rem; font-weight: 600; letter-spacing: 0; text-transform: none; white-space: nowrap; }
+.data-status:hover { border-color: var(--ink); color: var(--ink); }
+.ds-item { display: inline-flex; align-items: center; gap: 7px; }
+.data-status .status-dot { width: 7px; height: 7px; border-radius: 50%; box-shadow: none; animation: none; }
+.ds-archive { background: var(--blue); }
+.ds-live { background: #22c55e; animation: pulse-live 2s infinite !important; }
+.ds-live[data-state="stale"] { background: var(--amber); animation: none !important; }
+.ds-live[data-state="error"] { background: var(--red); animation: none !important; }
+@media (max-width: 1240px) and (min-width: 1025px) { .status-pill.data-status { display: inline-flex !important; } .data-status .ds-item:first-child { display: none; } }
+@media (min-width: 1241px) { .status-pill.data-status { display: inline-flex !important; } }
+@media (max-width: 1024px) { .data-status { padding: 6px 10px; } .data-status .ds-item:first-child { display: none; } }
+
+/* Hero KPI ribbon: remove the empty band above the tiles */
+.kpi-ribbon { padding-top: 0 !important; border-top: 1px solid var(--line) !important; margin-top: 18px; }
+
+/* Chapter rhythm: more air, Apple-like */
+.chapter { padding-top: clamp(48px, 7vw, 96px); }
+.card { padding: clamp(26px, 4.6vw, 64px); }
+.card-header-row h2 { max-width: 28ch; }
+.card-header-row .muted { font-size: clamp(1.02rem, 1.4vw, 1.15rem); line-height: 1.6; max-width: 62ch; }
+.method .kicker, .limits .kicker { color: var(--fire); }
+
+/* ---------- Right now ---------- */
+.now-card { padding: clamp(22px, 3.6vw, 44px); }
+.now-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: clamp(20px, 3.5vw, 44px); align-items: stretch; }
+.now-copy { display: grid; gap: 14px; align-content: start; }
+.now-copy .kicker { display: inline-flex; align-items: center; gap: 8px; }
+.now-copy h2 { font-size: clamp(1.8rem, 3.6vw, 2.8rem); line-height: 1.08; margin: 0; }
+.now-sub { margin: 0; color: var(--ink-secondary); font-size: 1.05rem; }
+.now-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin: 6px 0 0; background: var(--line); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.now-stats div { background: var(--bg-elevated); padding: 12px 14px; }
+.now-stats dt { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.now-stats dd { margin: 4px 0 0; font-weight: 600; color: var(--ink); font-size: .95rem; }
+.now-context { margin: 0; color: var(--ink-secondary); }
+.now-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.now-list li { display: grid; grid-template-columns: 7.5em 1fr auto auto; gap: 10px; align-items: center; padding: 10px 12px; border-radius: 12px; background: var(--bg-elevated); font-size: .9rem; }
+.nl-date { font-family: var(--mono); font-size: .82rem; color: var(--ink-secondary); }
+.nl-place { font-weight: 600; color: var(--ink); }
+.nl-sat { color: var(--muted); font-size: .8rem; }
+.nl-frp { font-family: var(--mono); font-size: .82rem; color: var(--fire); }
+.now-note { margin: 2px 0 0; }
+.now-map-wrap { display: grid; grid-template-rows: 1fr auto; gap: 8px; min-height: 420px; }
+.now-map { border-radius: 20px; border: 1px solid var(--line); overflow: hidden; min-height: 420px; background: #0b1222; }
+.now-legend { display: flex; gap: 18px; color: var(--muted); }
+.now-legend .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+.dot-out { background: #94a3b8; }
+@media (max-width: 900px) { .now-grid { grid-template-columns: 1fr; } .now-map-wrap, .now-map { min-height: 340px; } .now-list li { grid-template-columns: 6.5em 1fr auto; } .nl-sat { display: none; } }
+@media (max-width: 520px) { .now-stats div { padding: 10px; } .now-stats dt { font-size: .62rem; } .now-stats dd { font-size: .82rem; } }
+
+/* Archive map dock (archive only now) */
+.dock-label { font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); padding: 0 6px 0 10px; }
+
+/* Priorities: three equal columns, unit in the sans face */
+.priority-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) { .priority-grid { grid-template-columns: 1fr; } }
+.prio-num span { font-family: var(--sans); }
+
+/* Calendar: each value sits on its own bar */
+.calendar-bars { height: 240px; }
+.cal-col { display: grid; grid-template-rows: 1fr auto; height: 100%; gap: 8px; }
+.cal-track { display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; gap: 6px; min-height: 0; }
+.cal-col .cal-bar { align-self: stretch; }
+.cal-val { text-align: center; }
+
+/* Custody strip: labels never collide */
+.provenance-segment { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: .64rem; padding-left: 6px; padding-right: 6px; }
+
+/* Split / combined switch: neutral segmented control */
+.view-controls { background: var(--seg-bg); border: 0; border-radius: 12px; padding: 3px; }
+.view-btn { background: transparent; border: 0; border-radius: 9px; color: var(--ink-secondary); font-family: var(--sans); font-weight: 600; box-shadow: none; }
+.view-btn.active { background: var(--seg-on); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.15); }
+
+.dock-label { order: -1; }
