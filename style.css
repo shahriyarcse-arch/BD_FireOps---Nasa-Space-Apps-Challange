@@ -2009,7 +2009,7 @@ body[data-path] .topnav a { display: inline-flex; align-items: center; gap: 7px;
 .path-card {
   font: inherit; text-align: left; cursor: pointer; display: grid; gap: 6px; align-content: start;
   padding: 18px 18px 16px; border-radius: 18px; border: 1px solid var(--line); background: var(--bg-card);
-  color: var(--ink); box-shadow: var(--shadow-sm); text-decoration: none;
+  color: var(--ink); box-shadow: var(--shadow-sm);
   transition: transform .25s cubic-bezier(.2,.7,.2,1), box-shadow .25s, border-color .25s;
 }
 .path-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--line-strong); }
@@ -2367,7 +2367,7 @@ button, [role="button"], summary, .path-card, .year-pill, .layer-toggle-btn, .vi
    v9 · minimal layout + motion
    ============================================================ */
 /* remove what no longer exists on the page */
-.tour-dock { display: none !important; }
+.persona, .tour-dock { display: none !important; }
 
 /* scroll progress */
 .scroll-progress {
@@ -2429,3 +2429,67 @@ details.formula-collapse.more { padding: 0; }
 .card h2 { text-wrap: balance; }
 .muted, .chapter-sub { text-wrap: pretty; }
 #problem .view-controls { display: none; }
+
+/* v10 · stakeholder paths (light, no takeover) */
+.who { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--line); }
+.who-label { font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+.who-chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+.who-chip {
+  display: flex; align-items: center; gap: 12px; text-align: left; cursor: pointer;
+  padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--ink) 3%, transparent); color: var(--ink); font: inherit;
+  transition: transform .25s cubic-bezier(.16,1,.3,1), border-color .2s, background .2s;
+}
+.who-chip svg { width: 22px; height: 22px; flex: none; fill: none; stroke: var(--fire); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.who-chip b { display: block; font-size: .95rem; }
+.who-chip small { display: block; color: var(--muted); font-size: .8rem; margin-top: 2px; }
+.who-chip:hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--fire) 45%, var(--line)); }
+.who-chip[aria-pressed="true"] { border-color: var(--fire); background: color-mix(in srgb, var(--fire) 10%, transparent); }
+.who-path { list-style: none; display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 16px 0 0; animation: v9-rise .5s cubic-bezier(.16,1,.3,1) both; }
+.who-path a {
+  display: inline-flex; align-items: center; gap: 8px; padding: 7px 12px 7px 7px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--ink); text-decoration: none; font-size: .88rem;
+}
+.who-path a span { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--fire); color: #fff; font-size: .72rem; font-weight: 700; }
+.who-path a:hover { border-color: var(--fire); }
+/* tag sections that are on the chosen path */
+section.on-path { position: relative; }
+section.on-path::before {
+  content: attr(data-step); position: absolute; top: 18px; right: 22px; z-index: 2;
+  font-size: .72rem; font-weight: 600; letter-spacing: .02em; padding: 5px 10px; border-radius: 999px;
+  color: var(--fire); background: color-mix(in srgb, var(--fire) 10%, transparent); border: 1px solid color-mix(in srgb, var(--fire) 35%, transparent);
+}
+section.on-path { box-shadow: 0 0 0 1px color-mix(in srgb, var(--fire) 35%, transparent), 0 20px 50px -30px color-mix(in srgb, var(--fire) 60%, transparent); }
+/* floating "next" pill */
+.path-pill {
+  position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); z-index: 1500;
+  display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 16px; border-radius: 999px; max-width: calc(100vw - 24px);
+  background: color-mix(in srgb, var(--bg, #0b0f17) 82%, transparent); backdrop-filter: blur(16px) saturate(1.4); -webkit-backdrop-filter: blur(16px) saturate(1.4);
+  border: 1px solid var(--line); box-shadow: 0 18px 50px -20px rgba(0,0,0,.5); color: var(--ink);
+  animation: v10-pill .45s cubic-bezier(.16,1,.3,1) both;
+}
+.path-pill[hidden] { display: none; }
+@keyframes v10-pill { from { opacity: 0; transform: translate(-50%, 16px); } to { opacity: 1; transform: translate(-50%, 0); } }
+.path-pill-txt { font-size: .85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.path-pill-next { border: 0; border-radius: 999px; padding: 9px 14px; background: var(--fire); color: #fff; font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.path-pill-x { border: 0; background: transparent; color: var(--muted); font-size: 1.3rem; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; }
+.path-pill-x:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+@media (max-width: 860px) { .who-chips { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) {
+  .path-pill-txt { display: none; }
+  section.on-path::before { position: static; display: inline-block; margin-bottom: 10px; }
+}
+@media (max-width: 360px) { .who-chips { grid-template-columns: 1fr; } }
+.hero h1 { font-size: clamp(2.2rem, 5.2vw, 4.2rem); }
+.who { margin-top: 28px; padding-top: 24px; }
+.who-or { margin: 14px 0 0; }
+.who-or a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--ink) 30%, transparent); }
+.who-or a:hover { text-decoration-color: var(--fire); }
+.path-pill { transition: opacity .3s ease, transform .3s ease; }
+.path-pill.tucked { opacity: 0; transform: translate(-50%, 24px); pointer-events: none; animation: none; }
+html body main .hero h1 { font-size: clamp(2.2rem, 5vw, 4rem); }
+/* status pill: two separate links */
+.data-status .ds-item { color: inherit; text-decoration: none; border-radius: 999px; padding: 3px 8px; margin: -3px -2px; transition: background .2s; }
+.data-status .ds-item:hover { background: color-mix(in srgb, var(--ink) 8%, transparent); }
+.data-status .ds-item:focus-visible { outline: 2px solid var(--blue); outline-offset: 1px; }
+@media (max-width: 360px) { .theme-toggle-btn { padding-left: 10px; padding-right: 10px; } .topbar-actions { gap: 4px; } .brand-sub, .brand small { display: none; } }

@@ -62,10 +62,10 @@
             <path d="M2 4h12M2 8h12M2 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"></path>
           </svg>
         </button>
-        <a class="status-pill data-status" href="#now" title="Two data sources: the checked 2002–2021 archive and the latest NOAA-20/21 snapshot">
-          <span class="ds-item"><span class="status-dot ds-archive" aria-hidden="true"></span><span class="ds-text">Archive 2002–2021</span></span>
-          <span class="ds-item"><span class="status-dot ds-live" id="ds-live-dot" aria-hidden="true"></span><span class="ds-text" id="ds-live-text">Live snapshot</span></span>
-        </a>
+        <div class="status-pill data-status" role="group" aria-label="Data sources">
+          <a class="ds-item" href="#map-section" title="The checked 2002–2021 record: map, charts and tests"><span class="status-dot ds-archive" aria-hidden="true"></span><span class="ds-text">Archive 2002–2021</span></a>
+          <a class="ds-item" href="#now" title="Latest NOAA-20/21 detections, refreshed every 6 hours"><span class="status-dot ds-live" id="ds-live-dot" aria-hidden="true"></span><span class="ds-text" id="ds-live-text">Live snapshot</span></a>
+        </div>
         <button id="theme-toggle" class="theme-toggle-btn" title="Switch between light and dark">
           <span id="theme-label" class="small">Light</span>
         </button>
@@ -89,39 +89,29 @@
           <strong>In one line:</strong> the satellite that never changed (Aqua MODIS) actually saw <em>less</em> burning after 2012, about 23% less. The jump comes from the new camera, not from the hills.
 <!-- END:HERO_LINE -->
         </div>
-        <div class="hero-cta">
-          <a class="cta-btn primary" href="#season">Check a burning season</a>
-          <a class="cta-btn" id="see-proof" href="#continuity">See the proof</a>
-        </div>
 
-        <div class="persona" role="group" aria-labelledby="persona-label">
-          <span id="persona-label" class="persona-label">Explore by Stakeholder</span>
-          <div class="path-cards" id="persona-switch">
-            <a href="#priority" class="path-card">
-              <span class="path-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg></span>
-              <span class="path-role">Forest Ranger</span>
-              <span class="path-q">Which district first, and what needs field inspection?</span>
-              <span class="path-meta">Actionable field priority</span>
-            </a>
-            <a href="#calendar" class="path-card">
-              <span class="path-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9h11v-9"/><path d="M10.5 19v-4.5h3V19"/></svg></span>
-              <span class="path-role">Hill Community</span>
-              <span class="path-q">When do the Hills burn? Seasonal clearing patterns.</span>
-              <span class="path-meta">Jhum clearing &amp; safety</span>
-            </a>
-            <a href="#problem" class="path-card">
-              <span class="path-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M6 16l4-5 3 3 5-7"/><circle cx="18" cy="7" r="1.2"/></svg></span>
-              <span class="path-role">Climate Researcher</span>
-              <span class="path-q">How was the 2012 jump removed, and how sure are we?</span>
-              <span class="path-meta">Held-out test &amp; uncertainty</span>
-            </a>
-            <a href="#proof" class="path-card">
-              <span class="path-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M9 13.5 8 20l4-2 4 2-1-6.5"/></svg></span>
-              <span class="path-role">NASA Judge</span>
-              <span class="path-q">The answer, the NASA data, the validation and open code.</span>
-              <span class="path-meta">Evidence &amp; verification</span>
-            </a>
+        <div class="who" id="who">
+          <p class="who-label">I am a&hellip;</p>
+          <div class="who-chips" role="group" aria-label="Pick your path through the page">
+            <button type="button" class="who-chip" data-path="ranger" aria-pressed="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg>
+              <span><b>Forest ranger</b><small>Where to check first</small></span>
+            </button>
+            <button type="button" class="who-chip" data-path="community" aria-pressed="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9h11v-9"/><path d="M10.5 19v-4.5h3V19"/></svg>
+              <span><b>Hill community</b><small>When fires happen</small></span>
+            </button>
+            <button type="button" class="who-chip" data-path="research" aria-pressed="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M6 16l4-5 3 3 5-7"/></svg>
+              <span><b>Researcher</b><small>How the fix works</small></span>
+            </button>
+            <button type="button" class="who-chip" data-path="judge" aria-pressed="false">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M9 13.5 8 20l4-2 4 2-1-6.5"/></svg>
+              <span><b>NASA judge</b><small>The full case, briefly</small></span>
+            </button>
           </div>
+          <ol class="who-path" id="who-path" aria-live="polite" hidden></ol>
+          <p class="who-or small muted">Or just scroll: <a href="#now">right now</a> · <a href="#season">check a season</a> · <a href="#continuity" id="see-proof">see the proof</a></p>
         </div>
 
       </div>
@@ -892,6 +882,12 @@ Join the two satellites' counts directly and fires look almost 2.85× higher aft
     </section>
 
   </main>
+
+  <div class="path-pill" id="path-pill" hidden>
+    <span class="path-pill-txt" id="path-pill-txt"></span>
+    <button type="button" class="path-pill-next" id="path-pill-next">Next</button>
+    <button type="button" class="path-pill-x" id="path-pill-x" aria-label="Leave this path">&times;</button>
+  </div>
 
   <!-- GUIDED PATH DOCK (shown only while a path is active) -->
 

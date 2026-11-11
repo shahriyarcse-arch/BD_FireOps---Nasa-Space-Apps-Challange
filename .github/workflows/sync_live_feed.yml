@@ -58,7 +58,8 @@ jobs:
           if git diff --staged --quiet; then
             echo "No new satellite detections. Feed is already up to date."
           else
-            git commit -m "chore(telemetry): auto-sync NASA FIRMS live NRT satellite snapshot [skip ci]"
+            git commit -m "chore(telemetry): auto-sync NASA FIRMS live NRT satellite snapshot"
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
             git push
           fi
 

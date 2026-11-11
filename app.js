@@ -494,6 +494,10 @@ let offlineModeApplied = false;
 function applyOfflineBasemap() {
   if (offlineModeApplied) return;
   offlineModeApplied = true;
+  ['toggle-sat-btn', 'toggle-carto-btn'].forEach((id) => {
+    const b = document.getElementById(id);
+    if (b) { b.disabled = true; b.title = 'Photo layers need an internet connection'; }
+  });
   [tileSat, tileDark].forEach((layer) => {
     if (map.hasLayer(layer)) map.removeLayer(layer);
   });
@@ -1663,21 +1667,26 @@ function initLiveFeed() {
   if (pv) pv.addEventListener('click', () => step(-1));
   if (nx) nx.addEventListener('click', () => step(1));
   renderNow();
-  // Over HTTP, prefer a fresher live_feed.json than the one embedded at build time.
-  if (location.protocol.startsWith('http') && typeof fetch === 'function') {
+  // Over HTTP, prefer a fresher live_feed.json than the one embedded at build time,
+  // and keep checking while the page stays open (the feed refreshes every 6 h).
+  const pull = () => {
+    if (!location.protocol.startsWith('http') || typeof fetch !== 'function') return;
     fetch('data/processed/live_feed.json', { cache: 'no-store' })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (!d || d.kind !== 'firms_nrt_snapshot') return;
         const cur = currentLiveFeed && currentLiveFeed.fetched_at;
-        if (!cur || (d.fetched_at || '') >= cur) {
+        if (!cur || (d.fetched_at || '') > cur) {
           currentLiveFeed = d;
           renderNow();
           if (isLiveFeedMode) setMapFeedMode('live');
         }
       })
-      .catch(() => { /* keep the embedded snapshot */ });
-  }
+      .catch(() => { /* keep the snapshot we have */ });
+  };
+  pull();
+  setInterval(() => { renderNow(); pull(); }, 10 * 60 * 1000);   // "updated N hours ago" stays true
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { renderNow(); pull(); } });
 }
 
 // =============================================================================
@@ -2372,6 +2381,12 @@ function scrollToSection(el) {
   const offset = (bar ? bar.getBoundingClientRect().height : 0) + 16;
   const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - offset, behavior: reduce ? 'auto' : 'smooth' });
+  // Charts and maps build lazily as they come near, which can shift the page; settle once.
+  clearTimeout(scrollToSection.t);
+  scrollToSection.t = setTimeout(() => {
+    const d = el.getBoundingClientRect().top - offset;
+    if (Math.abs(d) > 24 && (window.innerHeight + window.scrollY) < document.documentElement.scrollHeight - 4) window.scrollBy({ top: d, behavior: 'auto' });
+  }, 900);
 }
 
 function initViews() {
@@ -2388,6 +2403,80 @@ function initViews() {
     scrollToSection(el);
     try { history.replaceState(null, '', location.pathname + location.search + '#' + id); } catch (err) { /* ignore */ }
   });
+}
+
+// Stakeholder paths: one page, four short routes through it. Picking a role
+// lists its stops, tags those sections, and a small pill offers "Next".
+const SECTION_LABELS = {
+  now: 'Right now', priority: 'Where to look first', season: 'Was this season unusual?',
+  calendar: 'When the Hills burn', 'map-section': 'Fire map', problem: 'The 2012 jump',
+  continuity: 'Control test', proof: 'Tested on unseen years', try: 'Try the conversion',
+  noaa20: 'After Suomi-NPP', method: 'How it works', limits: 'Limits', team: 'Team & data'
+};
+const PATHS = {
+  ranger:    { name: 'Forest ranger',  steps: ['now', 'priority', 'season', 'map-section', 'limits'] },
+  community: { name: 'Hill community', steps: ['now', 'calendar', 'season', 'limits'] },
+  research:  { name: 'Researcher',     steps: ['problem', 'continuity', 'proof', 'try', 'noaa20', 'method'] },
+  judge:     { name: 'NASA judge',     steps: ['now', 'problem', 'continuity', 'proof', 'noaa20', 'team'] }
+};
+const PATH = { key: null, idx: 0 };
+
+function setPath(key) {
+  const list = document.getElementById('who-path'), pill = document.getElementById('path-pill');
+  document.querySelectorAll('.who-chip').forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.path === key)));
+  document.querySelectorAll('.on-path').forEach((s) => { s.classList.remove('on-path'); s.removeAttribute('data-step'); });
+  PATH.key = PATHS[key] ? key : null; PATH.idx = -1;
+  if (!PATH.key) { if (list) list.hidden = true; if (pill) pill.hidden = true; return; }
+  const p = PATHS[key];
+  p.steps.forEach((id, i) => { const s = document.getElementById(id); if (s) { s.classList.add('on-path'); s.dataset.step = (i + 1) + '/' + p.steps.length + ' · ' + p.name; } });
+  if (list) {
+    list.innerHTML = p.steps.map((id, i) => '<li><a href="#' + id + '"><span>' + (i + 1) + '</span>' + SECTION_LABELS[id] + '</a></li>').join('');
+    list.hidden = false;
+  }
+  try { history.replaceState(null, '', location.pathname + '?view=' + key + location.hash); } catch (e) { /* ignore */ }
+  updatePill();
+}
+
+function updatePill() {
+  const pill = document.getElementById('path-pill');
+  if (!pill || !PATH.key) return;
+  const p = PATHS[PATH.key], last = PATH.idx >= p.steps.length - 1;
+  document.getElementById('path-pill-txt').textContent = PATH.idx < 0
+    ? p.name + ' · ' + p.steps.length + ' stops'
+    : p.name + ' · ' + (PATH.idx + 1) + ' of ' + p.steps.length + ' · ' + SECTION_LABELS[p.steps[PATH.idx]];
+  document.getElementById('path-pill-next').textContent = PATH.idx < 0 ? 'Start: ' + SECTION_LABELS[p.steps[0]]
+    : last ? 'Done' : 'Next: ' + SECTION_LABELS[p.steps[PATH.idx + 1]];
+  pill.hidden = false;
+}
+
+function initPaths() {
+  document.querySelectorAll('.who-chip').forEach((c) => c.addEventListener('click', () => {
+    const k = c.dataset.path;
+    if (PATH.key === k) { setPath(null); return; }
+    setPath(k);
+  }));
+  document.getElementById('path-pill-next').addEventListener('click', () => {
+    const p = PATHS[PATH.key]; if (!p) return;
+    if (PATH.idx >= p.steps.length - 1) { setPath(null); scrollToSection(document.getElementById('who')); return; }
+    PATH.idx += 1; updatePill(); scrollToSection(document.getElementById(p.steps[PATH.idx]));
+  });
+  document.getElementById('path-pill-x').addEventListener('click', () => setPath(null));
+  // Follow the reader: whichever path section is in view becomes the current step.
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver((ents) => ents.forEach((en) => {
+      if (!en.isIntersecting || !PATH.key) return;
+      const i = PATHS[PATH.key].steps.indexOf(en.target.id);
+      if (i >= 0 && i !== PATH.idx) { PATH.idx = i; updatePill(); }
+    }), { rootMargin: '-40% 0px -50% 0px' });
+    Object.keys(SECTION_LABELS).forEach((id) => { const s = document.getElementById(id); if (s) io.observe(s); });
+  }
+  // While the chooser itself is on screen its own list is the start, so the pill steps aside.
+  const who = document.getElementById('who'), pill = document.getElementById('path-pill');
+  if (who && pill && 'IntersectionObserver' in window) {
+    new IntersectionObserver((ents) => pill.classList.toggle('tucked', ents[0].isIntersecting), { threshold: 0.15 }).observe(who);
+  }
+  const v = new URLSearchParams(location.search).get('view');
+  if (PATHS[v]) setPath(v);
 }
 
 // Sections ease in once as they enter the viewport.
@@ -2543,6 +2632,7 @@ function initCalendar() {
     try { initSeasonCheck(); } catch (e) { console.error('[BD-FireOps] season check failed:', e); }
     try { initPriority(); } catch (e) { console.error('[BD-FireOps] priority failed:', e); }
     try { initCalendar(); } catch (e) { console.error('[BD-FireOps] calendar failed:', e); }
+    try { initPaths(); } catch (e) { console.error('[BD-FireOps] paths failed:', e); }
     try { initViews(); } catch (e) { console.error('[BD-FireOps] views failed:', e); }
     try { initReveal(); } catch (e) { console.error('[BD-FireOps] reveal failed:', e); }
     try { initLiveFeed(); } catch (e) { console.error('[BD-FireOps] live feed failed:', e); }
