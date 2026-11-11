@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BD-FireOps · Real-Time &amp; 20-Year Fire Monitoring for Bangladesh Hills</title>
+  <title>BD-FireOps · 20-Year NASA Satellite Fire Record for Bangladesh Hills</title>
   <meta name="description" content="One 20-year fire record for the Bangladesh hills, built from NASA MODIS and VIIRS satellite data. NASA Space Apps Challenge 2026.">
   <meta name="theme-color" content="#060913">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="BD-FireOps · Real-Time &amp; 20-Year Fire Monitoring for Bangladesh Hills">
+  <meta property="og:title" content="BD-FireOps · Continuous Fire Record for Bangladesh Hills">
   <meta property="og:description" content="One continuous 20-year record of satellite fire detections in the Chittagong Hill Tracts, Bangladesh. NASA Space Apps Challenge 2026.">
   <meta name="twitter:card" content="summary_large_image">
   <meta property="og:image" content="https://raw.githubusercontent.com/shahriyarcse-arch/BD_FireOps---Nasa-Space-Apps-Challange/main/data/processed/chart_b_harmonized_splice.png">
@@ -31,6 +31,7 @@
 </head>
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
+  <div id="scroll-progress" class="scroll-progress" aria-hidden="true"></div>
   <div id="app-error-banner" class="app-error-banner" hidden role="alert"></div>
 
   <!-- STICKY TELEMETRY TOPBAR -->
@@ -80,10 +81,8 @@
         <span class="kicker">NASA SPACE APPS 2026 · CHITTAGONG HILL TRACTS</span>
         <h1>Hill-Tracts fires did not triple in 2012. The satellite camera changed.</h1>
         <p class="hero-lead">
-          Two NASA satellites have been counting fires in the Chittagong Hill Tracts since 2002. In 2012 a sharper one joined,
-          and the count <span class="hero-highlight">almost tripled overnight</span>. The forest didn't change. The camera did.
-          <strong>BD-FireOps</strong> puts both satellites on the same scale, so anyone can see whether a season was really unusual,
-          and what NOAA-20 is picking up this week.
+          In 2012 a sharper NASA camera joined, and the fire count <span class="hero-highlight">almost tripled overnight</span>.
+          The forest didn't change. <strong>BD-FireOps</strong> puts both cameras on one scale, and shows what satellites see this week.
         </p>
         <div class="hero-answer" role="note">
 <!-- BEGIN:HERO_LINE -->
@@ -95,62 +94,6 @@
           <a class="cta-btn" id="see-proof" href="#continuity">See the proof</a>
         </div>
 
-        <div class="persona" role="group" aria-labelledby="persona-label">
-          <span id="persona-label" class="persona-label">Take a guided path</span>
-          <div class="path-cards" id="persona-switch">
-            <button type="button" class="path-card" data-view="officer">
-              <span class="path-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg></span>
-              <span class="path-role">Forest Ranger</span>
-              <span class="path-q">Which district first, and is anything burning now?</span>
-              <span class="path-meta">6 steps · about 3 min</span>
-            </button>
-            <button type="button" class="path-card" data-view="public">
-              <span class="path-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.5 12 5l8 6.5"/><path d="M6.5 10v9h11v-9"/><path d="M10.5 19v-4.5h3V19"/></svg></span>
-              <span class="path-role">Hill Community</span>
-              <span class="path-q">When do the Hills burn? Plain answers, with a Bangla guide.</span>
-              <span class="path-meta">6 steps · about 3 min</span>
-            </button>
-            <button type="button" class="path-card" data-view="research">
-              <span class="path-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19h16"/><path d="M6 16l4-5 3 3 5-7"/><circle cx="18" cy="7" r="1.2"/></svg></span>
-              <span class="path-role">Climate Researcher</span>
-              <span class="path-q">How was the 2012 jump removed, and how sure are we?</span>
-              <span class="path-meta">7 steps · about 5 min</span>
-            </button>
-            <button type="button" class="path-card" data-view="judge">
-              <span class="path-icon" aria-hidden="true"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M9 13.5 8 20l4-2 4 2-1-6.5"/></svg></span>
-              <span class="path-role">NASA Judge</span>
-              <span class="path-q">The answer, the NASA data, the validation and the open code.</span>
-              <span class="path-meta">7 steps · about 4 min</span>
-            </button>
-          </div>
-          <p class="persona-hint small muted" id="persona-hint" aria-live="polite">Pick the one closest to you for a short tour, or just scroll. The page goes: right now, then use it, then why you can trust it, then how it works.</p>
-        </div>
-
-        <!-- KPI Telemetry Ribbon -->
-        <div class="kpi-ribbon">
-          <!-- BEGIN:HERO_KPI -->
-          <div class="kpi-tile">
-            <span class="kpi-val blue">20 Yrs</span>
-            <span class="kpi-label">Continuous Coverage</span>
-            <span class="kpi-sub">2002-07 – 2021-12 · 234 monthly records</span>
-          </div>
-          <div class="kpi-tile">
-            <span class="kpi-val green">55.67</span>
-            <span class="kpi-label">Monthly Error, Held-Out Test</span>
-            <span class="kpi-sub">Scaling baseline 56.63 · we gain 1.7%</span>
-          </div>
-          <div class="kpi-tile">
-            <span class="kpi-val amber">-23.1%</span>
-            <span class="kpi-label">MODIS-Only Change Across 2012</span>
-            <span class="kpi-sub">The unchanged camera sees no rise</span>
-          </div>
-          <div class="kpi-tile">
-            <span class="kpi-val green">0.9488</span>
-            <span class="kpi-label">Rank Agreement (Spearman)</span>
-            <span class="kpi-sub">Tracks real ups &amp; downs</span>
-          </div>
-<!-- END:HERO_KPI -->
-        </div>
       </div>
     </section>
 
@@ -258,12 +201,9 @@
       <p class="calendar-headline" id="cal-headline"></p>
       <div class="calendar-bars" id="cal-bars" role="img" aria-label="Typical hotspots per month"></div>
       <ul class="tips">
-        <li><strong>Before the season (Jan&ndash;Feb):</strong> clear dry litter near homes, granaries and schools.
-          <span class="bn" lang="bn">মৌসুমের আগে: ঘর, গোলা ও স্কুলের পাশের শুকনো পাতা-আবর্জনা সরিয়ে ফেলুন।</span></li>
-        <li><strong>During jhum burning (Mar&ndash;Apr):</strong> burn only on calm days, keep a cleared firebreak, and never leave a burn unattended.
-          <span class="bn" lang="bn">জুম পোড়ানোর সময়: বাতাস কম এমন দিনে পোড়ান, চারপাশে ফাঁকা অগ্নিরোধক পথ রাখুন, আর আগুন কখনো অরক্ষিত রাখবেন না।</span></li>
-        <li><strong>If a fire spreads:</strong> move people away first, then call the Fire Service and inform the local forest office.
-          <span class="bn" lang="bn">আগুন ছড়ালে: আগে মানুষকে নিরাপদে সরান, তারপর ফায়ার সার্ভিস ও স্থানীয় বন অফিসে খবর দিন।</span></li>
+        <li><strong>Before the season (Jan&ndash;Feb):</strong> clear dry litter near homes, granaries and schools.</li>
+        <li><strong>During jhum burning (Mar&ndash;Apr):</strong> burn only on calm days, keep a cleared firebreak, and never leave a burn unattended.</li>
+        <li><strong>If a fire spreads:</strong> move people away first, then call the Fire Service and inform the local forest office.</li>
       </ul>
     </section>
 
@@ -354,7 +294,8 @@
 <!-- END:YEAR_PILLS -->
           </div>
 
-          <!-- SENSOR PROVENANCE STRIP (2002–2026+) -->
+          <details class="more">
+          <summary>Which satellite each year comes from</summary>
           <div class="provenance-strip-wrapper" aria-label="Sensor satellite observation custody chain">
             <div class="provenance-strip-header">
               <span class="muted small">Which satellite each year comes from:</span>
@@ -390,6 +331,7 @@
 <!-- END:SENSOR_CUSTODY_LEGEND -->
             </div>
           </div>
+          </details>
         </div>
       </div>
     </section>
@@ -400,10 +342,12 @@
         <div>
           <span class="kicker">USE IT · WHICH MONTHS BURN</span>
           <h2>Twenty years, month by month</h2>
-          <p class="muted">Every row is a year and every square a month. The pattern hardly changes from one year to the next, which is why a sudden jump in 2012 looks suspicious.</p>
+          <p class="muted">The same two months burn every year. That is why a sudden jump in 2012 looks wrong.</p>
         </div>
       </div>
 
+      <details class="more">
+      <summary>Show all 20 years, month by month</summary>
       <div id="seasonality-matrix" class="matrix-container" role="group" tabindex="0" aria-label="Hotspots for every month from 2002 to 2021. Scroll sideways on small screens.">
         <!-- Rendered dynamically by app.js -->
       </div>
@@ -419,6 +363,7 @@
         <span><i class="matrix-legend-swatch" style="background: #ff0055;"></i> 600+ (peak season)</span>
         <span class="small muted" style="margin-left: auto;">Click any year row to jump the satellite map to that year.</span>
       </div>
+      </details>
     </section>
 
     <div class="chapter" id="ch-trust">
@@ -461,6 +406,8 @@ Join the two satellites' counts directly and fires look almost 2.85× higher aft
         <figcaption class="small muted" id="ba-caption">Yearly hotspot totals in the Hill Tracts. Left of the handle: VIIRS joined raw after 2012. Right: VIIRS converted to the MODIS scale.</figcaption>
       </figure>
 
+      <details class="more" id="monthly-charts">
+      <summary>See it month by month</summary>
       <div id="charts-wrapper" class="two-charts">
         <!-- WRONG NAIVE JOIN -->
         <figure class="chart-card">
@@ -493,8 +440,9 @@ Join the two satellites' counts directly and fires look almost 2.85× higher aft
           </p>
         </figure>
       </div>
+      </details>
 
-      <details class="formula-collapse">
+      <details class="formula-collapse more">
         <summary>The formula, and how we fitted it</summary>
         <div class="formula-collapse-body">
 <!-- BEGIN:FORMULA -->
@@ -578,12 +526,11 @@ Join the two satellites' counts directly and fires look almost 2.85× higher aft
           <p class="proof-hint">R² is 0.9811, but it is set mostly by the burning peak, so rank agreement is the fairer single number.</p>
         </div>
       </div>
-      <p class="proof-note"><strong>Worth knowing:</strong> most of the correction comes from simple scaling, not from our equation.
-      A raw join (no correction) scores RMSE 1130.64, bias +468.92 and R² -6.8012, so measured against it the error falls 95.1% and the bias falls 99.1%.
-      That is the wrong yardstick. Measured against a one-number scaling baseline, the error falls only 1.7%.
-      What this project adds is the regional calibration for the CHT, the bootstrap confidence range, the confidence-threshold and day-only sensitivity runs, and a genuine held-out test.</p>
+      <p class="proof-note"><strong>Worth knowing:</strong> most of the gain comes from simple scaling. Against a raw join (RMSE 1130.64, bias +468.92, R² -6.8012) the error falls 95.1% and the bias 99.1%. Against one-number scaling it falls only 1.7%.</p>
+      <details class="more" id="reviewer-numbers">
+      <summary>All the numbers, for reviewers</summary>
       <p class="proof-note"><strong>Data source: NASA FIRMS Area API</strong> (MODIS_SP, VIIRS_SNPP_SP) over the CHT window — recorded in <code>data/processed/data_source.json</code>. Detections restricted to <strong>CHT districts (Bandarban, Khagrachhari, Rangamati)</strong> polygons (geoBoundaries BGD-ADM2); 54,300 MODIS and 85,857 VIIRS rows outside the CHT dropped.
-      Learned on 2012-01 to 2018-12 (84 months), tested on 2019-01 to 2021-12 (36 months). Full formula &amp; confidence intervals: see the “Wrong Join” section above.<br>Confidence-threshold sensitivity: keeping low-confidence detections moves the slope by <strong>-8.54%</strong> and <strong>increases</strong> held-out RMSE by <strong>4.96%</strong> — baseline thresholds are reported.</p>
+      Learned on 2012-01 to 2018-12 (84 months), tested on 2019-01 to 2021-12 (36 months). The formula is under the 2012 chart above.<br>Confidence-threshold sensitivity: keeping low-confidence detections moves the slope by <strong>-8.54%</strong> and <strong>increases</strong> held-out RMSE by <strong>4.96%</strong> — baseline thresholds are reported.</p>
 <!-- END:VALIDATION_METRICS -->
 
       <!-- PER-YEAR BREAKDOWN TABLE -->
@@ -694,6 +641,32 @@ Join the two satellites' counts directly and fires look almost 2.85× higher aft
         <em>Sensitivity check:</em> using daytime passes only (<code>daynight=D</code>) gives a test error (RMSE) of 49.69 instead of 55.67 (-10.74%). The main result keeps both day and night passes; the day-only version is shown here rather than swapped in.
 <!-- END:SENSITIVITY_NOTE -->
       </p>
+      <div class="kpi-ribbon">
+
+          <!-- BEGIN:HERO_KPI -->
+          <div class="kpi-tile">
+            <span class="kpi-val blue">20 Yrs</span>
+            <span class="kpi-label">Continuous Coverage</span>
+            <span class="kpi-sub">2002-07 – 2021-12 · 234 monthly records</span>
+          </div>
+          <div class="kpi-tile">
+            <span class="kpi-val green">55.67</span>
+            <span class="kpi-label">Monthly Error, Held-Out Test</span>
+            <span class="kpi-sub">Scaling baseline 56.63 · we gain 1.7%</span>
+          </div>
+          <div class="kpi-tile">
+            <span class="kpi-val amber">-23.1%</span>
+            <span class="kpi-label">MODIS-Only Change Across 2012</span>
+            <span class="kpi-sub">The unchanged camera sees no rise</span>
+          </div>
+          <div class="kpi-tile">
+            <span class="kpi-val green">0.9488</span>
+            <span class="kpi-label">Rank Agreement (Spearman)</span>
+            <span class="kpi-sub">Tracks real ups &amp; downs</span>
+          </div>
+<!-- END:HERO_KPI -->
+        </div>
+      </details>
     </section>
 
     <!-- STEP 4: LIVE CALIBRATION PLAYGROUND -->
@@ -891,20 +864,7 @@ Join the two satellites' counts directly and fires look almost 2.85× higher aft
   </main>
 
   <!-- GUIDED PATH DOCK (shown only while a path is active) -->
-  <div class="tour-dock" id="tour-dock" role="region" aria-label="Guided path" hidden>
-    <div class="tour-progress" aria-hidden="true"><span id="tour-progress-fill"></span></div>
-    <div class="tour-row">
-      <div class="tour-info">
-        <span class="tour-role" id="tour-role"></span>
-        <span class="tour-step" id="tour-step" aria-live="polite"></span>
-      </div>
-      <div class="tour-actions">
-        <button type="button" class="tour-btn" id="tour-prev" aria-label="Previous step">←</button>
-        <button type="button" class="tour-btn primary" id="tour-next">Next</button>
-        <button type="button" class="tour-btn ghost" id="tour-exit" aria-label="Leave guided path">✕</button>
-      </div>
-    </div>
-  </div>
+
 
   <!-- MODERN APPLICATION FOOTER -->
   <footer class="footer">

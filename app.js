@@ -1639,7 +1639,7 @@ function drawNowMap() {
   const feed = currentLiveFeed;
   if (!feed) return;
   const icon = L.divIcon({ className: 'live-marker-wrap', html: '<div class="live-pulse-ring"></div><div class="live-pulse-core"></div>', iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14] });
-  (feed.detections || []).forEach((d) => L.marker([d.latitude, d.longitude], { icon, title: `Hotspot in ${d.district}, ${fmtDate(d.acq_date)}`, alt: `Hotspot in ${d.district}` }).bindPopup(
+  (feed.detections || []).forEach((d) => L.marker([d.latitude, d.longitude], { icon, keyboard: false, title: `Hotspot in ${d.district}, ${fmtDate(d.acq_date)}`, alt: `Hotspot in ${d.district}` }).bindPopup(
     `<strong>${escapeHtml(d.district)}</strong><br>${escapeHtml(fmtDate(d.acq_date))} ${String(d.acq_time).padStart(4, '0')} UTC · ${escapeHtml(d.sensor_label)}<br>FRP ${escapeHtml(d.frp)} MW · confidence ${escapeHtml(d.confidence)}<br><span class="pop-note">Provisional heat detection, not a confirmed fire.</span>`
   ).addTo(nowLayer));
   (feed.outside_cht || []).forEach((d) => L.circleMarker([d.latitude, d.longitude], { radius: 4, color: '#94a3b8', fillColor: '#94a3b8', fillOpacity: .4, weight: 1 })
@@ -2230,7 +2230,6 @@ function initScrollSpy() {
     const links = Array.from(document.querySelectorAll('.topnav a[href^="#"]'));
     const ordered = Array.from(document.querySelectorAll('main section[id]')).filter((s) => !s.hidden);
     const anyHit = ordered.find((s) => visible.has(s.id));
-    updatePathProgress(anyHit ? anyHit.id : null);   // the guided dock follows any section
     const hit = ordered.find((s) => visible.has(s.id) && links.some((a) => a.getAttribute('href') === '#' + s.id));
     const nextId = hit ? hit.id : null;
     if (nextId === activeId) return;
@@ -2366,29 +2365,7 @@ function initSeasonCheck() {
   renderSeason();
 }
 
-// =============================================================================
-// 7c. GUIDED PATHS — one stable page, three guided tours over it.
-//     The page itself never changes shape: nav, order and content stay fixed.
-//     A path only (1) walks the reader through its steps in page order with a
-//     bottom dock (Prev / Next / Exit), (2) spotlights the current step, and
-//     (3) follows the reader if they scroll on their own.
-// =============================================================================
-const SECTION_LABELS = {
-  now: 'Right now',
-  season: 'Check a season', priority: 'Where to look first', calendar: 'When the Hills burn',
-  problem: 'The 2012 jump', continuity: 'The control test', proof: 'Tested on unseen years',
-  'map-section': 'Fire map', try: 'Try the conversion', matrix: 'Burning by month', noaa20: 'After Suomi-NPP',
-  glossary: 'Plain words', limits: 'Honest limits', method: 'Open method', team: 'Team'
-};
-// Steps are listed in page order, so every path moves strictly downward.
-const PATHS = {
-  officer:  { name: 'Forest Ranger', steps: ['now', 'priority', 'season', 'map-section', 'matrix', 'limits'] },
-  public:   { name: 'Hill Community',      steps: ['now', 'season', 'calendar', 'map-section', 'continuity', 'glossary'] },
-  research: { name: 'Climate Researcher', steps: ['problem', 'continuity', 'proof', 'try', 'noaa20', 'method', 'limits'] },
-  judge:    { name: 'NASA Judge',     steps: ['now', 'season', 'problem', 'continuity', 'proof', 'noaa20', 'method'] }
-};
-const TOUR = { path: null, idx: 0, lock: 0 };
-
+// 7c. In-page navigation
 function scrollToSection(el) {
   if (!el) return;
   const bar = document.querySelector('.topbar');
@@ -2397,95 +2374,7 @@ function scrollToSection(el) {
   window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - offset, behavior: reduce ? 'auto' : 'smooth' });
 }
 
-function renderTour() {
-  const dock = document.getElementById('tour-dock');
-  const p = PATHS[TOUR.path];
-  document.querySelectorAll('main section.tour-focus').forEach((s) => s.classList.remove('tour-focus'));
-  if (!dock) return;
-  if (!p) {
-    dock.hidden = true;
-    document.body.classList.remove('touring');
-    document.querySelectorAll('#persona-switch .path-card').forEach((b) => b.setAttribute('aria-pressed', 'false'));
-    return;
-  }
-  const id = p.steps[TOUR.idx];
-  const sec = document.getElementById(id);
-  if (sec) sec.classList.add('tour-focus');
-  document.body.classList.add('touring');
-  dock.hidden = false;
-  document.getElementById('tour-role').textContent = p.name + ' path';
-  document.getElementById('tour-step').textContent = 'Step ' + (TOUR.idx + 1) + ' of ' + p.steps.length + ' · ' + SECTION_LABELS[id];
-  const last = TOUR.idx === p.steps.length - 1;
-  const next = document.getElementById('tour-next');
-  next.textContent = last ? 'Finish' : 'Next: ' + SECTION_LABELS[p.steps[TOUR.idx + 1]];
-  document.getElementById('tour-prev').disabled = TOUR.idx === 0;
-  document.getElementById('tour-progress-fill').style.width = Math.round(100 * (TOUR.idx + 1) / p.steps.length) + '%';
-  document.querySelectorAll('#persona-switch .path-card').forEach((b) =>
-    b.setAttribute('aria-pressed', String(b.dataset.view === TOUR.path)));
-}
-
-function goToStep(i) {
-  const p = PATHS[TOUR.path];
-  if (!p) return;
-  TOUR.idx = Math.max(0, Math.min(p.steps.length - 1, i));
-  TOUR.lock = Date.now() + 900;          // ignore scroll-spy while the smooth scroll runs
-  renderTour();
-  scrollToSection(document.getElementById(p.steps[TOUR.idx]));
-}
-
-function startTour(view) {
-  if (!PATHS[view]) return;
-  TOUR.path = view;
-  try { localStorage.setItem('bd_fireops_view', view); } catch (e) { /* storage blocked */ }
-  try { const u = new URL(location.href); u.searchParams.set('view', view); history.replaceState(null, '', u.pathname + u.search); } catch (e) { /* file:// */ }
-  goToStep(0);
-}
-
-function endTour() {
-  TOUR.path = null;
-  try { localStorage.removeItem('bd_fireops_view'); } catch (e) { /* storage blocked */ }
-  try { const u = new URL(location.href); u.searchParams.delete('view'); history.replaceState(null, '', u.pathname + u.search); } catch (e) { /* file:// */ }
-  renderTour();
-}
-
-// Called by the scroll-spy: if the reader scrolls on their own, the dock follows.
-function updatePathProgress(activeId) {
-  const p = PATHS[TOUR.path];
-  if (!p || Date.now() < TOUR.lock || !activeId) return;
-  const i = p.steps.indexOf(activeId);
-  if (i >= 0 && i !== TOUR.idx) { TOUR.idx = i; renderTour(); }
-}
-
 function initViews() {
-  document.querySelectorAll('#persona-switch [data-view]').forEach((b) => {
-    const p = PATHS[b.dataset.view], meta = b.querySelector('.path-meta');
-    if (p && meta) meta.textContent = p.steps.length + ' stops · about ' + Math.max(2, Math.round(p.steps.length * 0.6)) + ' min';
-  });
-  const cards = document.getElementById('persona-switch');
-  if (cards) cards.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-view]');
-    if (b) startTour(b.dataset.view);
-  });
-  const nx = document.getElementById('tour-next'), pv = document.getElementById('tour-prev'), ex = document.getElementById('tour-exit');
-  if (nx) nx.addEventListener('click', () => {
-    const p = PATHS[TOUR.path];
-    if (p && TOUR.idx === p.steps.length - 1) {
-      const finishedView = TOUR.path;
-      endTour();
-      const card = document.querySelector('#persona-switch [data-view="' + finishedView + '"]') || document.getElementById('persona-switch');
-      scrollToSection(card);
-      if (card) { try { card.focus({ preventScroll: true }); } catch (err) {} }
-    }
-    else goToStep(TOUR.idx + 1);
-  });
-  if (pv) pv.addEventListener('click', () => goToStep(TOUR.idx - 1));
-  if (ex) ex.addEventListener('click', endTour);
-  document.addEventListener('keydown', (e) => {
-    if (!TOUR.path || /INPUT|SELECT|TEXTAREA/.test((e.target.tagName || ''))) return;
-    if (e.key === 'ArrowRight') goToStep(TOUR.idx + 1);
-    else if (e.key === 'ArrowLeft') goToStep(TOUR.idx - 1);
-    else if (e.key === 'Escape') endTour();
-  });
   // One smooth handler for every in-page link (accounts for the sticky header).
   document.addEventListener('click', (e) => {
     const a = e.target.closest('a[href^="#"]');
@@ -2499,24 +2388,37 @@ function initViews() {
     scrollToSection(el);
     try { history.replaceState(null, '', location.pathname + location.search + '#' + id); } catch (err) { /* ignore */ }
   });
-  // Resume a path from a shared link (?view=officer); never auto-start from storage.
-  const fromUrl = new URLSearchParams(location.search).get('view');
-  if (PATHS[fromUrl]) setTimeout(() => startTour(fromUrl), 300);
 }
 
 // Sections ease in once as they enter the viewport.
 function initReveal() {
-  const secs = document.querySelectorAll('main > section:not(.hero), main > .chapter');
-  if (!('IntersectionObserver' in window)) return;
+  const secs = Array.from(document.querySelectorAll('main > section:not(.hero), main > .chapter'));
+  const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // Scroll progress bar (top of the page).
+  const bar = document.getElementById('scroll-progress');
+  if (bar) {
+    let ticking = false;
+    const upd = () => {
+      const max = document.documentElement.scrollHeight - innerHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? Math.min(1, scrollY / max) : 0) + ')';
+      ticking = false;
+    };
+    addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(upd); } }, { passive: true });
+    upd();
+  }
+  if (reduce || !('IntersectionObserver' in window)) return;
   document.body.classList.add('reveal-ready');
+  const show = (s) => s.classList.add('in-view');
   const io = new IntersectionObserver((entries) => entries.forEach((en) => {
-    if (en.isIntersecting) { en.target.classList.add('in-view'); io.unobserve(en.target); }
-  }), { rootMargin: '120px 0px 120px 0px', threshold: 0.01 });
+    if (en.isIntersecting) { show(en.target); io.unobserve(en.target); }
+  }), { rootMargin: '0px 0px -8% 0px', threshold: 0.04 });
   secs.forEach((s) => io.observe(s));
-  // Safety net: nothing may stay hidden if an observer callback is missed.
-  const revealAll = () => secs.forEach((s) => s.classList.add('in-view'));
-  setTimeout(revealAll, 2500);
-  window.addEventListener('beforeprint', revealAll);
+  // Safety net: anything at or above the viewport is always shown (jumps, anchors, missed callbacks).
+  const sweep = () => secs.forEach((s) => { if (s.getBoundingClientRect().top < innerHeight) show(s); });
+  addEventListener('scroll', () => requestAnimationFrame(sweep), { passive: true });
+  addEventListener('hashchange', sweep);
+  setTimeout(sweep, 600);
+  addEventListener('beforeprint', () => secs.forEach(show));
 }
 
 // =============================================================================

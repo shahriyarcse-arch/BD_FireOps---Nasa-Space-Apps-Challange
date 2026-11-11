@@ -645,12 +645,11 @@ def build_validation(m: dict) -> str:
           <p class="proof-hint">R² is {r2 if r2 is not None else "n/a"}, but it is set mostly by the burning peak, so rank agreement is the fairer single number.</p>
         </div>
       </div>
-      <p class="proof-note"><strong>Worth knowing:</strong> most of the correction comes from simple scaling, not from our equation.
-      A raw join (no correction) scores RMSE {naive.get("rmse", "n/a")}, bias {signed(naive.get("bias"))} and R² {naive_r2}, so measured against it the error falls {imp.get("rmse_reduction_percent", "n/a")}% and the bias falls {imp.get("bias_reduction_percent", "n/a")}%.
-      That is the wrong yardstick. Measured against a one-number scaling baseline, the error falls only {scalar_gain if scalar_gain is not None else "n/a"}%.
-      What this project adds is the regional calibration for the CHT, the bootstrap confidence range, the confidence-threshold and day-only sensitivity runs, and a genuine held-out test.</p>
+      <p class="proof-note"><strong>Worth knowing:</strong> most of the gain comes from simple scaling. Against a raw join (RMSE {naive.get("rmse", "n/a")}, bias {signed(naive.get("bias"))}, R² {naive_r2}) the error falls {imp.get("rmse_reduction_percent", "n/a")}% and the bias {imp.get("bias_reduction_percent", "n/a")}%. Against one-number scaling it falls only {scalar_gain if scalar_gain is not None else "n/a"}%.</p>
+      <details class="more" id="reviewer-numbers">
+      <summary>All the numbers, for reviewers</summary>
       <p class="proof-note">{prov}
-      Learned on {train_period}, tested on {test_period}. Full formula &amp; confidence intervals: see the “Wrong Join” section above.{sens_line}</p>"""
+      Learned on {train_period}, tested on {test_period}. The formula is under the 2012 chart above.{sens_line}</p>"""
 
 
 def build_continuity_panel(m: dict) -> str:
