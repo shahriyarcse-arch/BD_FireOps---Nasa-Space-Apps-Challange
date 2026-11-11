@@ -182,7 +182,7 @@ st.sidebar.markdown("""
 
 # ----------------- MAIN HEADER -----------------
 st.markdown('<div class="main-header">🔥 BD-FireOps: MODIS-VIIRS Harmonization Engine</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-header">An Uncertainty-Aware, Held-Out Validated Continuous Fire Record for Bangladesh Chittagong Hill Tracts (2002–2021)</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-header">Real-Time & 20-Year Fire Monitoring for Bangladesh Hills (Chittagong Hill Tracts)</div>', unsafe_allow_html=True)
 
 st.markdown("""
 <div class="alert-box">

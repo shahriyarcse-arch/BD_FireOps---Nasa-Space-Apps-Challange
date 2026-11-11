@@ -15,7 +15,7 @@
 ## 1. Portal Basic Information (Copy-Paste Ready)
 
 ### Project Title
-`BD-FireOps: An Uncertainty-Aware MODIS-VIIRS Fire Record for Bangladesh CHT`
+`BD-FireOps: Real-Time & 20-Year Fire Monitoring for Bangladesh Hills`
 
 ### Short Project Description (Elevator Pitch / Tagline)
 > NASA projects end-of-science activities for Terra MODIS (February 2027) and Aqua MODIS

@@ -1,4 +1,4 @@
-# BD-FireOps: An Uncertainty-Aware MODIS-VIIRS Fire Record for Bangladesh CHT
+# BD-FireOps: Real-Time & 20-Year Fire Monitoring for Bangladesh Hills
 
 **NASA Space Apps Challenge 2026**  
 **Challenge:** Harmonization of MODIS and VIIRS Hot Spots  
