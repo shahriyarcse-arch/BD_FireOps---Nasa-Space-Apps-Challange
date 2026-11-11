@@ -128,6 +128,11 @@ html {
   scroll-behavior: smooth;
   scroll-padding-top: 80px;
 }
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
 
 body {
   font-family: var(--sans);
@@ -138,10 +143,21 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+/* Fixed background on dedicated compositor layer to eliminate scroll repaints */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
   background-image: 
     radial-gradient(ellipse at 50% 0%, var(--veil-1) 0%, transparent 60%),
     radial-gradient(circle at 10% 20%, var(--veil-2) 0%, transparent 40%);
-  background-attachment: fixed;
+  transform: translateZ(0);
 }
 
 /* Typography */
@@ -2386,17 +2402,23 @@ button, [role="button"], summary, .path-card, .year-pill, .layer-toggle-btn, .vi
 }
 @keyframes v9-rise { from { opacity: 0; transform: translateY(24px); filter: blur(6px); } to { opacity: 1; transform: none; filter: none; } }
 
-/* scroll reveal: children of each section rise in, staggered */
+/* scroll reveal: hardware-accelerated transform + opacity (zero blur to eliminate GPU raster jank) */
+@keyframes v9-scroll-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .reveal-ready main > section:not(.hero):not(.in-view) > *,
-.reveal-ready main > .chapter:not(.in-view) > * { opacity: 0; transform: translateY(28px); }
+.reveal-ready main > .chapter:not(.in-view) > * { opacity: 0; transform: translateY(18px); }
 .reveal-ready main > section.in-view > *,
 .reveal-ready main > .chapter.in-view > * {
-  animation: v9-rise .8s cubic-bezier(.16,1,.3,1) both;
+  animation: v9-scroll-rise .55s cubic-bezier(.16,1,.3,1) both;
+  will-change: opacity, transform;
 }
-.reveal-ready main > .in-view > *:nth-child(2) { animation-delay: .07s; }
-.reveal-ready main > .in-view > *:nth-child(3) { animation-delay: .14s; }
-.reveal-ready main > .in-view > *:nth-child(4) { animation-delay: .21s; }
-.reveal-ready main > .in-view > *:nth-child(n+5) { animation-delay: .28s; }
+.reveal-ready main > .in-view > *:nth-child(2) { animation-delay: .05s; }
+.reveal-ready main > .in-view > *:nth-child(3) { animation-delay: .10s; }
+.reveal-ready main > .in-view > *:nth-child(4) { animation-delay: .15s; }
+.reveal-ready main > .in-view > *:nth-child(n+5) { animation-delay: .20s; }
 
 /* cards lift a little on hover (pointer devices only) */
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {

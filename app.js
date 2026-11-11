@@ -2160,7 +2160,7 @@ function buildSeasonalityMatrix() {
         if (playTimer) toggleAutoPlay();
         slider.value = yr;
         updateTimeline(yr);
-        document.getElementById('map-section').scrollIntoView({ behavior: 'smooth' });
+        scrollToSection(document.getElementById('map-section'));
       }
     });
   });
@@ -2516,13 +2516,22 @@ function initReveal() {
   const show = (s) => s.classList.add('in-view');
   const io = new IntersectionObserver((entries) => entries.forEach((en) => {
     if (en.isIntersecting) { show(en.target); io.unobserve(en.target); }
-  }), { rootMargin: '0px 0px -8% 0px', threshold: 0.04 });
+  }), { rootMargin: '0px 0px -4% 0px', threshold: 0.02 });
   secs.forEach((s) => io.observe(s));
-  // Safety net: anything at or above the viewport is always shown (jumps, anchors, missed callbacks).
-  const sweep = () => secs.forEach((s) => { if (s.getBoundingClientRect().top < innerHeight) show(s); });
-  addEventListener('scroll', () => requestAnimationFrame(sweep), { passive: true });
+  // Safety net: throttled via rAF to ensure smooth, jank-free 60fps scrolling
+  let sweepTicking = false;
+  const sweep = () => {
+    secs.forEach((s) => { if (s.getBoundingClientRect().top < innerHeight) show(s); });
+    sweepTicking = false;
+  };
+  addEventListener('scroll', () => {
+    if (!sweepTicking) {
+      sweepTicking = true;
+      requestAnimationFrame(sweep);
+    }
+  }, { passive: true });
   addEventListener('hashchange', sweep);
-  setTimeout(sweep, 600);
+  setTimeout(sweep, 400);
   addEventListener('beforeprint', () => secs.forEach(show));
 }
 
@@ -2596,7 +2605,7 @@ function renderPriority() {
   const mb = box.querySelector('#prio-map'); // created above, not in static HTML
   if (mb) mb.addEventListener('click', () => {
     if (typeof slider !== 'undefined' && slider) { slider.value = year; updateTimeline(year); }
-    const sec = document.getElementById('map-section'); if (sec) sec.scrollIntoView({ behavior: 'smooth' });
+    const sec = document.getElementById('map-section'); if (sec) scrollToSection(sec);
   });
 }
 
