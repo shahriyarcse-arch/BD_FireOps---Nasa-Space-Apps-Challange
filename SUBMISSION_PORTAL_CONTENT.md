@@ -34,7 +34,7 @@
 > baseline, a single scalar ratio, it falls by a further **1.7%** (56.63 to 55.67). The control test
 > settles the question the headline cannot: Aqua MODIS, the instrument that never changed, reads
 > **−23.1%** across the 2012 boundary while the spliced series appears to rise **+185%**.
-> Deployed as an interactive, dark/light NASA Earth Observation Telemetry Web GIS HUD and a Streamlit data-science console, it
+> Delivered as a phone-friendly website (with guided paths for rangers, hill communities, researchers and judges, plus a 6-hourly NOAA-20/21 live view) and a Streamlit console, it
 > gives climate scientists, the Bangladesh Forest Department and indigenous CHT communities
 > a continuous, uncertainty-quantified 2002–2021 monthly active-fire record (observed Aqua
 > MODIS 2002–2011, then VIIRS converted to MODIS-equivalent — the 2012–2018 overlap used
@@ -44,6 +44,7 @@
 ### Space Agency Data Used (Checkboxes & Citations)
 - **NASA FIRMS Area API — source `MODIS_SP` (MODIS 1 km active fire, Collection 6.1):** daily hotspots for the CHT search window, coverage window **2002-07 → 2021-12** (first CHT-district detection 2002-12-15); Aqua-only gate applied for the reference series (`satellite = Aqua`; Terra rows counted but excluded); district-polygon gate keeps 42,716 of 112,681 raw rows.
 - **NASA FIRMS Area API — source `VIIRS_SNPP_SP` (VIIRS 375 m active fire, Suomi-NPP):** daily hotspots for the CHT search window, coverage window **2012-01 → 2021-12** (`satellite = N`); study-window clamp drops 1 straggler day (2022-01-01) returned inside the final chunk, then the district-polygon gate keeps 70,857 of 172,197 raw rows.
+- **NASA FIRMS Area API — near-real-time sources `VIIRS_NOAA20_NRT`, `VIIRS_NOAA21_NRT`, `MODIS_NRT`:** the last 5 days over the CHT window, fetched every 6 hours by a GitHub Action (`tools/fetch_live.py`), same confidence gates as the archive, shown as raw points in *Right now* and never mixed into or converted with the 2002–2021 record.
 - **Boundary reference:** geoBoundaries BGD-ADM2 (BBS / OCHA ROAP), CC BY 3.0 — 54,300 MODIS / 85,857 VIIRS bbox rows outside Bandarban, Rangamati and Khagrachhari dropped.
 - **NASA Earthdata / NOAA NESDIS alerts:** *Suomi NPP Data Product Delivery to Cease on November 1, 2026* (NESDIS notice issued 2026-08-03 at 16:00 UTC; impact 13:00 UTC on 2026-11-01) and *Suomi NPP VIIRS Data Outage / Anomaly on June 1, 2026*.
 - **Academic Grounding:** Schroeder et al. (2014) *Remote Sensing of Environment*; Li et al. (2018) *JGR Atmospheres*; Farukh et al. (2023) *Atmosphere*.
@@ -127,31 +128,40 @@ Rangamati (34.74 vs 35.38). Every district card prints that comparison.
 - **Zero vs gap:** uncovered months stay blank instead of being reported as fire-free.
 - **Future Transition:** because S-NPP delivery ends 1 Nov 2026, the pipeline ships a NOAA-20 / NOAA-21 leg; it refuses to publish a slope until at least 24 S-NPP / NOAA-20 overlap months are downloaded, and is currently reported as not fitted.
 
-### 2.7 Interactive Telemetry Web GIS & Mission Control HUD Architecture
-To bridge the gap between rigorous scientific calibration and operational decision-making, BD-FireOps ships a zero-dependency, client-side Web GIS interface engineered with modern telemetry aesthetics:
-1. **Dual-View Time-Series Analytics (Split vs. Continuous):** Users can toggle between the split view (directly contrasting Naive Splice against BD-FireOps Harmonized Splice) and a single continuous 2002–2021 combined chart plotting all three series on one graph (raw naive join, Aqua MODIS ground truth, and the BD-FireOps harmonized line).
-2. **Multi-Layer Web GIS Mapping Engine:** Leaflet-powered geospatial engine supporting on-the-fly toggling between **Esri World Imagery** (high-resolution satellite basemap) and **CartoDB Dark Matter**, rendered with official geoBoundaries district polygons (Bandarban, Rangamati, Khagrachhari) and spatial cell clusters.
-3. **20-Year Burning Seasonality Heatmap Matrix:** A comprehensive matrix across all 12 calendar months from 2002 to 2021, classifying fire intensity into operational risk tiers (Low, Moderate, High Jhum, Peak Flare, Extreme Fire Season) to expose multi-decadal pre-monsoon burning dynamics.
-4. **Animated Temporal Scrubber:** A full-range year slider (2002–2021) with an Auto play / Pause loop, six quick-jump milestone pills, and a live era badge (MODIS Years / Training Years / Test Years), letting stakeholders visualize the geographical progression of fire detections across the full 20-year archive.
-5. **Interactive Calibration Playground with Moving-Block Bootstrap Uncertainty:** One live slider (0–3000 raw VIIRS detections) plus scenario presets (Low Season 25 / Typical 300 / Peak Season 940 / Severe Outbreak 2500), instantly rendering the MODIS-equivalent estimate (79.6 at the default 300), its honest 95% bootstrap range (`[59.1, 95.6]`, derived from the `[0.2198, 0.2970]` slope interval), and the avoided false-inflation percentage — all computed client-side.
-6. **Zero-Dependency & Offline Vendored Architecture:** Pure HTML5, CSS3 design tokens, and vanilla JavaScript. Leaflet 1.9.4, Chart.js 4.4.1, and the project mark are 100% vendored locally for uninterrupted offline operation without third-party CDN vulnerability.
+### 2.7 Who it is for, and what changes after one minute
+
+| User | What is hard today | What they get from BD-FireOps in one minute |
+| :--- | :--- | :--- |
+| A forest officer in Rangamati, Bandarban or Khagrachhari | FIRMS shows thousands of dots; after 2012 every year looks like a record, so real anomalies are hidden | *Where should rangers look first?* ranks the three districts against each district's own normal for that month |
+| A family in the hills that burns jhum fields | No simple answer to "when is the risky time?" | *When do the Hills burn?* — an average year, plus three plain safety tips |
+| A climate researcher | MODIS and VIIRS counts cannot be joined without a false step | One 2002–2021 monthly record on the MODIS scale, with a held-out test, a bootstrap range and a CSV download |
+| A NASA judge | Needs the claim, the evidence and the limits quickly | A 6-stop guided path: claim → control test → unseen-year test → NOAA-20 gap → team and data |
+
+### 2.8 What the website does (current build)
+
+1. **Two clocks, kept apart.** *Right now* shows the latest NOAA-20/NOAA-21 detections (raw 375 m points, refreshed every 6 hours by a GitHub Action, with "updated N hours ago" and an overdue warning). It is compared only with the same kind of 375 m camera in the archive. The 2002–2021 record below is the harmonized archive. Live points are never converted with the monthly formula: that formula was fitted on monthly regional totals from Suomi-NPP and has not been fitted for NOAA-20.
+2. **Guided paths.** *I am a…* chips (Forest ranger, Hill community, Researcher, NASA judge) jump to stop 1; a small dock gives Next / Back with progress. Links like `?view=judge` open a path directly.
+3. **Answer-first tools.** Where to look first (per district), Was this season unusual? (rank, typical range and uncertainty, in plain words), When do the Hills burn?, and a CSV download.
+4. **The 2012 jump.** A drag-to-compare chart shows the raw join against the corrected record on the same axis; monthly charts and the formula sit one click away.
+5. **Evidence.** The Aqua-only control test, the held-out 2019–2021 test (with the honest 1.7% gain over simple scaling), and all detailed numbers inside *All the numbers, for reviewers*.
+6. **Map.** 2002–2021 detections on 5 km cells inside the district polygons, with year controls, autoplay and a satellite-by-year strip.
+7. **Built to be checked.** Every number is written into the page by `tools/sync_web.py` from our results files; `tools/e2e_audit.py` (104 checks) fails if any number drifts. Static site, vendored Leaflet 1.9.4 and Chart.js 4.4.1, WCAG checks with axe-core (0 violations), phone-first layout from 320 px.
 
 ---
 
 ## 3. Cue-by-Cue 240-Second (4-Minute) Video Presentation Script
 
 Record this walkthrough using OBS Studio, Loom, or Windows Game Bar (`Win + G`).
-**On-screen route follows the live Web GIS HUD:** Topbar Telemetry → Problem & Dual-View Chart → Proof Cards & Per-Year Table → Live Scenario Simulator → GIS Map (Satellite / Dark) & Timeline Scrubber → Seasonality Heatmap Matrix → Scientific Limits & Method.
+**On-screen route:** Hero → The 2012 jump → Control test → Unseen-year test → Forest ranger path → Converter and After Suomi-NPP → Limits and Team.s & Method.
 
 | Time Code | Visual on Screen | Spoken Script (English Voiceover) |
 |:---|:---|:---|
-| **0:00 – 0:35** | Topbar & Hero section of `index.html` (project mark, dark/light theme, the headline and the one-line answer: Aqua MODIS alone reads about 23% less after 2012). | *"Hello judges, we are Team Claude Fable 7.0 presenting BD-FireOps. With NASA projecting end-of-science for Terra and Aqua MODIS in 2027 and NOAA ceasing Suomi-NPP VIIRS delivery on November 1, 2026, Earth observation faces an imminent data cliff. For Bangladesh's Chittagong Hill Tracts, we engineered an uncertainty-quantified, held-out-tested harmonization system that turns two incompatible sensors into one continuous, 20-year fire record — without hiding the sensor transition."* |
-| **0:35 – 1:15** | **Problem Section, Drag-to-Compare & Sensor Custody Strip**: Show Chart A and hover the red step warning badge. Drag the **Before / After interactive handle** comparing the naive join against BD-FireOps on the exact same axis. Point to the **Sensor Provenance Strip** below the timeline. | *"Here is the crisis: Aqua MODIS averaged 207 hotspots a month from 2002 to 2011. When VIIRS arrives in 2012 with 375-meter pixels, raw counts surge to a monthly mean of 590 — an artificial 2.85-times jump at the splice, and 3.71-times during overlapping months. Watch our interactive drag handle: on the exact same axis, the naive join spikes into false alarms, while BD-FireOps restores physical reality. How do we know the fires did not really rise? Because of the camera that never changed: Aqua MODIS flew across the whole period, and its own record falls 23 per cent after 2012. Our visual sensor-provenance strip tracks the handover from Aqua MODIS to S-NPP VIIRS, and onward to NOAA-20."* |
-| **1:15 – 1:55** | **Proof Section & Per-District Validation**: Focus on the control-test panel (**207.1 → 159.2, −23.1%**), the 3 KPI cards (**RMSE: 55.67 beside the 56.63 scaling baseline**, **Bias: −4.09**, **Spearman: 0.9488**), the seasonal breakdown table, and the **3-District Spatial Validation Cards**. | *"We trained strictly on 2012–2018 and validated on an untouched 36-month held-out test set from 2019–2021. Against an unscaled splice the error falls 95.1%, from 1,130.64 to 55.67 hotspots per month. But we will be straight with you: a single scaling ratio already gets 56.63, so our fitted line improves on that by 1.7 per cent. What we contribute is regional science: an honest bootstrap interval, a seasonal split separating the March–April jhum peak from quiet months, and an independent 3-district spatial validation showing Bandarban (0.2692), Rangamati (0.2574), and Khagrachhari (0.2855) all fit consistently with R² above 0.96."* |
-| **1:55 – 2:35** | **Live Scenario Simulator**: Drag the VIIRS monthly slider (e.g. 300 → 79.6 MODIS-eq), click a preset chip (Low Season / Typical / Peak Season / Severe Outbreak), and highlight the honest uncertainty box `[59.1, 95.6]`. | *"Operational planners can test custom scenarios live. If VIIRS reports 300 active detections in a month, our calibrated engine estimates MODIS would have observed approximately 80. The estimate comes with an honest bootstrap range — 59 to 96 — not a single magic number, giving decision-makers statistical confidence rather than blind guesses."* |
-| **2:35 – 3:20** | **Floating GIS Map HUD & Latest NOAA-20 Live Telemetry**: On the map, highlight the glassmorphic HUD panels. Switch from **20-year archive** to **Latest NOAA-20** on the floating bottom dock. Zoom into the pulsing red radar pin in Rangamati. Show the popup and the live telemetry HUD. | *"Our Web GIS features an aerospace-grade floating command dock with basemap toggles. In archive mode, it maps real 2002–2021 detection cells strictly inside CHT borders, filtering out over 140,000 fringe coastal detections. Switching to 'Latest NOAA-20' connects directly to NASA FIRMS NRT telemetry, displaying the latest post-sunset satellite pass with an honest quiet-season baseline, verified against the BGD-ADM2 boundary. Below, the 20-year seasonality matrix reveals the recurring March–April pre-monsoon Jhum agricultural burning cycles with plain Bangla safety advice."* |
-| **3:20 – 4:00** | **Scientific Limits, Sunset Handover & GitHub**: Point to the 5-step methodology, the Suomi-NPP November 1 shutdown handover to NOAA-20, honest scientific boundaries, and conclusion. | *"We remain completely transparent about scientific boundaries: this is a regional empirical calibration for CHT monthly trends, not a global converter or live wildfire alarm. And because Suomi-NPP shuts down on November 1, our forward pipeline is built to bridge into NOAA-20 and NOAA-21. All code, data schemas, sync utilities, and end-to-end audits are fully open-source and reproducible from our GitHub repository. Thank you."* |
-
+| **0:00 – 0:30** | Hero: headline and the one-line answer. | *"We are Team Claude Fable 7.0 — Shamim Shahriyar, Tanjum Raisa, Rashedul Anik and Nusrat Alam Lamim — answering the 2026 challenge Harmonization of MODIS and VIIRS Hot Spots. NASA's MODIS and VIIRS cameras both count fires in Bangladesh's Chittagong Hill Tracts. Join their records and fires seem to triple in 2012. They did not. The camera changed."* |
+| **0:30 – 1:10** | *The 2012 jump*: drag the compare handle. Then *Did fires really rise in 2012?* | *"MODIS averaged about 207 hotspots a month before 2012. VIIRS, with 375-metre pixels, reports about 590. Joined raw, that is a false 2.85-times jump. The proof: Aqua MODIS flew through the whole period with the same camera, and it saw 23 per cent less burning after 2012. The step belongs to the sensor, not the forest."* |
+| **1:10 – 1:50** | *Tested on years it never saw*: the three cards and the "Worth knowing" note. | *"We fitted the conversion on 2012 to 2018 and tested it on 2019 to 2021, data it never saw. The monthly error is 55.67 hotspots, against 1,130 for the raw join. To be straight with you: one simple scaling factor already gets 56.63, so our fitted line adds 1.7 per cent. Our contribution is the regional calibration, the uncertainty range, the sensitivity runs and the honest test."* |
+| **1:50 – 2:40** | *I am a… → Forest ranger*. Next through: Right now → Where to look first (April 2014) → Was this season unusual? → Map. | *"A forest officer opens the site. Right now shows this week's NOAA-20 and NOAA-21 detections, refreshed every six hours and compared only with the same kind of camera. Where to look first ranks each district against its own normal: in April 2014, Rangamati at about twice its usual April. Was this season unusual answers in plain words, with uncertainty, and the map steps to that year."* |
+| **2:40 – 3:20** | *Try the conversion* (300 → 79.6, range 59.1–95.6), then *After Suomi-NPP* (0 / 24). | *"Any monthly VIIRS count converts to the MODIS scale with an honest range. Suomi-NPP stopped on 1 November 2026. We will not fake a NOAA-20 formula: the code refuses to fit one until 24 months of overlap exist, and the page says so."* |
+| **3:20 – 4:00** | *What this tool can and can't do*, then *Who built this* and the GitHub link. | *"Our data: NASA FIRMS MODIS_SP from Aqua, VIIRS_SNPP_SP, the NOAA-20 and NOAA-21 near-real-time feeds, and geoBoundaries district polygons. It covers three districts, it is not a fire alarm, and no dot does not mean no fire. Everything is open source and re-runs from NASA data. Thank you."* |
 ---
 
 ## 4. GitHub & Vercel Deployment Checklist (When You're Ready)
@@ -177,9 +187,36 @@ Record this walkthrough using OBS Studio, Loom, or Windows Game Bar (`Win + G`).
 | Anthropic Claude (chat / Cowork) | Code review, end-to-end audit design, wording of the dashboard and this document, the "Was this season unusual?" widget and plain-language layer | Our repository and `metrics.json`; no personal data | Every number is generated by our pipeline from NASA FIRMS and verified by `tools/e2e_audit.py`; the team reviewed and tested all code |
 | Google DeepMind / Antigravity (Gemini) | Full codebase audit, live browser automation & verification (Playwright), CSS specificity bug-fix, and scroll UX optimization | Repository source files, DOM structure, and test suites | All fixes verified through automated Playwright runs and CI test suite; code changes verified and approved by the team |
 
-**Example prompts (replace with your real ones):** "Audit this repository against the Participants Guide and list gaps"; "Find why `sync_web.py --check` fails on CI"; "Rewrite the hero text in plain language for a forest officer".
+**Prompts we gave Claude (translated from Bangla, in order):**
+1. "Audit the whole project in phases (data, science, code, web, submission) without changing code, and list what is weak."
+2. "Fix everything the audit found and make this the best project in its genre."
+3. "Analyse the site from three users' points of view: a forest officer, a hill community member, a researcher."
+4. "Check every section for numbers that are typed by hand instead of coming from the data, and rewrite text so it does not read as AI-generated."
+5. "Separate historical and live data clearly, and refresh the live data every 6 hours."
+6. "Test the site with the ui-ux-pro-max and addyosmani/agent-skills checklists (accessibility, performance) and fix what fails."
+7. "Make the site minimal and easy to understand, but keep the stakeholder guided paths."
+8. "Is it scientifically right that the live data is not converted to the MODIS scale?" (Claude found that our live comparison mixed a MODIS-scale average with raw VIIRS points; we changed it to compare like with like.)
+9. "Check the project against the Participants Guide and the Quality Suggestions document."
+
+**Gemini prompts:** *(team: add the prompts you actually used with Gemini/Antigravity here)*
+
+**Why we used AI:** a 4-person student team, two days, and a large audit surface; AI was used to review, test and word things, never to produce data or results.
 
 **What is ours:** the choice of study area and reference sensor (Aqua-only), the cleaning rules, the time-split validation design, the control-test argument, the district gate, and all interpretation of results. No AI-generated images, audio, voices or datasets are used.
+
+---
+
+## 5b. Test with three people (Quality Suggestions §5) — fill in before submitting
+
+Validity scores 20 only when the prototype is *usability tested*. Before Saturday morning, show the site to three trusted people outside the team (for example a forestry or geography student, a family member, a classmate from another department). Give each one task, watch silently, and write down where they hesitated.
+
+| Tester (role only, no names of anyone under 18) | Task | Where they hesitated | What we changed |
+| :--- | :--- | :--- | :--- |
+| | "Was March 2021 an unusual fire month?" | | |
+| | "Which district should a ranger check first in April 2014?" | | |
+| | "Why don't fires really triple in 2012?" | | |
+
+Only write what really happened. One honest line here is worth more than a long claim.
 
 ---
 
