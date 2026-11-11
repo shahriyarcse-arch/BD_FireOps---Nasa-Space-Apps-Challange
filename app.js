@@ -1566,13 +1566,18 @@ function describeFeed(feed) {
 
 // Archive context for the window's calendar month: the honest comparison.
 function monthContext(feed) {
+  // Compare like with like: the live points are raw 375 m VIIRS detections, so the
+  // yardstick is the raw S-NPP VIIRS archive (also 375 m), not the MODIS-scale record.
   const end = feed && feed.window_end ? new Date(feed.window_end + 'T00:00:00Z') : null;
   if (!end || isNaN(end)) return null;
   const mn = end.getUTCMonth() + 1;
-  const vals = CHT_SERIES.filter((r) => r.mn === mn && r.harm != null).map((r) => Math.max(0, r.harm));
-  if (!vals.length) return null;
-  const mean = vals.reduce((a, b) => a + b, 0) / vals.length;
-  return { month: MONTH_SHORT[mn - 1], mean, years: vals.length };
+  const rows = CHT_SERIES.filter((r) => r.mn === mn && r.viirs != null);
+  if (!rows.length) return null;
+  const mean = rows.reduce((a, r) => a + Math.max(0, r.viirs), 0) / rows.length;
+  const days = new Date(Date.UTC(end.getUTCFullYear(), mn, 0)).getUTCDate();
+  const win = feed.window_days || 5;
+  return { month: MONTH_SHORT[mn - 1], mean, perWindow: mean * win / days, win,
+           y0: Math.min(...rows.map((r) => r.y)), y1: Math.max(...rows.map((r) => r.y)) };
 }
 
 // =============================================================================
@@ -1620,7 +1625,7 @@ function renderNow() {
   set('now-updated', tm ? fmtAgo(tm.ageH) : '—');
   set('now-next', tm ? (tm.overdue ? 'Overdue — showing the last good snapshot' : (tm.next > Date.now() ? 'in about ' + Math.min(REFRESH_HOURS, Math.max(1, Math.round((tm.next - Date.now()) / 3600000))) + ' h' : 'due now')) : '—');
   const ctx = monthContext(feed);
-  set('now-context', ctx ? `For context: across 2002–2021 an average ${ctx.month} had about <strong>${Math.round(ctx.mean)}</strong> hotspot${Math.round(ctx.mean) === 1 ? '' : 's'} for the <em>whole month</em>. Burning season is March–April.` : '', true);
+  set('now-context', ctx ? `For context: in ${ctx.y0}–${ctx.y1} the same kind of 375 m VIIRS camera saw about <strong>${Math.round(ctx.mean)}</strong> hotspots in an average ${ctx.month}, roughly <strong>${ctx.perWindow < 1 ? 'one or fewer' : Math.round(ctx.perWindow)}</strong> per ${ctx.win} days. Burning season is March–April.` : '', true);
   const list = (feed && feed.detections) || [];
   set('now-list', list.slice().sort((a, b) => String(b.acq_date).localeCompare(String(a.acq_date))).slice(0, 6).map((d) =>
     `<li><span class="nl-date">${escapeHtml(fmtDate(d.acq_date))}</span><span class="nl-place">${escapeHtml(d.district)}</span><span class="nl-sat">${escapeHtml((d.sensor_label || '').replace(' VIIRS 375 m', ''))}</span><span class="nl-frp">${escapeHtml(d.frp)} MW</span></li>`).join(''), true);
@@ -2422,61 +2427,72 @@ const PATHS = {
 const PATH = { key: null, idx: 0 };
 
 function setPath(key) {
-  const list = document.getElementById('who-path'), pill = document.getElementById('path-pill');
+  const pill = document.getElementById('path-pill');
   document.querySelectorAll('.who-chip').forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.path === key)));
   document.querySelectorAll('.on-path').forEach((s) => { s.classList.remove('on-path'); s.removeAttribute('data-step'); });
-  PATH.key = PATHS[key] ? key : null; PATH.idx = -1;
-  if (!PATH.key) { if (list) list.hidden = true; if (pill) pill.hidden = true; return; }
+  PATH.key = PATHS[key] ? key : null; PATH.idx = 0;
+  if (!PATH.key) {
+    if (pill) pill.hidden = true;
+    try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) { /* ignore */ }
+    return;
+  }
   const p = PATHS[key];
   p.steps.forEach((id, i) => { const s = document.getElementById(id); if (s) { s.classList.add('on-path'); s.dataset.step = (i + 1) + '/' + p.steps.length + ' · ' + p.name; } });
-  if (list) {
-    list.innerHTML = p.steps.map((id, i) => '<li><a href="#' + id + '"><span>' + (i + 1) + '</span>' + SECTION_LABELS[id] + '</a></li>').join('');
-    list.hidden = false;
-  }
-  try { history.replaceState(null, '', location.pathname + '?view=' + key + location.hash); } catch (e) { /* ignore */ }
+  try { history.replaceState(null, '', location.pathname + '?view=' + key); } catch (e) { /* ignore */ }
+  goToStep(0);
+}
+
+function goToStep(i) {
+  const p = PATHS[PATH.key]; if (!p) return;
+  PATH.idx = Math.max(0, Math.min(p.steps.length - 1, i));
+  PATH.lock = Date.now() + 1400;            // don't let scroll-follow fight the jump
   updatePill();
+  scrollToSection(document.getElementById(p.steps[PATH.idx]));
 }
 
 function updatePill() {
   const pill = document.getElementById('path-pill');
   if (!pill || !PATH.key) return;
   const p = PATHS[PATH.key], last = PATH.idx >= p.steps.length - 1;
-  document.getElementById('path-pill-txt').textContent = PATH.idx < 0
-    ? p.name + ' · ' + p.steps.length + ' stops'
-    : p.name + ' · ' + (PATH.idx + 1) + ' of ' + p.steps.length + ' · ' + SECTION_LABELS[p.steps[PATH.idx]];
-  document.getElementById('path-pill-next').textContent = PATH.idx < 0 ? 'Start: ' + SECTION_LABELS[p.steps[0]]
-    : last ? 'Done' : 'Next: ' + SECTION_LABELS[p.steps[PATH.idx + 1]];
+  document.getElementById('path-pill-txt').textContent = p.name + ' · ' + (PATH.idx + 1) + ' of ' + p.steps.length + ' · ' + SECTION_LABELS[p.steps[PATH.idx]];
+  document.getElementById('path-pill-next').textContent = last ? 'Finish' : 'Next: ' + SECTION_LABELS[p.steps[PATH.idx + 1]];
+  document.getElementById('path-pill-prev').disabled = PATH.idx === 0;
+  document.getElementById('path-pill-fill').style.width = Math.round(100 * (PATH.idx + 1) / p.steps.length) + '%';
   pill.hidden = false;
 }
 
 function initPaths() {
-  document.querySelectorAll('.who-chip').forEach((c) => c.addEventListener('click', () => {
-    const k = c.dataset.path;
-    if (PATH.key === k) { setPath(null); return; }
-    setPath(k);
-  }));
+  document.querySelectorAll('.who-chip').forEach((c) => c.addEventListener('click', () => setPath(c.dataset.path)));
   document.getElementById('path-pill-next').addEventListener('click', () => {
     const p = PATHS[PATH.key]; if (!p) return;
-    if (PATH.idx >= p.steps.length - 1) { setPath(null); scrollToSection(document.getElementById('who')); return; }
-    PATH.idx += 1; updatePill(); scrollToSection(document.getElementById(p.steps[PATH.idx]));
+    if (PATH.idx >= p.steps.length - 1) {
+      const k = PATH.key; setPath(null);
+      const chip = document.querySelector('.who-chip[data-path="' + k + '"]');
+      scrollToSection(document.getElementById('who'));
+      if (chip) { try { chip.focus({ preventScroll: true }); } catch (e) { /* ignore */ } }
+      return;
+    }
+    goToStep(PATH.idx + 1);
   });
+  document.getElementById('path-pill-prev').addEventListener('click', () => goToStep(PATH.idx - 1));
   document.getElementById('path-pill-x').addEventListener('click', () => setPath(null));
-  // Follow the reader: whichever path section is in view becomes the current step.
+  document.addEventListener('keydown', (e) => {
+    if (!PATH.key || /INPUT|SELECT|TEXTAREA/.test(e.target.tagName || '')) return;
+    if (e.key === 'ArrowRight') goToStep(PATH.idx + 1);
+    else if (e.key === 'ArrowLeft') goToStep(PATH.idx - 1);
+    else if (e.key === 'Escape') setPath(null);
+  });
+  // Follow the reader if they scroll on their own.
   if ('IntersectionObserver' in window) {
     const io = new IntersectionObserver((ents) => ents.forEach((en) => {
-      if (!en.isIntersecting || !PATH.key) return;
+      if (!en.isIntersecting || !PATH.key || Date.now() < (PATH.lock || 0)) return;
       const i = PATHS[PATH.key].steps.indexOf(en.target.id);
       if (i >= 0 && i !== PATH.idx) { PATH.idx = i; updatePill(); }
     }), { rootMargin: '-40% 0px -50% 0px' });
     Object.keys(SECTION_LABELS).forEach((id) => { const s = document.getElementById(id); if (s) io.observe(s); });
   }
-  // While the chooser itself is on screen its own list is the start, so the pill steps aside.
-  const who = document.getElementById('who'), pill = document.getElementById('path-pill');
-  if (who && pill && 'IntersectionObserver' in window) {
-    new IntersectionObserver((ents) => pill.classList.toggle('tucked', ents[0].isIntersecting), { threshold: 0.15 }).observe(who);
-  }
   const v = new URLSearchParams(location.search).get('view');
-  if (PATHS[v]) setPath(v);
+  if (PATHS[v]) setTimeout(() => setPath(v), 300);
 }
 
 // Sections ease in once as they enter the viewport.

@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BD-FireOps · Real-Time &amp; 20-Year Fire Monitoring for Bangladesh Hills</title>
+  <title>BD-FireOps · 20-Year NASA Satellite Fire Record for Bangladesh Hills</title>
   <meta name="description" content="One 20-year fire record for the Bangladesh hills, built from NASA MODIS and VIIRS satellite data. NASA Space Apps Challenge 2026.">
   <meta name="theme-color" content="#060913">
   <meta property="og:type" content="website">
-  <meta property="og:title" content="BD-FireOps · Real-Time &amp; 20-Year Fire Monitoring for Bangladesh Hills">
+  <meta property="og:title" content="BD-FireOps · Continuous Fire Record for Bangladesh Hills">
   <meta property="og:description" content="One continuous 20-year record of satellite fire detections in the Chittagong Hill Tracts, Bangladesh. NASA Space Apps Challenge 2026.">
   <meta name="twitter:card" content="summary_large_image">
   <meta property="og:image" content="https://raw.githubusercontent.com/shahriyarcse-arch/BD_FireOps---Nasa-Space-Apps-Challange/main/data/processed/chart_b_harmonized_splice.png">
@@ -110,7 +110,6 @@
               <span><b>NASA judge</b><small>The full case, briefly</small></span>
             </button>
           </div>
-          <ol class="who-path" id="who-path" aria-live="polite" hidden></ol>
           <p class="who-or small muted">Or just scroll: <a href="#now">right now</a> · <a href="#season">check a season</a> · <a href="#continuity" id="see-proof">see the proof</a></p>
         </div>
 
@@ -883,8 +882,10 @@ Join the two satellites' counts directly and fires look almost 2.85× higher aft
 
   </main>
 
-  <div class="path-pill" id="path-pill" hidden>
-    <span class="path-pill-txt" id="path-pill-txt"></span>
+  <div class="path-pill" id="path-pill" role="region" aria-label="Guided path" hidden>
+    <span class="path-pill-bar" aria-hidden="true"><span id="path-pill-fill"></span></span>
+    <button type="button" class="path-pill-prev" id="path-pill-prev" aria-label="Previous step">&larr;</button>
+    <span class="path-pill-txt" id="path-pill-txt" aria-live="polite"></span>
     <button type="button" class="path-pill-next" id="path-pill-next">Next</button>
     <button type="button" class="path-pill-x" id="path-pill-x" aria-label="Leave this path">&times;</button>
   </div>
