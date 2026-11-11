@@ -2009,7 +2009,7 @@ body[data-path] .topnav a { display: inline-flex; align-items: center; gap: 7px;
 .path-card {
   font: inherit; text-align: left; cursor: pointer; display: grid; gap: 6px; align-content: start;
   padding: 18px 18px 16px; border-radius: 18px; border: 1px solid var(--line); background: var(--bg-card);
-  color: var(--ink); box-shadow: var(--shadow-sm);
+  color: var(--ink); box-shadow: var(--shadow-sm); text-decoration: none;
   transition: transform .25s cubic-bezier(.2,.7,.2,1), box-shadow .25s, border-color .25s;
 }
 .path-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); border-color: var(--line-strong); }
