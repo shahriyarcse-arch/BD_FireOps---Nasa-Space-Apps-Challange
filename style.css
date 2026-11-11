@@ -2353,3 +2353,12 @@ button, [role="button"], summary, .path-card, .year-pill, .layer-toggle-btn, .vi
 [data-theme="light"] { --blue: #0062c4; }
 [data-theme="light"] .ba-tag.bad { color: #b42318; background: #fde7e7; }
 [data-theme="light"] .ba-tag.good { color: #0b4f9c; background: #e3effb; }
+
+/* v8 · very small phones (320–360px) */
+@media (max-width: 360px) {
+  .calendar-bars { grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 3px; }
+  .cal-col, .cal-track { min-width: 0; }
+  .cal-val, .cal-m { font-size: 0.62rem; letter-spacing: 0; }
+  .topbar-actions { gap: 4px; }
+  .topbar { padding-left: 10px; padding-right: 10px; }
+}
