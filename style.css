@@ -2367,7 +2367,7 @@ button, [role="button"], summary, .path-card, .year-pill, .layer-toggle-btn, .vi
    v9 · minimal layout + motion
    ============================================================ */
 /* remove what no longer exists on the page */
-.persona, .tour-dock { display: none !important; }
+.tour-dock { display: none !important; }
 
 /* scroll progress */
 .scroll-progress {
