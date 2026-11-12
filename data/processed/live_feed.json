@@ -1,9 +1,9 @@
 {
   "kind": "firms_nrt_snapshot",
   "status": "ok",
-  "fetched_at": "2026-11-11T13:59Z",
+  "fetched_at": "2026-11-12T00:27Z",
   "window_days": 5,
-  "window_end": "2026-11-11",
+  "window_end": "2026-11-12",
   "latest_acq_date": "2026-11-10",
   "bbox": "91.9,21.4,92.9,23.8",
   "study_area": "Chittagong Hill Tracts (Bandarban, Khagrachhari, Rangamati)",
@@ -12,9 +12,9 @@
       "label": "NOAA-20 VIIRS 375 m",
       "family": "viirs",
       "status": "ok",
-      "raw_rows": 3,
-      "kept_rows": 3,
-      "cht_rows": 1
+      "raw_rows": 1,
+      "kept_rows": 1,
+      "cht_rows": 0
     },
     "noaa21": {
       "label": "NOAA-21 VIIRS 375 m",
@@ -33,28 +33,15 @@
       "cht_rows": 0
     }
   },
-  "cht_count": 4,
-  "cht_viirs_count": 4,
+  "cht_count": 3,
+  "cht_viirs_count": 3,
   "cht_modis_count": 0,
   "by_district": {
-    "Rangamati": 2,
+    "Rangamati": 1,
     "Khagrachhari": 2
   },
   "note": "Provisional near-real-time detections. Not converted to MODIS-equivalent: the BD-FireOps calibration applies to monthly regional totals only.",
   "detections": [
-    {
-      "latitude": 22.91389,
-      "longitude": 92.08913,
-      "acq_date": "2026-11-07",
-      "acq_time": 716,
-      "satellite": "N20",
-      "confidence": "n",
-      "frp": 3.74,
-      "daynight": "D",
-      "district": "Rangamati",
-      "sensor_key": "noaa20",
-      "sensor_label": "NOAA-20 VIIRS 375 m"
-    },
     {
       "latitude": 23.10928,
       "longitude": 92.20343,
@@ -96,19 +83,6 @@
     }
   ],
   "outside_cht": [
-    {
-      "latitude": 22.09014,
-      "longitude": 92.12029,
-      "acq_date": "2026-11-07",
-      "acq_time": 716,
-      "satellite": "N20",
-      "confidence": "n",
-      "frp": 3.52,
-      "daynight": "D",
-      "district": "",
-      "sensor_key": "noaa20",
-      "sensor_label": "NOAA-20 VIIRS 375 m"
-    },
     {
       "latitude": 23.09525,
       "longitude": 92.78256,
