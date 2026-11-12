@@ -2504,9 +2504,6 @@ section.on-path { box-shadow: 0 0 0 1px color-mix(in srgb, var(--fire) 35%, tran
 @media (max-width: 360px) { .who-chips { grid-template-columns: 1fr; } }
 .hero h1 { font-size: clamp(2.2rem, 5.2vw, 4.2rem); }
 .who { margin-top: 28px; padding-top: 24px; }
-.who-or { margin: 14px 0 0; }
-.who-or a { color: var(--ink); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, var(--ink) 30%, transparent); }
-.who-or a:hover { text-decoration-color: var(--fire); }
 .path-pill { transition: opacity .3s ease, transform .3s ease; }
 .path-pill.tucked { opacity: 0; transform: translate(-50%, 24px); pointer-events: none; animation: none; }
 html body main .hero h1 { font-size: clamp(2.2rem, 5vw, 4rem); }
@@ -2521,5 +2518,4 @@ html body main .hero h1 { font-size: clamp(2.2rem, 5vw, 4rem); }
 .path-pill-bar span { display: block; height: 100%; width: 0; background: var(--fire); transition: width .4s cubic-bezier(.16,1,.3,1); }
 .path-pill-prev { border: 1px solid var(--line); background: transparent; color: var(--ink); width: 34px; height: 34px; border-radius: 50%; cursor: pointer; flex: none; font-size: 1rem; }
 .path-pill-prev:disabled { opacity: .35; cursor: default; }
-.who-or { margin-top: 14px; }
 @media (max-width: 520px) { .path-pill-txt { display: none; } }
