@@ -386,6 +386,25 @@ h3 { font-size: clamp(1.1rem, 2vw, 1.35rem); font-weight: 700; }
   background: var(--blue-soft);
 }
 
+.github-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-full);
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
+  background: transparent;
+  transition: all var(--dur) var(--ease);
+  text-decoration: none;
+}
+.github-nav-btn:hover {
+  border-color: var(--fire);
+  color: var(--fire);
+  background: color-mix(in srgb, var(--fire) 10%, transparent);
+}
+
 /* Mobile menu button (only visible ≤1024px where .topnav collapses) */
 .nav-toggle-btn {
   display: none;
