@@ -232,10 +232,10 @@ Only write what really happened. One honest line here is worth more than a long 
 
 | Name | Role |
 | :--- | :--- |
-| Shamim Shahriyar | Data & pipeline |
-| Tanjum Raisa | Web dashboard |
-| Rashedul Anik | Science validation & documentation |
-| Nusrat Alam Lamim | Story, video & presentation |
+| Shamim Shahriyar | Team lead |
+| Tanjum Raisa | Presenter / storyteller |
+| Nusrat Alam Lamim | Designer |
+| Md. Rashidul Islam | Developer |
 
 Also replace the dashed placeholders in the **Team** section of `index.html`. Under-18 members: no recognisable name, voice or face in any video or submission (Guide §10).
 

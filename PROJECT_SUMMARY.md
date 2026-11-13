@@ -5,7 +5,7 @@
 **Project Name:** BD-FireOps (Real-Time & 20-Year Fire Monitoring for Bangladesh Hills)  
 **Study Domain:** Chittagong Hill Tracts (Bandarban, Khagrachhari, Rangamati), Bangladesh  
 **Team:** Claude Fable 7.0 (Dhaka Local Chapter)  
-**Members:** Shamim Shahriyar, Tanjum Raisa, Rashedul Anik, Nusrat Alam Lamim  
+**Members:** Shamim Shahriyar (Team Lead), Tanjum Raisa (Presenter / Storyteller), Nusrat Alam Lamim (Designer), Md. Rashidul Islam (Developer)  
 
 ---
 
