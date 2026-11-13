@@ -5,8 +5,9 @@
 *.token
 *.secret
 
-# Video presentation scripts (kept local only, not pushed to GitHub)
+# Video presentation scripts and internal notes (kept local only, not pushed to GitHub)
 VIDEO_SCRIPT_*.md
+PROJECT_SUMMARY.md
 
 # Python artifacts
 __pycache__/

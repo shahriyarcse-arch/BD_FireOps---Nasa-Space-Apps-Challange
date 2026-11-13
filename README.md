@@ -380,4 +380,11 @@ In accordance with NASA Open Science principles, BD-FireOps explicitly documents
 * **NASA Earthdata:** *VIIRS I-Band 375 m Active Fire Data.* earthdata.nasa.gov/data/instruments/viirs/viirs-i-band-375-m-active-fire-data
 
 ---
+
+### Team Members & Contributions (Team Claude Fable 7.0 · Dhaka Local Chapter)
+* **Shamim Shahriyar** — Team Lead (American International University-Bangladesh)
+* **Tanjum Raisa** — Presenter / Storyteller (International University of Business Agriculture and Technology)
+* **Nusrat Alam Lamim** — Designer (Dhaka Commerce College)
+* **Md. Rashidul Islam** — Developer (American International University-Bangladesh)
+
 **Team Claude Fable 7.0** · NASA Space Apps Challenge 2026 · Dhaka, Bangladesh
