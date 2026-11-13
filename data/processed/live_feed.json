@@ -1,9 +1,9 @@
 {
   "kind": "firms_nrt_snapshot",
   "status": "ok",
-  "fetched_at": "2026-11-12T23:27Z",
+  "fetched_at": "2026-11-13T06:17Z",
   "window_days": 5,
-  "window_end": "2026-11-12",
+  "window_end": "2026-11-13",
   "latest_acq_date": "2026-11-12",
   "bbox": "91.9,21.4,92.9,23.8",
   "study_area": "Chittagong Hill Tracts (Bandarban, Khagrachhari, Rangamati)",
