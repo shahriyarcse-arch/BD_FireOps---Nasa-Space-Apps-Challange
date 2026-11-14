@@ -1,10 +1,10 @@
 {
   "kind": "firms_nrt_snapshot",
   "status": "ok",
-  "fetched_at": "2026-11-14T05:59Z",
+  "fetched_at": "2026-11-14T13:24Z",
   "window_days": 5,
   "window_end": "2026-11-14",
-  "latest_acq_date": "2026-11-13",
+  "latest_acq_date": "2026-11-14",
   "bbox": "91.9,21.4,92.9,23.8",
   "study_area": "Chittagong Hill Tracts (Bandarban, Khagrachhari, Rangamati)",
   "sources": {
@@ -12,16 +12,16 @@
       "label": "NOAA-20 VIIRS 375 m",
       "family": "viirs",
       "status": "ok",
-      "raw_rows": 3,
-      "kept_rows": 3,
-      "cht_rows": 3
+      "raw_rows": 4,
+      "kept_rows": 4,
+      "cht_rows": 4
     },
     "noaa21": {
       "label": "NOAA-21 VIIRS 375 m",
       "family": "viirs",
       "status": "ok",
-      "raw_rows": 1,
-      "kept_rows": 1,
+      "raw_rows": 3,
+      "kept_rows": 3,
       "cht_rows": 1
     },
     "modis": {
@@ -33,11 +33,11 @@
       "cht_rows": 0
     }
   },
-  "cht_count": 4,
-  "cht_viirs_count": 4,
+  "cht_count": 5,
+  "cht_viirs_count": 5,
   "cht_modis_count": 0,
   "by_district": {
-    "Rangamati": 2,
+    "Rangamati": 3,
     "Bandarban": 1,
     "Khagrachhari": 1
   },
@@ -83,6 +83,19 @@
       "sensor_label": "NOAA-20 VIIRS 375 m"
     },
     {
+      "latitude": 22.80418,
+      "longitude": 92.08947,
+      "acq_date": "2026-11-14",
+      "acq_time": 646,
+      "satellite": "N20",
+      "confidence": "n",
+      "frp": 4.34,
+      "daynight": "D",
+      "district": "Rangamati",
+      "sensor_key": "noaa20",
+      "sensor_label": "NOAA-20 VIIRS 375 m"
+    },
+    {
       "latitude": 23.32403,
       "longitude": 92.01492,
       "acq_date": "2026-11-10",
@@ -96,5 +109,32 @@
       "sensor_label": "NOAA-21 VIIRS 375 m"
     }
   ],
-  "outside_cht": []
+  "outside_cht": [
+    {
+      "latitude": 23.03223,
+      "longitude": 92.57972,
+      "acq_date": "2026-11-14",
+      "acq_time": 728,
+      "satellite": "N21",
+      "confidence": "n",
+      "frp": 3.44,
+      "daynight": "D",
+      "district": "",
+      "sensor_key": "noaa21",
+      "sensor_label": "NOAA-21 VIIRS 375 m"
+    },
+    {
+      "latitude": 23.79072,
+      "longitude": 92.34969,
+      "acq_date": "2026-11-14",
+      "acq_time": 728,
+      "satellite": "N21",
+      "confidence": "n",
+      "frp": 5.18,
+      "daynight": "D",
+      "district": "",
+      "sensor_key": "noaa21",
+      "sensor_label": "NOAA-21 VIIRS 375 m"
+    }
+  ]
 }
