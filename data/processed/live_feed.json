@@ -1,10 +1,10 @@
 {
   "kind": "firms_nrt_snapshot",
   "status": "ok",
-  "fetched_at": "2026-11-17T07:40Z",
+  "fetched_at": "2026-11-17T20:45Z",
   "window_days": 5,
   "window_end": "2026-11-17",
-  "latest_acq_date": "2026-11-16",
+  "latest_acq_date": "2026-11-17",
   "bbox": "91.9,21.4,92.9,23.8",
   "study_area": "Chittagong Hill Tracts (Bandarban, Khagrachhari, Rangamati)",
   "sources": {
@@ -12,17 +12,17 @@
       "label": "NOAA-20 VIIRS 375 m",
       "family": "viirs",
       "status": "ok",
-      "raw_rows": 6,
-      "kept_rows": 6,
+      "raw_rows": 7,
+      "kept_rows": 7,
       "cht_rows": 6
     },
     "noaa21": {
       "label": "NOAA-21 VIIRS 375 m",
       "family": "viirs",
       "status": "ok",
-      "raw_rows": 6,
-      "kept_rows": 6,
-      "cht_rows": 1
+      "raw_rows": 7,
+      "kept_rows": 7,
+      "cht_rows": 2
     },
     "modis": {
       "label": "Terra/Aqua MODIS 1 km",
@@ -33,12 +33,12 @@
       "cht_rows": 0
     }
   },
-  "cht_count": 7,
-  "cht_viirs_count": 7,
+  "cht_count": 8,
+  "cht_viirs_count": 8,
   "cht_modis_count": 0,
   "by_district": {
     "Bandarban": 3,
-    "Rangamati": 4
+    "Rangamati": 5
   },
   "note": "Provisional near-real-time detections. Not converted to MODIS-equivalent: the BD-FireOps calibration applies to monthly regional totals only.",
   "detections": [
@@ -132,9 +132,35 @@
       "district": "Rangamati",
       "sensor_key": "noaa21",
       "sensor_label": "NOAA-21 VIIRS 375 m"
+    },
+    {
+      "latitude": 22.79813,
+      "longitude": 92.07655,
+      "acq_date": "2026-11-17",
+      "acq_time": 631,
+      "satellite": "N21",
+      "confidence": "n",
+      "frp": 7.43,
+      "daynight": "D",
+      "district": "Rangamati",
+      "sensor_key": "noaa21",
+      "sensor_label": "NOAA-21 VIIRS 375 m"
     }
   ],
   "outside_cht": [
+    {
+      "latitude": 22.50162,
+      "longitude": 92.77984,
+      "acq_date": "2026-11-17",
+      "acq_time": 730,
+      "satellite": "N20",
+      "confidence": "n",
+      "frp": 2.65,
+      "daynight": "D",
+      "district": "",
+      "sensor_key": "noaa20",
+      "sensor_label": "NOAA-20 VIIRS 375 m"
+    },
     {
       "latitude": 23.03223,
       "longitude": 92.57972,
