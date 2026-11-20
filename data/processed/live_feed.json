@@ -1,9 +1,9 @@
 {
   "kind": "firms_nrt_snapshot",
   "status": "ok",
-  "fetched_at": "2026-11-19T20:25Z",
+  "fetched_at": "2026-11-20T06:54Z",
   "window_days": 5,
-  "window_end": "2026-11-19",
+  "window_end": "2026-11-20",
   "latest_acq_date": "2026-11-17",
   "bbox": "91.9,21.4,92.9,23.8",
   "study_area": "Chittagong Hill Tracts (Bandarban, Khagrachhari, Rangamati)",
@@ -20,8 +20,8 @@
       "label": "NOAA-21 VIIRS 375 m",
       "family": "viirs",
       "status": "ok",
-      "raw_rows": 5,
-      "kept_rows": 5,
+      "raw_rows": 4,
+      "kept_rows": 4,
       "cht_rows": 2
     },
     "modis": {
@@ -121,19 +121,6 @@
       "district": "",
       "sensor_key": "noaa20",
       "sensor_label": "NOAA-20 VIIRS 375 m"
-    },
-    {
-      "latitude": 21.48705,
-      "longitude": 92.8614,
-      "acq_date": "2026-11-15",
-      "acq_time": 709,
-      "satellite": "N21",
-      "confidence": "n",
-      "frp": 3.23,
-      "daynight": "D",
-      "district": "",
-      "sensor_key": "noaa21",
-      "sensor_label": "NOAA-21 VIIRS 375 m"
     },
     {
       "latitude": 21.42636,
