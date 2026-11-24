@@ -1,7 +1,7 @@
 {
   "kind": "firms_nrt_snapshot",
   "status": "empty",
-  "fetched_at": "2026-11-24T09:36Z",
+  "fetched_at": "2026-11-24T22:17Z",
   "window_days": 5,
   "window_end": "2026-11-24",
   "latest_acq_date": null,
