@@ -1532,7 +1532,7 @@ function updateMapHotspots(year) {
 //     regional totals, not a 5-day window.
 // =============================================================================
 // BEGIN:LIVE_SNAPSHOT
-const LIVE_SNAPSHOT = {"bbox":"91.9,21.4,92.9,23.8","by_district":{},"cht_count":0,"cht_modis_count":0,"cht_viirs_count":0,"detections":[],"fetched_at":"2026-11-25T08:07Z","kind":"firms_nrt_snapshot","latest_acq_date":null,"outside_cht":[],"sources":{"modis":{"cht_rows":0,"label":"Terra/Aqua MODIS 1 km","status":"ok"},"noaa20":{"cht_rows":0,"label":"NOAA-20 VIIRS 375 m","status":"ok"},"noaa21":{"cht_rows":0,"label":"NOAA-21 VIIRS 375 m","status":"ok"}},"status":"empty","window_days":5,"window_end":"2026-11-25"};
+const LIVE_SNAPSHOT = {"bbox":"91.9,21.4,92.9,23.8","by_district":{},"cht_count":0,"cht_modis_count":0,"cht_viirs_count":0,"detections":[],"fetched_at":"2026-11-25T21:32Z","kind":"firms_nrt_snapshot","latest_acq_date":null,"outside_cht":[],"sources":{"modis":{"cht_rows":0,"label":"Terra/Aqua MODIS 1 km","status":"ok"},"noaa20":{"cht_rows":0,"label":"NOAA-20 VIIRS 375 m","status":"ok"},"noaa21":{"cht_rows":0,"label":"NOAA-21 VIIRS 375 m","status":"ok"}},"status":"empty","window_days":5,"window_end":"2026-11-25"};
 // END:LIVE_SNAPSHOT
 
 let currentLiveFeed = (typeof LIVE_SNAPSHOT !== 'undefined') ? LIVE_SNAPSHOT : null;
